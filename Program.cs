@@ -55,6 +55,7 @@ builder.Services.AddScoped<ITwilioManager, TwilioManager>();
 builder.Services.Configure<Aws3Services>(builder.Configuration.GetSection("Aws3Services"));
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
 builder.Services.AddScoped<IUploadRepository, UploadRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

@@ -63,4 +63,9 @@ namespace MaxemusAPI.Models.Dtos
         public string? addressLongitude { get; set; }
         public string? addressLatitude { get; set; }
     }
+
+
+
+
+
 }

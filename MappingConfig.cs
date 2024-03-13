@@ -13,6 +13,11 @@ namespace MaxemusAPI
         {
             CreateMap<UserDTO, ApplicationUser>().ReverseMap();
             CreateMap<LoginResponseDTO, ApplicationUser>().ReverseMap();
+            CreateMap<DistributorDTO, ApplicationUser>().ReverseMap();
+            CreateMap<LoginResponseDTO,ApplicationUser>().ReverseMap();
+            CreateMap<DealerDetailDTO, DealerDetail>().ReverseMap();
+            CreateMap<DealerDetailDTO, ApplicationUser>().ReverseMap();
+            CreateMap<DistributorDTO, DistributorDetail>().ReverseMap();
             CreateMap<UserDetailDTO, ApplicationUser>().ReverseMap();
             CreateMap<ApplicationUser, UserRequestDTO>().ReverseMap();
             CreateMap<Notification, NotificationDTO>().ReverseMap();

@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+using MaxemusAPI;
+using MaxemusAPI.Models;
+
+namespace MaxemusAPI.Models
+{
+    public partial class MainCategory
+    {
+        public MainCategory()
+        {
+            SubCategory = new HashSet<SubCategory>();
+        }
+
+        public int MainCategoryId { get; set; }
+        public string MainCategoryName { get; set; } = null!;
+        public string? MainCategoryImage { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime ModifyDate { get; set; }
+
+        public virtual ICollection<SubCategory> SubCategory { get; set; }
+    }
+}

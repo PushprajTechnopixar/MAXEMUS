@@ -87,10 +87,10 @@
         }
         public enum Role
         {
-            Admin = 1,
-            SuperAdmin,
-            Vendor,
-            Customer
+            SuperAdmin = 1,
+            Admin,
+            Distributor,
+            Dealer
         }
         public enum Status
         {

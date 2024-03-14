@@ -13,5 +13,7 @@ namespace MaxemusAPI.Models
         public DateTime? ModifyDate { get; set; }
         public string? UserRole { get; set; }
         public string? CreatedBy { get; set; }
+
+       // public virtual AspNetUsers? CreatedByNavigation { get; set; }
     }
 }

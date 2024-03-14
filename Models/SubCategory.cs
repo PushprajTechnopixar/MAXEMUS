@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
 using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
     public partial class SubCategory
     {
+        public SubCategory()
+        {
+            Product = new HashSet<Product>();
+        }
+
         public int SubCategoryId { get; set; }
         public int MainCategoryId { get; set; }
         public string SubCategoryName { get; set; } = null!;
@@ -15,5 +19,6 @@ namespace MaxemusAPI.Models
         public DateTime ModifyDate { get; set; }
 
         public virtual MainCategory MainCategory { get; set; } = null!;
+        public virtual ICollection<Product> Product { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace MaxemusAPI.Models.Dtos
         public string Landmark { get; set; }
         public int StateId { get; set; }
         public string City { get; set; }
-        public string PinCode { get; set; }
+        public string PostalCode { get; set; }
         public string AddressLatitude { get; set; }
         public string AddressLongitude { get; set; }
         [Required] public string Password { get; set; }

@@ -68,6 +68,14 @@
             Others,
             NA
         }
+
+        public enum AddressType
+        {
+            Individual = 1,
+            Company,
+            Shipping,
+            Billing
+        }
         public enum bannerCategoryType
         {
             Male = 1,
@@ -118,12 +126,12 @@
         //     SalonBanner = 1,
         //     SalonCategoryBanner = 2
         // }
-        public enum AddressType
-        {
-            Home = 0,
-            Work = 1,
-            Other = 2
-        }
+        //public enum AddressType
+        //{
+        //    Home = 0,
+        //    Work = 1,
+        //    Other = 2
+        //}
         public enum AppointmentStatus
         {
             Pending = 0,

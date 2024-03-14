@@ -14,6 +14,6 @@ namespace MaxemusAPI.Models
         public DateTime CreateDate { get; set; }
         public DateTime? ModifyDate { get; set; }
 
-        // public virtual UserDetail User { get; set; } = null!;
+       // public virtual AspNetUsers User { get; set; } = null!;
     }
 }

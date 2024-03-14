@@ -52,6 +52,14 @@ namespace MaxemusAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            // modelBuilder.Ignore<IdentityUserLogin<string>>();
+            // modelBuilder.Ignore<IdentityUserRole<string>>();
+            // modelBuilder.Ignore<IdentityUserClaim<string>>();
+            // modelBuilder.Ignore<IdentityUserToken<string>>();
+            // modelBuilder.Ignore<IdentityUser<string>>();
+
+
             modelBuilder.Entity<AccessoriesVariants>(entity =>
             {
                 entity.HasNoKey();
@@ -61,14 +69,6 @@ namespace MaxemusAPI.Data
                     .HasForeignKey(d => d.ProductId)
                     .HasConstraintName("FK__Accessori__Produ__3E1D39E1");
             });
-
-
-            modelBuilder.Ignore<IdentityUserLogin<string>>();
-            modelBuilder.Ignore<IdentityUserRole<string>>();
-            modelBuilder.Ignore<IdentityUserClaim<string>>();
-            modelBuilder.Ignore<IdentityUserToken<string>>();
-            modelBuilder.Ignore<IdentityUser<string>>();
-
 
             modelBuilder.Entity<AudioVariants>(entity =>
             {
@@ -880,7 +880,7 @@ namespace MaxemusAPI.Data
                     .IsUnicode(false);
             });
 
-            OnModelCreatingPartial(modelBuilder);
+            base.OnModelCreating(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using static MaxemusAPI.Common.GlobalVariables;
 using Google.Api.Gax;
 using MaxemusAPI.Common;
+using Twilio.Http;
 
 namespace MaxemusAPI.Controllers
 {
@@ -50,9 +51,9 @@ namespace MaxemusAPI.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-        #region AddAdderess
+        #region AddAddress
         /// <summary>
-        ///  AddAddress for Dealer.
+        ///  AddAddress for Distributor.
         /// </summary>
         /// <returns></returns>
         [HttpPost]
@@ -90,23 +91,48 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
+            var distributorId = await _context.DistributorDetail.Where(u => u.UserId == currentUserId).Select(u => u.DistributorId).FirstOrDefaultAsync();
+            if (distributorId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "distributor.";
+                return Ok(_response);
+            }
 
+            var distributorAddress = await _context.DistributorAddress.FirstOrDefaultAsync(u => u.DistributorId == distributorId);
+            if (distributorAddress == null)
+            {
+                distributorAddress = new DistributorAddress
+                {
+                    DistributorId = distributorId,
+                    AddressType = model.AddressType,
+                    CountryId = userProfileDetail.CountryId,
+                    StateId = userProfileDetail.StateId,
+                    City = userProfileDetail.City,
+                    HouseNoOrBuildingName = model.HouseNoOrBuildingName,
+                    StreetAddress = model.StreetAddress,
+                    Landmark = model.Landmark,
+                    PostalCode = userProfileDetail.PostalCode,
+                    PhoneNumber = userProfileDetail.PhoneNumber
+                };
 
-            DistributorAddress distributorAddress = new DistributorAddress();
-        
+                _context.Add(distributorAddress);
+                await _context.SaveChangesAsync();
 
-            _mapper.Map(userProfileDetail, distributorAddress);
-            _mapper.Map(model, distributorAddress);
+                var response = _mapper.Map<DistributorAddressResponseDTO>(distributorAddress);
+                _mapper.Map(model, response);
 
-            _context.Add(distributorAddress);
-            await _context.SaveChangesAsync();
-
-            var response = _mapper.Map<DistributorAddressResponseDTO>(distributorAddress);
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = response;
+                _response.Messages = "address added successfully.";
+                return Ok(_response);
+            }
 
             _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Data = response;
-            _response.Messages = "Address added successfully.";
+            _response.IsSuccess = false;
+            _response.Messages = "address already exists.";
             return Ok(_response);
 
         }
@@ -116,95 +142,94 @@ namespace MaxemusAPI.Controllers
 
 
 
-        //#region AddOrUpdateProfile
-        ///// <summary>
-        /////  AddOrUpdateProfile for Dealer.
-        ///// </summary>
-        ///// <returns></returns>
-        //[HttpPost]
-        //[Route("AddOrUpdateProfile")]
-        //[Authorize(Roles = "Distributor")]
-        //public async Task<IActionResult> AddOrUpdateProfile([FromBody] DistributorDetailDTO model)
-        //{
-        //    string currentUserId = (HttpContext.User.Claims.First().Value);
-        //    if (string.IsNullOrEmpty(currentUserId))
-        //    {
-        //        _response.StatusCode = HttpStatusCode.OK;
-        //        _response.IsSuccess = false;
-        //        _response.Messages = "Token expired.";
-        //        return Ok(_response);
-        //    }
+        #region AddOrUpdateProfile
+        /// <summary>
+        ///  AddOrUpdateProfile for Distributor.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("AddOrUpdateProfile")]
+        [Authorize(Roles = "Distributor")]
+        public async Task<IActionResult> AddOrUpdateProfile([FromBody] DistributorDetailDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
 
-        //    var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
-        //    if (existingUser == null)
-        //    {
-        //        _response.StatusCode = HttpStatusCode.OK;
-        //        _response.IsSuccess = false;
-        //        _response.Messages = "not found any user.";
-        //        return Ok(_response);
-        //    }
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
 
-        //    if (model.DistributorId == 0)
-        //    {
-        //        var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
-        //        if (distributorDetail != null)
-        //        {
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = false;
-        //            _response.Messages = "profile is already present.";
-        //            return Ok(_response);
-        //        }
+            if (model.DistributorId == 0)
+            {
+                var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
+                if (distributorDetail == null)
+                {
+                    distributorDetail = new DistributorDetail
+                    {
+                        UserId = currentUserId,
+                        Name = existingUser.UserName,
+                        RegistrationNumber = model.RegistrationNumber,
+                        Description = model.Description,
+                        Image = model.Image
+                    };
 
-        //        distributorDetail.UserId = currentUserId;
-        //distributorDetail.AddressId = await _context.DistributorAddress.Where(u => u.DistributorId)
-        //distributorDetail.Name
-        //distributorDetail.RegistrationNumber
-        //distributorDetail.Description
-        //distributorDetail.Image
-        //distributorDetail.Status
-        //distributorDetail.IsDeleted
-        //distributorDetail.CreateDate
-        //distributorDetail.ModifyDate
+                    _context.Add(distributorDetail);
+                    await _context.SaveChangesAsync();
 
-        //_context.Add(distributorDetail);
-        //        await _context.SaveChangesAsync();
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Messages = "Profile added successfully.";
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Distributor detail already exists.";
+                    return Ok(_response);
+                }
+            }
+            else if (model.DistributorId > 0)
+            {
+                var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.DistributorId == model.DistributorId && u.UserId == currentUserId);
+                if (distributorDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Distributor detail not found.";
+                    return Ok(_response);
+                }
 
-        //        _response.StatusCode = HttpStatusCode.OK;
-        //        _response.IsSuccess = true;
-        //        _response.Messages = "Profile added successfully.";
-        //        return Ok(_response);
+                distributorDetail.Name = existingUser.UserName;
+                distributorDetail.RegistrationNumber = model.RegistrationNumber;
+                distributorDetail.Description = model.Description;
+                distributorDetail.Image = model.Image;
 
-        //    }
+                _context.Update(distributorDetail);
+                await _context.SaveChangesAsync();
 
-        //    if (model.DealerId > 0)
-        //    {
-        //        var dealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.DealerId == model.DealerId && u.UserId == currentUserId);
-        //        if (dealerDetail == null)
-        //        {
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = false;
-        //            _response.Messages = "not found any record.";
-        //            return Ok(_response);
-        //        }
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Profile updated successfully.";
+                return Ok(_response);
+            }
 
-        //        dealerDetail.Address1 = model.Address1;
-        //        dealerDetail.Address2 = model.Address2;
-
-        //        _context.Update(dealerDetail);
-        //        await _context.SaveChangesAsync();
-
-        //        _response.StatusCode = HttpStatusCode.OK;
-        //        _response.IsSuccess = true;
-        //        _response.Messages = "Profile updated successfully.";
-        //        return Ok(_response);
-
-        //    }
-
-        //    _response.StatusCode = HttpStatusCode.OK;
-        //    _response.IsSuccess = true;
-        //    _response.Messages = "profile added successfully.";
-        //    return Ok(_response);
-        //}
-        //#endregion
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "Profile added successfully.";
+            return Ok(_response);
+        }
+        #endregion
     }
 }

@@ -133,7 +133,51 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-    
+        #region GetProfileDetail
+        /// <summary>
+        ///  Get profile.
+        /// </summary>
+        [HttpPost]
+        [Route("GetProfileDetail")]
+        [Authorize(Roles = "Dealer")]
+        public async Task<IActionResult> GetProfileDetail()
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (userDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var mappedData = _mapper.Map<UserDetailDTO>(userDetail);
+
+            var userProfileDetail = await _context.ApplicationUsers.Where(u => u.Id == currentUserId).FirstOrDefaultAsync();
+            var updateProfile = _mapper.Map(userProfileDetail, mappedData);
+
+            var userCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == userProfileDetail.CountryId).FirstOrDefaultAsync();
+            var userStateDetail = await _context.StateMaster.Where(u => u.StateId == userProfileDetail.StateId).FirstOrDefaultAsync();
+            mappedData.countryName = userCountryDetail.CountryName;
+            mappedData.stateName = userStateDetail.StateName;
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = mappedData;
+            _response.Messages = "Detail" + ResponseMessages.msgShownSuccess;
+            return Ok(_response);
+        }
+        #endregion
+
+
 
     }
 }

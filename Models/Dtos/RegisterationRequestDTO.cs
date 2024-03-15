@@ -42,6 +42,8 @@ namespace MaxemusAPI.Models.Dtos
         public string phoneNumber { get; set; }
         public int countryId { get; set; }
         public int stateId { get; set; }
+        public string City { get; set; }
+        public string PostalCode { get; set; }
     }
 
     public class UpdateLiveLocationDTO

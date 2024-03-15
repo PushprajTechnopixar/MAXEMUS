@@ -529,7 +529,7 @@ namespace MaxemusAPI.Controllers
         /// <summary>
         ///  Get profile.
         /// </summary>
-        [HttpPost]
+        [HttpGet]
         [Route("GetProfileDetail")]
         public async Task<IActionResult> GetProfileDetail()
         {

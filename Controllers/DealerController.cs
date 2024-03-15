@@ -49,15 +49,15 @@ namespace MaxemusAPI.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-        #region AddOrUpdateProfile
+        #region AddOrUpdateAddress
         /// <summary>
         ///  AddOrUpdateProfile for Dealer.
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        [Route("AddOrUpdateProfile")]
+        [Route("AddOrUpdateAddress")]
         [Authorize(Roles = "Dealer")]
-        public async Task<IActionResult> AddOrUpdateProfile([FromBody] DealerProfileDTO model)
+        public async Task<IActionResult> AddOrUpdateAddress([FromBody] DealerProfileDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -137,7 +137,7 @@ namespace MaxemusAPI.Controllers
         /// <summary>
         ///  Get profile.
         /// </summary>
-        [HttpPost]
+        [HttpGet]
         [Route("GetProfileDetail")]
         [Authorize(Roles = "Dealer")]
         public async Task<IActionResult> GetProfileDetail()
@@ -177,7 +177,82 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
+        #region UpdateProfile
+        /// <summary>
+        ///  Update profile.
+        /// </summary>
+        [HttpPost]
+        [Route("UpdateProfile")]
+        [Authorize(Roles = "Dealer")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UserRequestDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (userDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+            if (model.email.ToLower() != userDetail.Email.ToLower())
+            {
+                var userProfile = await _context.ApplicationUsers.Where(u => u.Email == model.email && u.Id != currentUserId).FirstOrDefaultAsync();
+                if (userProfile != null)
+                {
+                    if (userProfile.Id != model.email)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Email already exists.";
+                        return Ok(_response);
+                    }
+                }
+            }
+            if (model.phoneNumber.ToLower() != userDetail.PhoneNumber.ToLower())
+            {
+                var userProfile = await _context.ApplicationUsers.Where(u => u.PhoneNumber == model.phoneNumber && u.Id != currentUserId).FirstOrDefaultAsync();
+                if (userProfile != null)
+                {
+                    if (userProfile.Id != model.email)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Phone number already exists.";
+                        return Ok(_response);
+                    }
+                }
+            }
+            if (Gender.Male.ToString() != model.gender && Gender.Female.ToString() != model.gender && Gender.Others.ToString() != model.gender)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Please enter valid gender.";
+                return Ok(_response);
+            }
 
+            var mappedData = _mapper.Map(model, userDetail);
+            _context.Update(userDetail);
+            await _context.SaveChangesAsync();
+
+            var userProfileDetail = await _context.ApplicationUsers.Where(u => u.Id == currentUserId).FirstOrDefaultAsync();
+            var updateProfile = _mapper.Map(model, userProfileDetail);
+            _context.ApplicationUsers.Update(updateProfile);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "Profile updated successfully.";
+            return Ok(_response);
+        }
+        #endregion
 
     }
 }

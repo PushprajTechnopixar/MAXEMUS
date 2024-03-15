@@ -19,6 +19,8 @@ namespace MaxemusAPI.Models.Dtos
         public string? deviceType { get; set; }
         public int countryId { get; set; }
         public int stateId { get; set; }
+        public string City { get; set; }
+        public string PostalCode { get; set; }
         [Required]
         public string password { get; set; }
         [Required]

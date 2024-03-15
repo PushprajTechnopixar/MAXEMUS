@@ -17,7 +17,7 @@ namespace MaxemusAPI.Models
         public string AddressType { get; set; } = null!;
         public int CountryId { get; set; }
         public int StateId { get; set; }
-        public int? City { get; set; }
+        public string City { get; set; }
         public string? HouseNoOrBuildingName { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }

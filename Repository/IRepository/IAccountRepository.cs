@@ -18,7 +18,6 @@ namespace MaxemusAPI.Repository.IRepository
         bool IsUniquePhone(string phoneNumber);
         Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO);
         Task<LoginResponseDTO> Register(RegisterationRequestDTO registerationRequestDTO);
-        Task<LoginResponseDTO> DistributorRegistration(DistributorDTO distributorDTO);
-        Task<LoginResponseDTO> DealerRegistration(DealerDetailDTO dealerDetailDTO);
+
     }
 }

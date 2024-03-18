@@ -62,7 +62,8 @@ namespace MaxemusAPI.Data
 
             modelBuilder.Entity<AccessoriesVariants>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(d => d.ProductId)
+                    .HasName("PK_AccessoriesVariants");
 
                 entity.HasOne(d => d.Product)
                     .WithMany()
@@ -793,7 +794,8 @@ namespace MaxemusAPI.Data
 
             modelBuilder.Entity<VideoVariants>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => e.VariantId)
+                    .HasName("PK_VideoVariants");
 
                 entity.Property(e => e.BitRateControl)
                     .HasMaxLength(50)

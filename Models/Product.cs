@@ -37,7 +37,7 @@ namespace MaxemusAPI.Models
         public string? Image5 { get; set; }
         public bool? IsActive { get; set; }
         public bool IsDeleted { get; set; }
-        public int RwardPoint { get; set; }
+        public int RewardPoint { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? ModifyDate { get; set; }
 

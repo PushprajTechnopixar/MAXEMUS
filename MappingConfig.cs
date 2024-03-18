@@ -58,12 +58,6 @@ namespace MaxemusAPI
             CreateMap<UpdateCategoryDTO, SubCategory>().ReverseMap();
 
 
-
-
-
-
-
-
             CreateMap<AdminResponseDTO, CompanyDetail>().ReverseMap();
             CreateMap<AdminResponseDTO, ApplicationUser>().ReverseMap();
             CreateMap<CompanyDetail, ApplicationUser>().ReverseMap();
@@ -71,6 +65,22 @@ namespace MaxemusAPI
             CreateMap<AdminCompanyDTO, ApplicationUser>().ReverseMap();
             CreateMap<AdminCompanyResponseDTO, CompanyDetail>().ReverseMap();
             CreateMap<AdminCompanyResponseDTO, ApplicationUser>().ReverseMap();
+
+            CreateMap<AddProductDTO, Product>().ReverseMap();
+            CreateMap<ProductResponseDTO, Product>().ReverseMap();
+
+            CreateMap<ProductVariantDTO, Product>().ReverseMap();
+            CreateMap<ProductVariantDTO, AccessoriesVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, AudioVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, CameraVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, CertificationVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, EnvironmentVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, GeneralVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, InstallationDocumentVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, LensVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, NetworkVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, PowerVariants>().ReverseMap();
+            CreateMap<ProductVariantDTO, VideoVariants>().ReverseMap();
 
 
 

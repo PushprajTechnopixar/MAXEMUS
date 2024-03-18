@@ -509,6 +509,7 @@ namespace MaxemusAPI.Controllers
             {
                 ProductId = product.ProductId,
             };
+            _mapper.Map(model, accessoriesVariants);
             _context.Add(accessoriesVariants);
             await _context.SaveChangesAsync();
 

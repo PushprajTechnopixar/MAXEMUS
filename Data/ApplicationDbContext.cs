@@ -62,13 +62,17 @@ namespace MaxemusAPI.Data
 
             modelBuilder.Entity<AccessoriesVariants>(entity =>
             {
-                entity.HasKey(d => d.ProductId)
-                    .HasName("PK_AccessoriesVariants");
+                entity.HasKey(e => e.ProductId)
+                    .HasName("PK__Accessor__B40CC6CD2726A3EF");
+
+                entity.Property(e => e.ProductId).ValueGeneratedNever();
+
+                entity.Property(e => e.AccessoryId).ValueGeneratedOnAdd();
 
                 entity.HasOne(d => d.Product)
                     .WithMany()
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__Accessori__Produ__3E1D39E1");
+                    .HasConstraintName("FK_AccessoriesVariants_Product");
             });
 
             modelBuilder.Entity<AudioVariants>(entity =>

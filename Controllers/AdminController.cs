@@ -17,6 +17,7 @@ using Amazon.Pinpoint;
 using System.ComponentModel.Design;
 using Twilio.Types;
 using static MaxemusAPI.Common.GlobalVariables;
+using Twilio.Http;
 
 namespace MaxemusAPI.Controllers
 {
@@ -283,5 +284,850 @@ namespace MaxemusAPI.Controllers
             return Ok(_response);
         }
         #endregion
+
+        #region AddBrand
+        /// <summary>
+        /// Add brand.
+        /// </summary>
+        [HttpPost]
+        [Route("AddBrand")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> AddBrand(AddBrandDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var brand = _mapper.Map<Brand>(model);
+                var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => u.BrandName.ToLower() == brand.BrandName.ToLower());
+                if (isBrandExist != null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Data = new Object { };
+                    _response.Messages = "Brand name already exists.";
+                    return Ok(_response);
+                }
+
+                brand.BrandName = model.BrandName;
+                _context.Brand.Add(brand);
+                await _context.SaveChangesAsync();
+
+                var getBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == brand.BrandId);
+
+                if (getBrand != null)
+                {
+                    var brandDetail = _mapper.Map<BrandDTO>(getBrand);
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = brandDetail;
+                    _response.Messages = "Brand" + ResponseMessages.msgAdditionSuccess;
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Data = new Object { };
+                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
+                    return Ok(_response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Data = new { };
+                _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region UpdateBrand
+        /// <summary>
+        /// Update brand.
+        /// </summary>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Route("UpdateBrand")]
+        [Authorize]
+        public async Task<IActionResult> UpdateBrand(UpdateBrandDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => (u.BrandName.ToLower() == model.BrandName.ToLower()
+                && (u.BrandId != model.BrandId)));
+                if (isBrandExist != null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Data = new Object { };
+                    _response.Messages = "Brand name already exists.";
+                    return Ok(_response);
+                }
+
+                var updteBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == model.BrandId);
+                _mapper.Map(model, updteBrand);
+
+                _context.Brand.Update(updteBrand);
+                await _context.SaveChangesAsync();
+
+                if (updteBrand != null)
+                {
+                    var brandDetail = _mapper.Map<BrandDTO>(updteBrand);
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = brandDetail;
+                    _response.Messages = "Brand" + ResponseMessages.msgUpdationSuccess;
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Data = new Object { };
+                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
+                    return Ok(_response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Data = new { };
+                _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region GetBrandDetail
+        /// <summary>
+        /// Get brand.
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Route("GetBrandDetail")]
+        [Authorize]
+        public async Task<IActionResult> GetBrandDetail(int brandId)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var getBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == brandId);
+
+                if (getBrand != null)
+                {
+                    var brandDetail = _mapper.Map<BrandDTO>(getBrand);
+                    brandDetail.CreateDate = Convert.ToDateTime(brandDetail.CreateDate).ToString(@"dd-MM-yyyy");
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = brandDetail;
+                    _response.Messages = "Brand detail" + ResponseMessages.msgShownSuccess;
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Data = new Object { };
+                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
+                    return Ok(_response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Data = new { };
+                _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region GetBrandList
+        /// <summary>
+        ///  Get brand list.
+        /// </summary>
+        [HttpGet]
+        [Route("GetBrandList")]
+        [Authorize]
+        public async Task<IActionResult> GetBrandList([FromQuery] NullableFilterationListDTO? model, string? CreatedBy)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+            
+                var brandList = _context.Brand.Select(item => new BrandListDTO
+                {
+                    BrandId = item.BrandId,
+                    BrandName = item.BrandName,
+                    CreateDate = item.CreateDate != null ? Convert.ToDateTime(item.CreateDate).ToString("dd-MM-yyyy") : null,
+                    BrandImage = item.BrandImage
+                }).OrderBy(u => u.BrandName).ToList();
+
+                if (!string.IsNullOrEmpty(model.searchQuery))
+                {
+                    brandList = brandList.Where(u => u.BrandName.ToLower().StartsWith(model.searchQuery.ToLower())
+                    ).ToList();
+                }
+
+                if (model.pageNumber > 0 && model.pageSize > 0)
+                {
+                    // Get's No of Rows Count   
+                    int count = brandList.Count();
+
+                    // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
+                    int? CurrentPage = model.pageNumber;
+
+                    // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
+                    int? PageSize = model.pageSize;
+
+                    // Display TotalCount to Records to User  
+                    int? TotalCount = count;
+
+                    // Calculating Totalpage by Dividing (No of Records / Pagesize)  
+                    int? TotalPages = (int)Math.Ceiling(count / (double)PageSize);
+
+                    // Returns List of Customer after applying Paging   
+                    var items = brandList.Skip((int)((CurrentPage - 1) * PageSize)).Take((int)PageSize).ToList();
+
+                    // if CurrentPage is greater than 1 means it has previousPage  
+                    var previousPage = CurrentPage > 1 ? "Yes" : "No";
+
+                    // if TotalPages is greater than CurrentPage means it has nextPage  
+                    var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
+
+                    // Returing List of Customers Collections  
+                    FilterationResponseModel<BrandListDTO> obj = new FilterationResponseModel<BrandListDTO>();
+                    obj.totalCount = (int)TotalCount;
+                    obj.pageSize = (int)PageSize;
+                    obj.currentPage = (int)CurrentPage;
+                    obj.totalPages = (int)TotalPages;
+                    obj.previousPage = previousPage;
+                    obj.nextPage = nextPage;
+                    obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
+                    obj.dataList = items.ToList();
+
+                    if (obj == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgSomethingWentWrong;
+                        return Ok(_response);
+                    }
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = obj;
+                    _response.Messages = "Brand list shown successfully.";
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = brandList;
+                    _response.Messages = "Brand list shown successfully.";
+                    return Ok(_response);
+                }
+            }
+            catch (System.Exception ex)
+            {
+
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Data = new { };
+                _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region DeleteBrand
+        /// <summary>
+        /// Delete brand.
+        /// </summary>
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Route("DeleteBrand")]
+        [Authorize]
+        public async Task<IActionResult> DeleteBrand(int brandId)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var getBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == brandId);
+
+                if (getBrand != null)
+                {
+                    var getProduct = _context.Product.Where(u => u.BrandId == brandId).FirstOrDefault();
+                    if (getProduct != null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Can't delete, product is listed on this brand.";
+                        return Ok(_response);
+                    }
+                    _context.Brand.Remove(getBrand);
+                    await _context.SaveChangesAsync();
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Messages = "Brand" + ResponseMessages.msgDeletionSuccess;
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Data = new Object { };
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Data = new { };
+                _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region AddCategory
+        /// <summary>
+        ///  Add category.
+        /// </summary>
+        [HttpPost("AddCategory")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> AddCategory([FromBody] AddCategoryDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (currentUserDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                if (model.MainCategoryId == 0)
+                {
+                    var mainCategoryExists = await _context.MainCategory.AnyAsync(u => u.MainCategoryName.ToLower() == model.CategoryName.ToLower());
+                    if (mainCategoryExists)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "mainCategory name already exists.";
+                        return Ok(_response);
+                    }
+
+                    var newMainCategory = new MainCategory
+                    {
+                        MainCategoryName = model.CategoryName,
+                        CreateDate = DateTime.Now
+                    };
+
+                    _context.Add(newMainCategory);
+                    await _context.SaveChangesAsync();
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Messages = "mainCategory added successfully.";
+                    return Ok(_response);
+                }
+
+                if (model.MainCategoryId > 0)
+                {
+                    var mainCategory = await _context.MainCategory.FindAsync(model.MainCategoryId);
+                    if (mainCategory == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "mainCategory not found.";
+                        return Ok(_response);
+                    }
+
+                    var subCategoryExists = await _context.SubCategory.AnyAsync(u => u.SubCategoryName.ToLower() == model.CategoryName.ToLower());
+                    if (!subCategoryExists)
+                    {
+                        var newSubCategory = new SubCategory
+                        {
+                            MainCategoryId = model.MainCategoryId,
+                            SubCategoryName = model.CategoryName,
+                            CreateDate = DateTime.Now
+                        };
+
+                        _context.Add(newSubCategory);
+                        await _context.SaveChangesAsync();
+
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = true;
+                        _response.Messages = "subCategory added successfully.";
+                        return Ok(_response);
+                    }
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "subCategory name already exists.";
+                    return Ok(_response);
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Invalid MainCategoryId.";
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region UpdateCategory
+        /// <summary>
+        ///  Update category.
+        /// </summary>
+        [HttpPost("UpdateCategoryDTO")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> UpdateProductCategory([FromBody] UpdateCategoryDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (currentUserDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+
+                if (model.MainCategoryId > 0)
+                {
+                    if (model.SubCategoryId > 0)
+                    {
+                        var subCategory = await _context.SubCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId && u.SubCategoryId == model.SubCategoryId);
+                        if (subCategory != null)
+                        {
+                            subCategory.SubCategoryName = model.CategoryName;
+                            subCategory.CreateDate = DateTime.Now;
+
+                            _context.Update(subCategory);
+                            await _context.SaveChangesAsync();
+
+                            _response.StatusCode = HttpStatusCode.OK;
+                            _response.IsSuccess = true;
+                            _response.Messages = "subCategory updated successfully.";
+                            return Ok(_response);
+                        }
+                    }
+                    else
+                    {
+                        var mainCategory = await _context.MainCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId);
+                        if (mainCategory != null)
+                        {
+                            mainCategory.MainCategoryName = model.CategoryName;
+                            mainCategory.CreateDate = DateTime.Now;
+
+                            _context.Update(mainCategory);
+                            await _context.SaveChangesAsync();
+
+                            _response.StatusCode = HttpStatusCode.OK;
+                            _response.IsSuccess = true;
+                            _response.Messages = "mainCategory updated successfully.";
+                            return Ok(_response);
+                        }
+                    }
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region GetCategoryList
+        /// <summary>
+        ///  Get category list.
+        /// </summary>
+        [HttpGet("GetCategoryList")]
+        [Authorize]
+        public async Task<IActionResult> GetCategoryList([FromQuery] GetCategoryRequestDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (currentUserDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                if (model.MainCategoryId > 0)
+                {
+                    var subCategories = await _context.SubCategory.Where(u => u.MainCategoryId == model.MainCategoryId).ToListAsync();
+
+                    if (subCategories.Count > 0)
+                    {
+                        var response = new List<CategoryDTO>();
+
+                        foreach (var item in subCategories)
+                        {
+                            var categoryDTO = new CategoryDTO
+                            {
+                                MainCategoryId = item.MainCategoryId,
+                                SubCategoryId = item.SubCategoryId,
+                                CategoryName = item.SubCategoryName,
+                                CategoryImage = item.SubCategoryImage,
+                                CreateDate = item.CreateDate.ToString("dd-MM-yyyy")
+                            };
+
+                            response.Add(categoryDTO);
+                        }
+
+
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = true;
+                        _response.Data = response;
+                        _response.Messages = "subcategories list shown successfully.";
+
+                        return Ok(_response);
+                    }
+                    else
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "No subcategories found for the specified mainCategoryId.";
+                    }
+
+                    return Ok(_response);
+                }
+                else
+                {
+                    var mainCategories = await _context.MainCategory.ToListAsync();
+
+                    var response = _mapper.Map<List<CategoryDTO>>(mainCategories);
+
+                    foreach (var item in response)
+                    {
+                        var mainCategory = mainCategories.FirstOrDefault(u => u.MainCategoryId == item.MainCategoryId);
+                        if (mainCategory != null)
+                        {
+                            item.CategoryName = mainCategory.MainCategoryName;
+                            item.CategoryImage = mainCategory.MainCategoryImage;
+                            item.CreateDate = mainCategory.CreateDate.ToString("dd-MM-yyyy");
+                        }
+                    }
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = response;
+                    _response.Messages = "Category detail shown successfully.";
+
+                    return Ok(_response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region GetCategoryDetail
+        /// <summary>
+        ///  Get category Detail.
+        /// </summary>
+        [HttpGet("GetCategoryDetail")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> GetCategoryDetail([FromQuery] GetCategoryDetailRequestDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (currentUserDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                CategoryDTO category = null;
+                if (model.SubCategoryId > 0)
+                {
+                    var subCategoryDetail = await _context.SubCategory.FirstOrDefaultAsync(u => u.SubCategoryId == model.SubCategoryId);
+                    if (subCategoryDetail == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.NotFound;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    category = _mapper.Map<CategoryDTO>(subCategoryDetail);
+
+                    category.CategoryName = subCategoryDetail.SubCategoryName;
+                    category.CategoryImage = subCategoryDetail.SubCategoryImage;
+                    category.CreateDate = subCategoryDetail.CreateDate.ToString("dd-MM-yyyy");
+                }
+                else if (model.MainCategoryId > 0)
+                {
+                    var mainCategoryDetail = await _context.MainCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId);
+                    if (mainCategoryDetail == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    category = _mapper.Map<CategoryDTO>(mainCategoryDetail);
+
+                    category.CategoryName = mainCategoryDetail.MainCategoryName;
+                    category.CategoryImage = mainCategoryDetail.MainCategoryImage;
+                    category.CreateDate = mainCategoryDetail.CreateDate.ToString("dd-MM-yyyy");
+                }
+
+                if (category != null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = category;
+                    _response.Messages = "category detail shown successfully.";
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "No category detail found.";
+                }
+
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region DeleteCategory
+        /// <summary>
+        ///  Delete category.
+        /// </summary>
+        [HttpDelete("DeleteCategory")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> DeleteCategory([FromQuery] DeleteCategoryDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (currentUserDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                if (model.SubCategoryId > 0 && model.MainCategoryId > 0)
+                {
+                    var subCategory = await _context.SubCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId && u.SubCategoryId == model.SubCategoryId);
+                    if (subCategory == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    _context.Remove(subCategory);
+                    await _context.SaveChangesAsync();
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Messages = "Subcategory deleted successfully.";
+                    return Ok(_response);
+                }
+                else if (model.MainCategoryId > 0)
+                {
+                    var mainCategory = await _context.MainCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId);
+                    if (mainCategory == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    _context.Remove(mainCategory);
+
+                    var subCategories = await _context.SubCategory.Where(u => u.MainCategoryId == model.MainCategoryId).ToListAsync();
+                    if (subCategories == null || subCategories.Count == 0)
+                    {
+                        await _context.SaveChangesAsync();
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = true;
+                        _response.Messages = "MainCategory deleted successfully.";
+                        return Ok(_response);
+                    }
+
+                    _context.RemoveRange(subCategories);
+                    await _context.SaveChangesAsync();
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Messages = "MainCategory and its Subcategories deleted successfully.";
+                    return Ok(_response);
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Invalid request.";
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+
+
+
+
+
     }
 }

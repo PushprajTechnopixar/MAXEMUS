@@ -35,6 +35,34 @@ namespace MaxemusAPI
             CreateMap<DistributorAddressResponseDTO, DistributorDetail>().ReverseMap();
             CreateMap<DistributorAddressResponseDTO, DistributorAddressDTO>().ReverseMap();
 
+            CreateMap<AddBrandDTO, Brand>().ReverseMap();
+            CreateMap<BrandDTO, Brand>().ReverseMap();
+            CreateMap<UpdateBrandDTO, Brand>().ReverseMap();
+            CreateMap<BrandListDTO, Brand>().ReverseMap();
+
+
+            CreateMap<CategoryRequestDTO, MainCategory>().ReverseMap();
+            CreateMap<DeleteCategoryDTO, MainCategory>().ReverseMap();
+            CreateMap<GetCategoryRequestDTO, MainCategory>().ReverseMap();
+            CreateMap<GetCategoryDetailRequestDTO, MainCategory>().ReverseMap();
+            CreateMap<AddCategoryDTO, MainCategory>().ReverseMap();
+            CreateMap<CategoryDTO, MainCategory>().ReverseMap();
+            CreateMap<UpdateCategoryDTO, MainCategory>().ReverseMap();
+
+            CreateMap<AddCategoryDTO, SubCategory>().ReverseMap();
+            CreateMap<DeleteCategoryDTO, SubCategory>().ReverseMap();
+            CreateMap<CategoryDTO, SubCategory>().ReverseMap();
+            CreateMap<CategoryRequestDTO, SubCategory>().ReverseMap();
+            CreateMap<GetCategoryRequestDTO, SubCategory>().ReverseMap();
+            CreateMap<GetCategoryDetailRequestDTO, SubCategory>().ReverseMap();
+            CreateMap<UpdateCategoryDTO, SubCategory>().ReverseMap();
+
+
+
+
+
+
+
 
             CreateMap<AdminResponseDTO, CompanyDetail>().ReverseMap();
             CreateMap<AdminResponseDTO, ApplicationUser>().ReverseMap();

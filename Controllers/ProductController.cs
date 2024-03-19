@@ -652,74 +652,14 @@ namespace MaxemusAPI.Controllers
                 return NotFound(_response);
             }
 
-            var cameraVariants = await _context.CameraVariants
-                .FirstOrDefaultAsync(u => u.ProductId == productId);
+            product.IsDeleted = true; 
 
-            if (cameraVariants != null)
-            {
-                var audioVariants = await _context.AudioVariants
-                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
-                if (audioVariants != null)
-                    _context.Remove(audioVariants);
-                await _context.SaveChangesAsync();
-
-                var certificationVariants = await _context.CertificationVariants
-                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
-                if (certificationVariants != null)
-                    _context.Remove(certificationVariants);
-                await _context.SaveChangesAsync();
-
-                var environmentVariants = await _context.EnvironmentVariants
-                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
-                if (environmentVariants != null)
-                    _context.Remove(environmentVariants);
-                await _context.SaveChangesAsync();
-
-                var generalVariants = await _context.GeneralVariants
-                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
-                if (generalVariants != null) 
-                    _context.Remove(generalVariants);
-                await _context.SaveChangesAsync();
-
-                var lensVariants = await _context.LensVariants
-                    .FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
-                if (lensVariants != null) 
-                    _context.Remove(lensVariants);
-                await _context.SaveChangesAsync();
-
-                var networkVariants = await _context.NetworkVariants
-                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
-                if (networkVariants != null) 
-                    _context.Remove(networkVariants);
-                await _context.SaveChangesAsync();
-
-                var powerVariants = await _context.PowerVariants
-                    .FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
-                if (powerVariants != null) 
-                    _context.Remove(powerVariants);
-                await _context.SaveChangesAsync();
-
-                var videoVariants = await _context.VideoVariants
-                    .FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
-                if (videoVariants != null) 
-                    _context.Remove(videoVariants);
-                await _context.SaveChangesAsync();
-
-                var accessoriesVariants = await _context.AccessoriesVariants
-                    .FirstOrDefaultAsync(u => u.ProductId == productId);
-                if (accessoriesVariants != null) 
-                    _context.Remove(accessoriesVariants);
-                await _context.SaveChangesAsync();
-
-                _context.Remove(cameraVariants);
-                await _context.SaveChangesAsync();
-            }
-            _context.Remove(product);
+            _context.Update(product);
             await _context.SaveChangesAsync();
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Messages = "Product and related entities deleted successfully.";
+            _response.Messages = "Product deleted successfully.";
             return Ok(_response);
 
 

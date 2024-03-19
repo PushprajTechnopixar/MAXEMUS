@@ -673,7 +673,7 @@ namespace MaxemusAPI.Controllers
                 if (model.MainCategoryId == 0)
                 {
                     var mainCategoryExists = await _context.MainCategory.AnyAsync(u => u.MainCategoryName.ToLower() == model.CategoryName.ToLower());
-                    if (mainCategoryExists)
+                    if (mainCategoryExists != null)
                     {
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = false;

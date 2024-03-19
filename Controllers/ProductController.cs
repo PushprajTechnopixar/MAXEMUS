@@ -88,7 +88,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
             var subCategory = await _context.SubCategory.FindAsync(model.SubCategoryId);
-            if (mainCategory == null)
+            if (subCategory == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -96,7 +96,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
             var brand = await _context.Brand.FindAsync(model.BrandId);
-            if (mainCategory == null)
+            if (brand == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -252,14 +252,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "not found any user.";
                 return Ok(_response);
             }
-            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsDeleted == false);
-            if (product == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgNotFound + "record.";
-                return Ok(_response);
-            }
+
             var mainCategory = await _context.MainCategory.FindAsync(model.MainCategoryId);
             if (mainCategory == null)
             {
@@ -269,7 +262,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
             var subCategory = await _context.SubCategory.FindAsync(model.SubCategoryId);
-            if (mainCategory == null)
+            if (subCategory == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -277,7 +270,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
             var brand = await _context.Brand.FindAsync(model.BrandId);
-            if (mainCategory == null)
+            if (brand == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -285,92 +278,146 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-
-            _mapper.Map(model, product);
-            _context.Update(product);
-            await _context.SaveChangesAsync();
-
-
-            var cameraVariants = new CameraVariants
+            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsDeleted == false);
+            if (product != null)
             {
-                ProductId = product.ProductId
-            };
-            _mapper.Map(model, cameraVariants);
-            _context.Update(cameraVariants);
-            await _context.SaveChangesAsync();
-
-
-            var audioVariants = new AudioVariants
+                _mapper.Map(model, product);
+                _context.Update(product);
+                await _context.SaveChangesAsync();
+            }
+            else
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-
-            };
-            _mapper.Map(model, audioVariants);
-            _context.Update(audioVariants);
-
-
-            var certificationVariants = new CertificationVariants
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var cameraVariants = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+            if (cameraVariants != null)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, certificationVariants);
-            _context.Update(certificationVariants);
-
-
-            var environmentVariants = new EnvironmentVariants
+                _mapper.Map(model, cameraVariants);
+                _context.Update(cameraVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, environmentVariants);
-            _context.Update(environmentVariants);
-
-
-            var generalVariants = new GeneralVariants
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var audioVariants = await _context.AudioVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+            if (audioVariants != null)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, generalVariants);
-            _context.Update(generalVariants);
-
-
-            var lensVariants = new LensVariants
+                _mapper.Map(model, audioVariants);
+                _context.Update(audioVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
             {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, lensVariants);
-            _context.Update(lensVariants);
-
-
-            var networkVariants = new NetworkVariants
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var certificationVariants = await _context.CertificationVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+            if (certificationVariants != null)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, networkVariants);
-            _context.Update(networkVariants);
-
-
-            var powerVariants = new PowerVariants
+                _mapper.Map(model, certificationVariants);
+                _context.Update(certificationVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
             {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, powerVariants);
-            _context.Update(powerVariants);
-
-
-            var videoVariants = new VideoVariants
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var environmentVariants = await _context.EnvironmentVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+            if (environmentVariants != null)
             {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, videoVariants);
-            _context.Update(videoVariants);
-
-
-            await _context.SaveChangesAsync();
+                _mapper.Map(model, environmentVariants);
+                _context.Update(environmentVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var generalVariants = await _context.GeneralVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+            if (generalVariants != null)
+            {
+                _mapper.Map(model, generalVariants);
+                _context.Update(generalVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            if (lensVariants != null)
+            {
+                _mapper.Map(model, lensVariants);
+                _context.Update(lensVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var networkVariants = await _context.NetworkVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+            if (networkVariants != null)
+            {
+                _mapper.Map(model, networkVariants);
+                _context.Update(networkVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            if (powerVariants != null)
+            {
+                _mapper.Map(model, powerVariants);
+                _context.Update(powerVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            if (videoVariants != null)
+            {
+                _mapper.Map(model, videoVariants);
+                _context.Update(videoVariants);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
 
 
             var response = _mapper.Map<ProductResponsesDTO>(product);
@@ -391,7 +438,7 @@ namespace MaxemusAPI.Controllers
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = response;
-            _response.Messages = "Product Update successfully.";
+            _response.Messages = "Product Updated successfully.";
             return Ok(_response);
 
 
@@ -583,7 +630,7 @@ namespace MaxemusAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> DeleteProduct(SetProductStatusDTO model)
+        public async Task<IActionResult> DeleteProduct(int productId)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -594,24 +641,85 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.productId || u.IsDeleted == true);
+            var product = await _context.Product
+                .FirstOrDefaultAsync(u => u.ProductId == productId && !u.IsDeleted);
+
             if (product == null)
             {
-                _response.StatusCode = HttpStatusCode.OK;
+                _response.StatusCode = HttpStatusCode.NotFound;
                 _response.IsSuccess = false;
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
-                return Ok(_response);
+                return NotFound(_response);
             }
 
-            product.IsDeleted = model.status == 1 ? true : false;
+            var cameraVariants = await _context.CameraVariants
+                .FirstOrDefaultAsync(u => u.ProductId == productId);
 
+            if (cameraVariants != null)
+            {
+                var audioVariants = await _context.AudioVariants
+                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
+                if (audioVariants != null)
+                    _context.Remove(audioVariants);
+                await _context.SaveChangesAsync();
 
-            _context.Update(product);
+                var certificationVariants = await _context.CertificationVariants
+                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
+                if (certificationVariants != null)
+                    _context.Remove(certificationVariants);
+                await _context.SaveChangesAsync();
+
+                var environmentVariants = await _context.EnvironmentVariants
+                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
+                if (environmentVariants != null)
+                    _context.Remove(environmentVariants);
+                await _context.SaveChangesAsync();
+
+                var generalVariants = await _context.GeneralVariants
+                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
+                if (generalVariants != null) 
+                    _context.Remove(generalVariants);
+                await _context.SaveChangesAsync();
+
+                var lensVariants = await _context.LensVariants
+                    .FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+                if (lensVariants != null) 
+                    _context.Remove(lensVariants);
+                await _context.SaveChangesAsync();
+
+                var networkVariants = await _context.NetworkVariants
+                    .FirstOrDefaultAsync(u => u.ProductId == cameraVariants.ProductId && u.VariantId == cameraVariants.VariantId);
+                if (networkVariants != null) 
+                    _context.Remove(networkVariants);
+                await _context.SaveChangesAsync();
+
+                var powerVariants = await _context.PowerVariants
+                    .FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+                if (powerVariants != null) 
+                    _context.Remove(powerVariants);
+                await _context.SaveChangesAsync();
+
+                var videoVariants = await _context.VideoVariants
+                    .FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+                if (videoVariants != null) 
+                    _context.Remove(videoVariants);
+                await _context.SaveChangesAsync();
+
+                var accessoriesVariants = await _context.AccessoriesVariants
+                    .FirstOrDefaultAsync(u => u.ProductId == productId);
+                if (accessoriesVariants != null) 
+                    _context.Remove(accessoriesVariants);
+                await _context.SaveChangesAsync();
+
+                _context.Remove(cameraVariants);
+                await _context.SaveChangesAsync();
+            }
+            _context.Remove(product);
             await _context.SaveChangesAsync();
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Messages = "Product deleted successfully.";
+            _response.Messages = "Product and related entities deleted successfully.";
             return Ok(_response);
 
 

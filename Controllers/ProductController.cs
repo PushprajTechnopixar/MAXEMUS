@@ -51,15 +51,15 @@ namespace MaxemusAPI.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-        #region AddOrUpdateProduct
+        #region AddProduct
         /// <summary>
-        ///  AddOrUpdate product. 
+        ///  AddProduct. 
         /// </summary>
-        [HttpPost("AddOrUpdateProduct")]
+        [HttpPost("AddProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> AddOrUpdateProduct([FromBody] AddProductDTO model)
+        public async Task<IActionResult> AddProduct([FromBody] ProductVariantDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -104,68 +104,297 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (model.ProductId == 0)
+            var product = new Product();
+            _mapper.Map(model, product);
+            _context.Add(product);
+            await _context.SaveChangesAsync();
+
+
+            var cameraVariants = new CameraVariants
             {
-                var isProductExists = await _context.Product.FirstOrDefaultAsync(u => u.Name.ToLower() == model.Name.ToLower());
-                if (isProductExists != null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "productName name already exists.";
-                    return Ok(_response);
-                }
+                ProductId = product.ProductId
+            };
+            _mapper.Map(model, cameraVariants);
+            _context.Add(cameraVariants);
+            await _context.SaveChangesAsync();
 
-                Product product = new Product
-                {
-                    MainCategoryId = model.MainCategoryId,
-                    SubCategoryId = model.SubCategoryId,
-                    BrandId = model.BrandId,
-                    Model = model.Model,
-                    Name = model.Name,
-                    Description = model.Description
-                };
 
-                _context.Add(product);
-                await _context.SaveChangesAsync();
-
-                var response = _mapper.Map<ProductResponseDTO>(product);
-                response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Data = response;
-                _response.Messages = "product added successfully.";
-                return Ok(_response);
-            }
-
-            var existingProduct = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsDeleted != false);
-            if (existingProduct != null)
+            var audioVariants = new AudioVariants
             {
-                existingProduct.MainCategoryId = model.MainCategoryId;
-                existingProduct.SubCategoryId = model.SubCategoryId;
-                existingProduct.BrandId = model.BrandId;
-                existingProduct.Model = model.Model;
-                existingProduct.Name = model.Name;
-                existingProduct.Description = model.Description;
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
 
-                _context.Update(existingProduct);
-                await _context.SaveChangesAsync();
+            };
+            _mapper.Map(model, audioVariants);
+            _context.Add(audioVariants);
 
-                var response = _mapper.Map<ProductResponseDTO>(existingProduct);
-                response.CreateDate = existingProduct.CreateDate.ToString("dd-MM-yyyy");
 
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Data = response;
-                _response.Messages = "product updated successfully.";
-                return Ok(_response);
+            var certificationVariants = new CertificationVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, certificationVariants);
+            _context.Add(certificationVariants);
 
-            }
+
+            var environmentVariants = new EnvironmentVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, environmentVariants);
+            _context.Add(environmentVariants);
+
+
+            var generalVariants = new GeneralVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, generalVariants);
+            _context.Add(generalVariants);
+
+
+            var lensVariants = new LensVariants
+            {
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, lensVariants);
+            _context.Add(lensVariants);
+
+
+            var networkVariants = new NetworkVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, networkVariants);
+            _context.Add(networkVariants);
+
+
+            var powerVariants = new PowerVariants
+            {
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, powerVariants);
+            _context.Add(powerVariants);
+
+
+            var videoVariants = new VideoVariants
+            {
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, videoVariants);
+            _context.Add(videoVariants);
+
+            var accessoriesVariants = new AccessoriesVariants
+            {
+                ProductId = product.ProductId,
+            };
+            _mapper.Map(model, accessoriesVariants);
+            _context.Add(accessoriesVariants);
+
+
+            await _context.SaveChangesAsync();
+
+
+            var response = _mapper.Map<ProductResponsesDTO>(product);
+            response.ProductId = product.ProductId;
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
+
+            _mapper.Map(cameraVariants, response);
+            _mapper.Map(audioVariants, response);
+            _mapper.Map(certificationVariants, response);
+            _mapper.Map(environmentVariants, response);
+            _mapper.Map(generalVariants, response);
+            _mapper.Map(lensVariants, response);
+            _mapper.Map(networkVariants, response);
+            _mapper.Map(powerVariants, response);
+            _mapper.Map(videoVariants, response);
+            _mapper.Map(accessoriesVariants, response);
 
             _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = false;
-            _response.Messages = "product not exists.";
+            _response.IsSuccess = true;
+            _response.Data = response;
+            _response.Messages = "Product added successfully.";
+
             return Ok(_response);
+
+
+        }
+        #endregion
+
+        #region UpdateProduct
+        /// <summary>
+        ///  UpdateProduct. 
+        /// </summary>
+        [HttpPost("UpdateProduct")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> UpdateProduct([FromBody] ProductResponsesDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsDeleted == false);
+            if (product == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var mainCategory = await _context.MainCategory.FindAsync(model.MainCategoryId);
+            if (mainCategory == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "mainCategory not found.";
+                return Ok(_response);
+            }
+            var subCategory = await _context.SubCategory.FindAsync(model.SubCategoryId);
+            if (mainCategory == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "subCategory not found.";
+                return Ok(_response);
+            }
+            var brand = await _context.Brand.FindAsync(model.BrandId);
+            if (mainCategory == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "brand not found.";
+                return Ok(_response);
+            }
+
+
+            _mapper.Map(model, product);
+            _context.Update(product);
+            await _context.SaveChangesAsync();
+
+
+            var cameraVariants = new CameraVariants
+            {
+                ProductId = product.ProductId
+            };
+            _mapper.Map(model, cameraVariants);
+            _context.Update(cameraVariants);
+            await _context.SaveChangesAsync();
+
+
+            var audioVariants = new AudioVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+
+            };
+            _mapper.Map(model, audioVariants);
+            _context.Update(audioVariants);
+
+
+            var certificationVariants = new CertificationVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, certificationVariants);
+            _context.Update(certificationVariants);
+
+
+            var environmentVariants = new EnvironmentVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, environmentVariants);
+            _context.Update(environmentVariants);
+
+
+            var generalVariants = new GeneralVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, generalVariants);
+            _context.Update(generalVariants);
+
+
+            var lensVariants = new LensVariants
+            {
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, lensVariants);
+            _context.Update(lensVariants);
+
+
+            var networkVariants = new NetworkVariants
+            {
+                ProductId = product.ProductId,
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, networkVariants);
+            _context.Update(networkVariants);
+
+
+            var powerVariants = new PowerVariants
+            {
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, powerVariants);
+            _context.Update(powerVariants);
+
+
+            var videoVariants = new VideoVariants
+            {
+                VariantId = cameraVariants.VariantId
+            };
+            _mapper.Map(model, videoVariants);
+            _context.Update(videoVariants);
+
+
+            await _context.SaveChangesAsync();
+
+
+            var response = _mapper.Map<ProductResponsesDTO>(product);
+            response.ProductId = product.ProductId;
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
+            response.AccessoryId = await _context.AccessoriesVariants.Where(u => u.ProductId == product.ProductId)
+                                  .Select(u => u.AccessoryId).FirstOrDefaultAsync();
+            _mapper.Map(cameraVariants, response);
+            _mapper.Map(audioVariants, response);
+            _mapper.Map(certificationVariants, response);
+            _mapper.Map(environmentVariants, response);
+            _mapper.Map(generalVariants, response);
+            _mapper.Map(lensVariants, response);
+            _mapper.Map(networkVariants, response);
+            _mapper.Map(powerVariants, response);
+            _mapper.Map(videoVariants, response);
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = response;
+            _response.Messages = "Product Update successfully.";
+            return Ok(_response);
+
+
         }
         #endregion
 
@@ -299,13 +528,46 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
+            var cameraVariants = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
 
-            var response = _mapper.Map<ProductResponseDTO>(product);
+            var audioVariants = await _context.AudioVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+            var certificationVariants = await _context.CertificationVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+            var environmentVariants = await _context.EnvironmentVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+            var generalVariants = await _context.GeneralVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+            var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+
+            var networkVariants = await _context.NetworkVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+            var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+
+            var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+
+            var accessoriesVariants = await _context.AccessoriesVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+
+            var response = _mapper.Map<ProductResponsesDTO>(product);
+            response.ProductId = product.ProductId;
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
+
+            _mapper.Map(cameraVariants, response);
+            _mapper.Map(audioVariants, response);
+            _mapper.Map(certificationVariants, response);
+            _mapper.Map(environmentVariants, response);
+            _mapper.Map(generalVariants, response);
+            _mapper.Map(lensVariants, response);
+            _mapper.Map(networkVariants, response);
+            _mapper.Map(powerVariants, response);
+            _mapper.Map(videoVariants, response);
+            _mapper.Map(accessoriesVariants, response);
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = response;
-            _response.Messages = "Product list shown successfully.";
+            _response.Messages = "Product Detail shown successfully.";
 
 
 
@@ -313,7 +575,7 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region DeleteCategory
+        #region DeleteProduct
         /// <summary>
         ///  Delete category.
         /// </summary>
@@ -332,7 +594,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.productId && u.IsDeleted == true);
+            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.productId || u.IsDeleted == true);
             if (product == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
@@ -357,173 +619,6 @@ namespace MaxemusAPI.Controllers
 
         #endregion
 
-        #region Variant
-        /// <summary>
-        ///  ProductVariant product. 
-        /// </summary>
-        [HttpPost("ProductVariant")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
-        public async Task<IActionResult> ProductVariant([FromBody] ProductVariantDTO model)
-        {
-            string currentUserId = (HttpContext.User.Claims.First().Value);
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Token expired.";
-                return Ok(_response);
-            }
 
-            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
-            if (existingUser == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "not found any user.";
-                return Ok(_response);
-            }
-
-            var mainCategory = await _context.MainCategory.FindAsync(model.MainCategoryId);
-            if (mainCategory == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "mainCategory not found.";
-                return Ok(_response);
-            }
-            var subCategory = await _context.SubCategory.FindAsync(model.SubCategoryId);
-            if (mainCategory == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "subCategory not found.";
-                return Ok(_response);
-            }
-            var brand = await _context.Brand.FindAsync(model.BrandId);
-            if (mainCategory == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "brand not found.";
-                return Ok(_response);
-            }
-
-            var product = new Product();
-            _mapper.Map(model, product);
-            _context.Add(product);
-            await _context.SaveChangesAsync();
-
-            var cameraVariants = new CameraVariants
-            {
-                ProductId = product.ProductId
-            };
-            _mapper.Map(model, cameraVariants);
-            _context.Add(cameraVariants);
-            await _context.SaveChangesAsync();
-
-
-
-
-
-            var audioVariants = new AudioVariants
-            {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-
-            };
-            _mapper.Map(model, audioVariants);
-            _context.Add(audioVariants);
-            await _context.SaveChangesAsync();
-
-
-            var certificationVariants = new CertificationVariants
-            {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, certificationVariants);
-            _context.Add(certificationVariants);
-            await _context.SaveChangesAsync();
-
-
-            var environmentVariants = new EnvironmentVariants
-            {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, environmentVariants);
-            _context.Add(environmentVariants);
-            await _context.SaveChangesAsync();
-
-
-            var generalVariants = new GeneralVariants
-            {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, generalVariants);
-            _context.Add(generalVariants);
-            await _context.SaveChangesAsync();
-
-
-
-            var lensVariants = new LensVariants
-            {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, lensVariants);
-            _context.Add(lensVariants);
-            await _context.SaveChangesAsync();
-
-
-            var networkVariants = new NetworkVariants
-            {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, networkVariants);
-            _context.Add(networkVariants);
-            await _context.SaveChangesAsync();
-
-
-            var powerVariants = new PowerVariants
-            {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, powerVariants);
-            _context.Add(powerVariants);
-            await _context.SaveChangesAsync();
-
-
-            var videoVariants = new VideoVariants
-            {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, videoVariants);
-            _context.Add(videoVariants);
-            await _context.SaveChangesAsync();
-
-            var accessoriesVariants = new AccessoriesVariants
-            {
-                ProductId = product.ProductId,
-            };
-            _mapper.Map(model, accessoriesVariants);
-            _context.Add(accessoriesVariants);
-            await _context.SaveChangesAsync();
-
-
-            _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Data = model;
-            _response.Messages = "Product added successfully.";
-
-            // Return the response
-            return Ok(_response);
-
-
-        }
-        #endregion
     }
 }

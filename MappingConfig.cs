@@ -82,6 +82,19 @@ namespace MaxemusAPI
             CreateMap<ProductVariantDTO, PowerVariants>().ReverseMap();
             CreateMap<ProductVariantDTO, VideoVariants>().ReverseMap();
 
+            CreateMap<ProductResponsesDTO, Product>().ReverseMap();
+            CreateMap<ProductResponsesDTO, AccessoriesVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, AudioVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, CameraVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, CertificationVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, EnvironmentVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, GeneralVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, InstallationDocumentVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, LensVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, NetworkVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, PowerVariants>().ReverseMap();
+            CreateMap<ProductResponsesDTO, VideoVariants>().ReverseMap();
+
 
 
 

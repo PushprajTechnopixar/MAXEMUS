@@ -37,7 +37,6 @@ namespace MaxemusAPI
 
             CreateMap<AddBrandDTO, Brand>().ReverseMap();
             CreateMap<BrandDTO, Brand>().ReverseMap();
-            CreateMap<UpdateBrandDTO, Brand>().ReverseMap();
             CreateMap<BrandListDTO, Brand>().ReverseMap();
 
 

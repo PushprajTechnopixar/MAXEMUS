@@ -285,16 +285,16 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region AddBrand
+        #region AddOrUpdateBrand
         /// <summary>
         /// Add brand.
         /// </summary>
         [HttpPost]
-        [Route("AddBrand")]
+        [Route("AddOrUpdateBrand")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> AddBrand(AddBrandDTO model)
+        public async Task<IActionResult> AddOrUpdateBrand(AddBrandDTO model)
         {
             try
             {
@@ -308,39 +308,53 @@ namespace MaxemusAPI.Controllers
                 }
 
                 var brand = _mapper.Map<Brand>(model);
-                var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => u.BrandName.ToLower() == brand.BrandName.ToLower());
-                if (isBrandExist != null)
+                if (model.BrandId == 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Data = new Object { };
-                    _response.Messages = "Brand name already exists.";
-                    return Ok(_response);
-                }
+                    var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => u.BrandName.ToLower() == brand.BrandName.ToLower());
+                    if (isBrandExist != null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Data = new Object { };
+                        _response.Messages = "Brand name already exists.";
+                        return Ok(_response);
+                    }
 
-                brand.BrandName = model.BrandName;
-                _context.Brand.Add(brand);
-                await _context.SaveChangesAsync();
+                    brand.BrandName = model.BrandName;
+                    _context.Brand.Add(brand);
+                    await _context.SaveChangesAsync();
 
-                var getBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == brand.BrandId);
+                    var getBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == brand.BrandId);
 
-                if (getBrand != null)
-                {
-                    var brandDetail = _mapper.Map<BrandDTO>(getBrand);
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = true;
-                    _response.Data = brandDetail;
-                    _response.Messages = "Brand" + ResponseMessages.msgAdditionSuccess;
-                    return Ok(_response);
+                    if (getBrand != null)
+                    {
+                        var brandDetail = _mapper.Map<BrandDTO>(getBrand);
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = true;
+                        _response.Data = brandDetail;
+                        _response.Messages = "Brand" + ResponseMessages.msgAdditionSuccess;
+                        return Ok(_response);
+                    }
                 }
                 else
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Data = new Object { };
-                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
-                    return Ok(_response);
+                    var updateBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == model.BrandId);
+                    _mapper.Map(model, updateBrand);
+
+                    _context.Brand.Update(updateBrand);
+                    await _context.SaveChangesAsync();
+
+                    if (updateBrand != null)
+                    {
+                        var brandDetail = _mapper.Map<BrandDTO>(updateBrand);
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = true;
+                        _response.Data = brandDetail;
+                        _response.Messages = "Brand" + ResponseMessages.msgUpdationSuccess;
+                        return Ok(_response);
+                    }
                 }
+                return Ok(_response);
             }
             catch (Exception ex)
             {
@@ -353,73 +367,73 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region UpdateBrand
-        /// <summary>
-        /// Update brand.
-        /// </summary>
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Route("UpdateBrand")]
-        [Authorize]
-        public async Task<IActionResult> UpdateBrand(UpdateBrandDTO model)
-        {
-            try
-            {
-                string currentUserId = (HttpContext.User.Claims.First().Value);
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Token expired.";
-                    return Ok(_response);
-                }
+        //#region UpdateBrand
+        ///// <summary>
+        ///// Update brand.
+        ///// </summary>
+        //[HttpPost]
+        //[ProducesResponseType(StatusCodes.Status403Forbidden)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //[Route("UpdateBrand")]
+        //[Authorize]
+        //public async Task<IActionResult> UpdateBrand(UpdateBrandDTO model)
+        //{
+        //    try
+        //    {
+        //        string currentUserId = (HttpContext.User.Claims.First().Value);
+        //        if (string.IsNullOrEmpty(currentUserId))
+        //        {
+        //            _response.StatusCode = HttpStatusCode.OK;
+        //            _response.IsSuccess = false;
+        //            _response.Messages = "Token expired.";
+        //            return Ok(_response);
+        //        }
 
-                var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => (u.BrandName.ToLower() == model.BrandName.ToLower()
-                && (u.BrandId != model.BrandId)));
-                if (isBrandExist != null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Data = new Object { };
-                    _response.Messages = "Brand name already exists.";
-                    return Ok(_response);
-                }
+        //        var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => (u.BrandName.ToLower() == model.BrandName.ToLower()
+        //        && (u.BrandId != model.BrandId)));
+        //        if (isBrandExist != null)
+        //        {
+        //            _response.StatusCode = HttpStatusCode.OK;
+        //            _response.IsSuccess = false;
+        //            _response.Data = new Object { };
+        //            _response.Messages = "Brand name already exists.";
+        //            return Ok(_response);
+        //        }
 
-                var updteBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == model.BrandId);
-                _mapper.Map(model, updteBrand);
+        //        var updteBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == model.BrandId);
+        //        _mapper.Map(model, updteBrand);
 
-                _context.Brand.Update(updteBrand);
-                await _context.SaveChangesAsync();
+        //        _context.Brand.Update(updteBrand);
+        //        await _context.SaveChangesAsync();
 
-                if (updteBrand != null)
-                {
-                    var brandDetail = _mapper.Map<BrandDTO>(updteBrand);
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = true;
-                    _response.Data = brandDetail;
-                    _response.Messages = "Brand" + ResponseMessages.msgUpdationSuccess;
-                    return Ok(_response);
-                }
-                else
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Data = new Object { };
-                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
-                    return Ok(_response);
-                }
-            }
-            catch (Exception ex)
-            {
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Data = new { };
-                _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
-                return Ok(_response);
-            }
-        }
-        #endregion
+        //        if (updteBrand != null)
+        //        {
+        //            var brandDetail = _mapper.Map<BrandDTO>(updteBrand);
+        //            _response.StatusCode = HttpStatusCode.OK;
+        //            _response.IsSuccess = true;
+        //            _response.Data = brandDetail;
+        //            _response.Messages = "Brand" + ResponseMessages.msgUpdationSuccess;
+        //            return Ok(_response);
+        //        }
+        //        else
+        //        {
+        //            _response.StatusCode = HttpStatusCode.OK;
+        //            _response.IsSuccess = false;
+        //            _response.Data = new Object { };
+        //            _response.Messages = ResponseMessages.msgSomethingWentWrong;
+        //            return Ok(_response);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _response.StatusCode = HttpStatusCode.InternalServerError;
+        //        _response.IsSuccess = false;
+        //        _response.Data = new { };
+        //        _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
+        //        return Ok(_response);
+        //    }
+        //}
+        //#endregion
 
         #region GetBrandDetail
         /// <summary>

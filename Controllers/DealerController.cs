@@ -56,7 +56,7 @@ namespace MaxemusAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("AddOrUpdateAddress")]
-        [Authorize(Roles = "Dealer")]
+        [Authorize]
         public async Task<IActionResult> AddOrUpdateAddress([FromBody] DealerProfileDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
@@ -77,21 +77,48 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (model.DealerId == 0)
+            if (model.DealerId > 0)
             {
-                var dealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
-                if (dealerDetail != null)
+                var existingDealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.DealerId == model.DealerId && u.UserId == currentUserId);
+                if (existingDealerDetail == null)
                 {
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = false;
-                    _response.Messages = "profile is already present.";
+                    _response.Messages = "Dealer profile not found.";
                     return Ok(_response);
                 }
 
-                dealerDetail.UserId = currentUserId;
-                dealerDetail.Address1 = model.Address1;
-                dealerDetail.Address2 = model.Address2;
+                existingDealerDetail.Address1 = model.Address1;
+                existingDealerDetail.Address2 = model.Address2;
 
+                _context.Update(existingDealerDetail);
+                await _context.SaveChangesAsync();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Profile updated successfully.";
+                return Ok(_response);
+            }
+
+            var dealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
+
+            if (dealerDetail != null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "User profile is already present.";
+                return Ok(_response);
+            }
+
+            dealerDetail = new DealerDetail
+            {
+                UserId = currentUserId,
+                Address1 = model.Address1,
+                Address2 = model.Address2
+            };
+
+            if (model.DealerId == 0)
+            {
                 _context.Add(dealerDetail);
                 await _context.SaveChangesAsync();
 
@@ -99,37 +126,15 @@ namespace MaxemusAPI.Controllers
                 _response.IsSuccess = true;
                 _response.Messages = "Profile added successfully.";
                 return Ok(_response);
-
             }
 
-            if (model.DealerId > 0)
-            {
-                var dealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.DealerId == model.DealerId && u.UserId == currentUserId);
-                if (dealerDetail == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "not found any record.";
-                    return Ok(_response);
-                }
+            
 
-                dealerDetail.Address1 = model.Address1;
-                dealerDetail.Address2 = model.Address2;
+            _response.StatusCode = HttpStatusCode.BadRequest;
+            _response.IsSuccess = false;
+            _response.Messages = "Invalid request.";
+            return BadRequest(_response);
 
-                _context.Update(dealerDetail);
-                await _context.SaveChangesAsync();
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Messages = "Profile updated successfully.";
-                return Ok(_response);
-
-            }
-
-            _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Messages = "profile added successfully.";
-            return Ok(_response);
         }
         #endregion
 
@@ -252,6 +257,70 @@ namespace MaxemusAPI.Controllers
             _response.Messages = "Profile updated successfully.";
             return Ok(_response);
         }
+        #endregion
+
+        #region SetDealerStatus
+        /// <summary>
+        ///  Set dealer status [Pending = 0; Approved = 1; Rejected = 2].
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("SetDealerStatus")]
+        public async Task<IActionResult> SetDealerStatus([FromBody] SetDealerStatusDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            if (model.status != Convert.ToInt32(Status.Pending)
+          && model.status != Convert.ToInt32(Status.Approved)
+          && model.status != Convert.ToInt32(Status.Rejected))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Please select a valid status.";
+                return Ok(_response);
+            }
+
+            var dealer = await _context.DealerDetail.FirstOrDefaultAsync(u => u.DealerId == model.dealerId);
+
+            if (dealer == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+
+            dealer.Status = model.status.ToString();
+
+
+            _context.Update(dealer);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "dealer status updated successfully.";
+
+            return Ok(_response);
+        }
+
         #endregion
 
     }

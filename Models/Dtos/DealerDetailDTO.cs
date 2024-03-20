@@ -20,4 +20,16 @@ namespace MaxemusAPI.Models.Dtos
         [Required] public string password { get; set; }
      //   [Required] public string role { get; set; }
     }
+    public class DealerProfileDTO
+    {
+        public int DealerId { get; set; }
+        public string Address1 { get; set; } = null!;
+        public string? Address2 { get; set; }
+
+    }
+    public class SetDealerStatusDTO
+    {
+        public int dealerId { get; set; }
+        public int status { get; set; }
+    }
 }

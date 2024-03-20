@@ -68,7 +68,13 @@
             Others,
             NA
         }
-
+        //public enum Status
+        //{
+        //    Pending = 0,
+        //    Approved = 1,
+        //    Rejected = 2,
+        //    Expired
+        //}
         public enum AddressType
         {
             Individual = 1,

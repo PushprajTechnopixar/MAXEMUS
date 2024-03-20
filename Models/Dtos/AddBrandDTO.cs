@@ -4,15 +4,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MaxemusAPI.Models
 {
+
     public class AddBrandDTO
     {
-        public string? BrandName { get; set; }
-    }
-    public class UpdateBrandDTO
-    {
-        [Required]
         public int BrandId { get; set; }
-        public string? BrandName { get; set; }
+        [Required] public string? BrandName { get; set; }
     }
 
     public class BrandDTO

@@ -12,10 +12,13 @@ namespace MaxemusAPI.Models.Dtos
 
     public class DistributorAddressDTO
     {
+        public int AddressId { get; set; }      
         public string AddressType { get; set; } = null!;
         public string? HouseNoOrBuildingName { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
+        public string? PostalCode { get; set; }
+        public string? PhoneNumber { get; set; }
     }
 
     public class DistributorAddressResponseDTO
@@ -31,5 +34,10 @@ namespace MaxemusAPI.Models.Dtos
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
         public string? PhoneNumber { get; set; }
+    }
+    public class SetDistributorStatusDTO
+    {
+        public int distributorId { get; set; }
+        public int status { get; set; }
     }
 }

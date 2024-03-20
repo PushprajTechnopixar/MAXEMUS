@@ -132,6 +132,14 @@
         //    Work = 1,
         //    Other = 2
         //}
+
+        //public enum ProductStatus
+        //{
+        //    Pending = 0,
+        //    Active = 1,
+        //    InActive = 2,
+        //    OutOfStock = 3
+        //}
         public enum AppointmentStatus
         {
             Pending = 0,

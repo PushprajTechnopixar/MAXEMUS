@@ -1,4 +1,6 @@
-﻿namespace MaxemusAPI.Models.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MaxemusAPI.Models.Dtos
 {
     public class AccessoriesVariantsDTO
     {
@@ -235,9 +237,17 @@
         public string? Model { get; set; }
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
+        public string? Image1 { get; set; }
+        public string? Image2 { get; set; }
+        public string? Image3 { get; set; }
+        public string? Image4 { get; set; }
+        public string? Image5 { get; set; }
+        public bool? IsActive { get; set; }
+        public bool IsDeleted { get; set; }
+        public int RewardPoint { get; set; }
 
         // Accessories
-          public int? AccessoryId { get; set; }
+        public int? AccessoryId { get; set; }
 
         // Audio
         public string? BuiltInMic { get; set; }

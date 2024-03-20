@@ -29,7 +29,7 @@ namespace MaxemusAPI.Models.Dtos
         public string? Image4 { get; set; }
         public string? Image5 { get; set; }
         public bool? IsActive { get; set; }
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
         public int RewardPoint { get; set; }
         public string CreateDate { get; set; }
     }
@@ -37,7 +37,7 @@ namespace MaxemusAPI.Models.Dtos
     public class SetProductStatusDTO
     {
         public int productId { get; set; }
-        public int status { get; set; }
+        public bool status { get; set; }
     }
 
     public class ProductFiltrationListDTO

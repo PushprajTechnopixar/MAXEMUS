@@ -16,6 +16,7 @@ using System.Xml.Linq;
 using Twilio.Http;
 using MaxemusAPI.Common;
 using static Google.Apis.Requests.BatchRequest;
+using AutoMapper.Configuration.Annotations;
 
 namespace MaxemusAPI.Controllers
 {
@@ -489,6 +490,7 @@ namespace MaxemusAPI.Controllers
             var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
 
             var mappedData = _mapper.Map<List<ProductResponseDTO>>(items);
+            
 
             if (model.mainProductCategoryId > 0)
             {
@@ -624,7 +626,7 @@ namespace MaxemusAPI.Controllers
 
         #region DeleteProduct
         /// <summary>
-        ///  Delete category.
+        ///  Delete product.
         /// </summary>
         [HttpDelete("DeleteProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -652,7 +654,7 @@ namespace MaxemusAPI.Controllers
                 return NotFound(_response);
             }
 
-            product.IsDeleted = true; 
+            product.IsDeleted = true;
 
             _context.Update(product);
             await _context.SaveChangesAsync();
@@ -663,6 +665,59 @@ namespace MaxemusAPI.Controllers
             return Ok(_response);
 
 
+        }
+
+        #endregion
+
+        #region SetProductStatus
+        /// <summary>
+        ///  Product Status.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("SetProductStatus")]
+        public async Task<IActionResult> SetProductStatus([FromBody] SetProductStatusDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.productId && u.IsDeleted == false);
+
+            if (product == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+
+            product.IsActive = model.status;
+
+            _context.Update(product);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "Product status updated successfully.";
+
+            return Ok(_response);
         }
 
         #endregion

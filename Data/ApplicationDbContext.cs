@@ -676,13 +676,13 @@ namespace MaxemusAPI.Data
             {
                 entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.IsActive)
-                    .IsRequired()
-                    .HasDefaultValueSql("((1))");
+                entity.Property(e => e.IsActive).HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Model).HasMaxLength(500);
 
                 entity.Property(e => e.ModifyDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.TotalMrp).HasColumnName("TotalMRP");
 
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Product)

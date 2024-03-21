@@ -13,6 +13,8 @@
         public string? pan { get; set; }
         public int? countryId { get; set; }
         public int? stateId { get; set; }
+
+
         public string? countryName { get; set; }
         public string? stateName { get; set; }
     }

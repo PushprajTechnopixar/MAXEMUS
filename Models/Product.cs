@@ -35,6 +35,10 @@ namespace MaxemusAPI.Models
         public string? Image3 { get; set; }
         public string? Image4 { get; set; }
         public string? Image5 { get; set; }
+        public double TotalMrp { get; set; }
+        public double Discount { get; set; }
+        public int DiscountType { get; set; }
+        public double SellingPrice { get; set; }
         public bool? IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int RewardPoint { get; set; }

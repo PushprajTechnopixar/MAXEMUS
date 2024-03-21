@@ -91,7 +91,11 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var distributorId = await _context.DistributorDetail.Where(u => u.UserId == currentUserId).Select(u => u.DistributorId).FirstOrDefaultAsync();
+            var distributorId = await _context.DistributorDetail
+                .Where(u => u.UserId == currentUserId)
+                .Select(u => u.DistributorId)
+                .FirstOrDefaultAsync();
+
             if (distributorId == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
@@ -102,68 +106,72 @@ namespace MaxemusAPI.Controllers
 
             if (model.AddressId > 0)
             {
-                var distributorAddress = await _context.DistributorAddress.FirstOrDefaultAsync(u => u.AddressId == model.AddressId);
-                if (distributorAddress != null)
-                {
-                    distributorAddress = new DistributorAddress
-                    {
-                        DistributorId = distributorId,
-                        AddressType = model.AddressType,
-                        CountryId = userProfileDetail.CountryId,
-                        StateId = userProfileDetail.StateId,
-                        City = userProfileDetail.City,
-                        HouseNoOrBuildingName = model.HouseNoOrBuildingName,
-                        StreetAddress = model.StreetAddress,
-                        Landmark = model.Landmark,
-                        PostalCode = model.PostalCode,
-                        PhoneNumber = model.PhoneNumber
-                    };
+                var existingAddress = await _context.DistributorAddress
+                    .FirstOrDefaultAsync(u => u.AddressId == model.AddressId);
 
-                    _context.Update(distributorAddress);
+                if (existingAddress != null)
+                {
+                    existingAddress.AddressType = model.AddressType;
+                    existingAddress.CountryId = model.CountryId;
+                    existingAddress.StateId = model.StateId;
+                    existingAddress.City = model.City;
+                    existingAddress.HouseNoOrBuildingName = model.HouseNoOrBuildingName;
+                    existingAddress.StreetAddress = model.StreetAddress;
+                    existingAddress.Landmark = model.Landmark;
+                    existingAddress.PostalCode = model.PostalCode;
+                    existingAddress.PhoneNumber = model.PhoneNumber;
+
+                    _context.Update(existingAddress);
                     await _context.SaveChangesAsync();
 
-                    var response = _mapper.Map<DistributorAddressResponseDTO>(distributorAddress);
-                    _mapper.Map(model, response);
+                    var response = _mapper.Map<DistributorAddressResponseDTO>(existingAddress);
 
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     _response.Data = response;
-                    _response.Messages = "address updated successfully.";
+                    _response.Messages = "Address updated successfully.";
                     return Ok(_response);
                 }
             }
-            if (model.AddressId == 0)
+
+            var address = await _context.DistributorAddress
+                .FirstOrDefaultAsync(u => u.DistributorId == distributorId);
+
+            if (address != null)
             {
-                var distributorAddress = await _context.DistributorAddress.FirstOrDefaultAsync(u => u.DistributorId == distributorId);
-                if (distributorAddress == null)
-                {
-                    distributorAddress = new DistributorAddress
-                    {
-                        DistributorId = distributorId,
-                        AddressType = model.AddressType,
-                        CountryId = userProfileDetail.CountryId,
-                        StateId = userProfileDetail.StateId,
-                        City = userProfileDetail.City,
-                        HouseNoOrBuildingName = model.HouseNoOrBuildingName,
-                        StreetAddress = model.StreetAddress,
-                        Landmark = model.Landmark,
-                        PostalCode = model.PostalCode,
-                        PhoneNumber = model.PhoneNumber
-                    };
-
-                    _context.Add(distributorAddress);
-                    await _context.SaveChangesAsync();
-
-                    var response = _mapper.Map<DistributorAddressResponseDTO>(distributorAddress);
-                    _mapper.Map(model, response);
-
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = true;
-                    _response.Data = response;
-                    _response.Messages = "address add successfully.";
-                    return Ok(_response);
-                }
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Address already exists for the distributor.";
+                return Ok(_response);
             }
+
+            var distributorAddress = new DistributorAddress
+            {
+                DistributorId = distributorId,
+                AddressType = model.AddressType,
+                CountryId = model.CountryId,
+                StateId = model.StateId,
+                City = model.City,
+                HouseNoOrBuildingName = model.HouseNoOrBuildingName,
+                StreetAddress = model.StreetAddress,
+                Landmark = model.Landmark,
+                PostalCode = model.PostalCode,
+                PhoneNumber = model.PhoneNumber
+            };
+
+            _context.Add(distributorAddress);
+            await _context.SaveChangesAsync();
+
+            var newResponse = _mapper.Map<DistributorAddressResponseDTO>(distributorAddress);
+            newResponse.AddressId = distributorAddress.AddressId;
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = newResponse;
+            _response.Messages = "Address added successfully.";
+            return Ok(_response);
+
+
 
             return Ok(_response);
 
@@ -197,6 +205,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "not found any user.";
                 return Ok(_response);
             }
+
             if (model.DistributorId > 0)
             {
                 var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.DistributorId == model.DistributorId && u.UserId == currentUserId);
@@ -210,7 +219,7 @@ namespace MaxemusAPI.Controllers
 
                 distributorDetail.Name = existingUser.UserName;
                 distributorDetail.RegistrationNumber = model.RegistrationNumber;
-                distributorDetail.AddressId = await _context.DistributorAddress.Where(u => u.DistributorId == model.DistributorId).Select(u => u.AddressId).FirstOrDefaultAsync();
+                //distributorDetail.AddressId = await _context.DistributorAddress.Where(u => u.DistributorId == model.DistributorId).Select(u => u.AddressId).FirstOrDefaultAsync();
                 distributorDetail.Description = model.Description;
                 distributorDetail.Image = model.Image;
 
@@ -232,7 +241,7 @@ namespace MaxemusAPI.Controllers
                     {
                         UserId = currentUserId,
                         Name = existingUser.UserName,
-                        AddressId = await _context.DistributorAddress.Where(u => u.DistributorId == model.DistributorId).Select(u => u.AddressId).FirstOrDefaultAsync(),
+                        //AddressId = await _context.DistributorAddress.Where(u => u.DistributorId == model.DistributorId).Select(u => u.AddressId).FirstOrDefaultAsync(),
                         RegistrationNumber = model.RegistrationNumber,
                         Description = model.Description,
                         Image = model.Image
@@ -264,7 +273,7 @@ namespace MaxemusAPI.Controllers
 
         #region UpdateProfile
         /// <summary>
-        ///  UpdatePersonalProfile profile.
+        ///  Update Personal profile.
         /// </summary>
         [HttpPost]
         [Route("UpdatePersonalProfile")]

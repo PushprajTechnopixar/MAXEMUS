@@ -315,14 +315,12 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-
             var cameraVariants = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (cameraVariants != null)
             {
                 _mapper.Map(model.Camera, cameraVariants);
                 _context.Update(cameraVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -334,12 +332,9 @@ namespace MaxemusAPI.Controllers
             var audioVariants = await _context.AudioVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (audioVariants != null)
             {
-
                 _mapper.Map(model.Audio, audioVariants);
                 _context.Update(audioVariants);
                 await _context.SaveChangesAsync();
-
-
             }
             else
             {
@@ -355,7 +350,6 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(model.Certification, certificationVariants);
                 _context.Update(certificationVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -370,7 +364,6 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(model.Environment, environmentVariants);
                 _context.Update(environmentVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -385,7 +378,6 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(model.General, generalVariants);
                 _context.Update(generalVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -397,11 +389,9 @@ namespace MaxemusAPI.Controllers
             var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
             if (lensVariants != null)
             {
-
                 _mapper.Map(model.Lens, lensVariants);
                 _context.Update(lensVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -413,11 +403,9 @@ namespace MaxemusAPI.Controllers
             var networkVariants = await _context.NetworkVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (networkVariants != null)
             {
-
                 _mapper.Map(model.Network, networkVariants);
                 _context.Update(networkVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -429,11 +417,9 @@ namespace MaxemusAPI.Controllers
             var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
             if (powerVariants != null)
             {
-
                 _mapper.Map(model.Power, powerVariants);
                 _context.Update(powerVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -445,11 +431,9 @@ namespace MaxemusAPI.Controllers
             var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
             if (videoVariants != null)
             {
-
                 _mapper.Map(model.Video, videoVariants);
                 _context.Update(videoVariants);
                 await _context.SaveChangesAsync();
-
             }
             else
             {
@@ -458,9 +442,6 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-
-
-
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
@@ -559,8 +540,6 @@ namespace MaxemusAPI.Controllers
             _response.Data = obj;
             _response.Messages = "Product list shown successfully.";
 
-
-
             return Ok(_response);
         }
         #endregion
@@ -643,8 +622,6 @@ namespace MaxemusAPI.Controllers
             _response.Data = response;
             _response.Messages = "Product Detail shown successfully.";
 
-
-
             return Ok(_response);
         }
         #endregion
@@ -688,7 +665,6 @@ namespace MaxemusAPI.Controllers
             _response.IsSuccess = true;
             _response.Messages = "Product deleted successfully.";
             return Ok(_response);
-
 
         }
 

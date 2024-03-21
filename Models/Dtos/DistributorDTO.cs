@@ -18,6 +18,9 @@ namespace MaxemusAPI.Models.Dtos
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
+        public int CountryId { get; set; }
+        public int StateId { get; set; }
+        public string City { get; set; }
         public string? PhoneNumber { get; set; }
     }
 

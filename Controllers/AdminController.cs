@@ -184,21 +184,31 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
             var companyDetail = await _context.CompanyDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
-            if (companyDetail == null)
+            if (companyDetail != null)
             {
+                
+                var response = _mapper.Map<AdminResponseDTO>(userDetail);
+                _mapper.Map(companyDetail, response);
+
+                var adminCountry= await _context.CountryMaster.Where(u => u.CountryId == response.CountryId).FirstOrDefaultAsync();
+                var adminState= await _context.StateMaster.Where(u => u.StateId == response.StateId).FirstOrDefaultAsync();
+                response.CountryName = adminCountry.CountryName;
+                response.StateName = adminState.StateName;
+
                 _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgUserNotFound;
+                _response.IsSuccess = true;
+                _response.Data = response;
+                _response.Messages = "Detail" + ResponseMessages.msgShownSuccess;
                 return Ok(_response);
             }
 
-            var mappedData = _mapper.Map<AdminResponseDTO>(userDetail);
+            var mappedData = _mapper.Map<UserDetailDTO>(userDetail);
             _mapper.Map(companyDetail, mappedData);
 
-            var userCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == mappedData.CountryId).FirstOrDefaultAsync();
-            var userStateDetail = await _context.StateMaster.Where(u => u.StateId == mappedData.StateId).FirstOrDefaultAsync();
-            mappedData.CountryName = userCountryDetail.CountryName;
-            mappedData.StateName = userStateDetail.StateName;
+            var userCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == mappedData.countryId).FirstOrDefaultAsync();
+            var userStateDetail = await _context.StateMaster.Where(u => u.StateId == mappedData.stateId).FirstOrDefaultAsync();
+            mappedData.countryName = userCountryDetail.CountryName;
+            mappedData.stateName = userStateDetail.StateName;
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
@@ -366,74 +376,6 @@ namespace MaxemusAPI.Controllers
             }
         }
         #endregion
-
-        //#region UpdateBrand
-        ///// <summary>
-        ///// Update brand.
-        ///// </summary>
-        //[HttpPost]
-        //[ProducesResponseType(StatusCodes.Status403Forbidden)]
-        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        //[Route("UpdateBrand")]
-        //[Authorize]
-        //public async Task<IActionResult> UpdateBrand(UpdateBrandDTO model)
-        //{
-        //    try
-        //    {
-        //        string currentUserId = (HttpContext.User.Claims.First().Value);
-        //        if (string.IsNullOrEmpty(currentUserId))
-        //        {
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = false;
-        //            _response.Messages = "Token expired.";
-        //            return Ok(_response);
-        //        }
-
-        //        var isBrandExist = await _context.Brand.FirstOrDefaultAsync(u => (u.BrandName.ToLower() == model.BrandName.ToLower()
-        //        && (u.BrandId != model.BrandId)));
-        //        if (isBrandExist != null)
-        //        {
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = false;
-        //            _response.Data = new Object { };
-        //            _response.Messages = "Brand name already exists.";
-        //            return Ok(_response);
-        //        }
-
-        //        var updteBrand = await _context.Brand.FirstOrDefaultAsync(u => u.BrandId == model.BrandId);
-        //        _mapper.Map(model, updteBrand);
-
-        //        _context.Brand.Update(updteBrand);
-        //        await _context.SaveChangesAsync();
-
-        //        if (updteBrand != null)
-        //        {
-        //            var brandDetail = _mapper.Map<BrandDTO>(updteBrand);
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = true;
-        //            _response.Data = brandDetail;
-        //            _response.Messages = "Brand" + ResponseMessages.msgUpdationSuccess;
-        //            return Ok(_response);
-        //        }
-        //        else
-        //        {
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = false;
-        //            _response.Data = new Object { };
-        //            _response.Messages = ResponseMessages.msgSomethingWentWrong;
-        //            return Ok(_response);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _response.StatusCode = HttpStatusCode.InternalServerError;
-        //        _response.IsSuccess = false;
-        //        _response.Data = new { };
-        //        _response.Messages = ResponseMessages.msgSomethingWentWrong + ex.Message;
-        //        return Ok(_response);
-        //    }
-        //}
-        //#endregion
 
         #region GetBrandDetail
         /// <summary>
@@ -691,7 +633,7 @@ namespace MaxemusAPI.Controllers
                     {
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = false;
-                        _response.Messages = "mainCategory name already exists.";
+                        _response.Messages = "Category name already exists.";
                         return Ok(_response);
                     }
 
@@ -706,7 +648,7 @@ namespace MaxemusAPI.Controllers
 
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
-                    _response.Messages = "mainCategory added successfully.";
+                    _response.Messages = "Category added successfully.";
                     return Ok(_response);
                 }
 
@@ -717,7 +659,7 @@ namespace MaxemusAPI.Controllers
                     {
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = false;
-                        _response.Messages = "mainCategory not found.";
+                        _response.Messages = "Category not found.";
                         return Ok(_response);
                     }
 
@@ -736,13 +678,13 @@ namespace MaxemusAPI.Controllers
 
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = true;
-                        _response.Messages = "subCategory added successfully.";
+                        _response.Messages = "Category added successfully.";
                         return Ok(_response);
                     }
 
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = false;
-                    _response.Messages = "subCategory name already exists.";
+                    _response.Messages = "Category name already exists.";
                     return Ok(_response);
                 }
 
@@ -766,7 +708,7 @@ namespace MaxemusAPI.Controllers
         /// <summary>
         ///  Update category.
         /// </summary>
-        [HttpPost("UpdateCategoryDTO")]
+        [HttpPost("UpdateCategory")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
@@ -807,7 +749,7 @@ namespace MaxemusAPI.Controllers
 
                             _response.StatusCode = HttpStatusCode.OK;
                             _response.IsSuccess = true;
-                            _response.Messages = "subCategory updated successfully.";
+                            _response.Messages = "Category updated successfully.";
                             return Ok(_response);
                         }
                     }
@@ -824,7 +766,7 @@ namespace MaxemusAPI.Controllers
 
                             _response.StatusCode = HttpStatusCode.OK;
                             _response.IsSuccess = true;
-                            _response.Messages = "mainCategory updated successfully.";
+                            _response.Messages = "Category updated successfully.";
                             return Ok(_response);
                         }
                     }
@@ -900,7 +842,7 @@ namespace MaxemusAPI.Controllers
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = true;
                         _response.Data = response;
-                        _response.Messages = "subcategories list shown successfully.";
+                        _response.Messages = "category list shown successfully.";
 
                         return Ok(_response);
                     }
@@ -908,7 +850,7 @@ namespace MaxemusAPI.Controllers
                     {
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = false;
-                        _response.Messages = "No subcategories found for the specified mainCategoryId.";
+                        _response.Messages = "No categories found for the specified CategoryId.";
                     }
 
                     return Ok(_response);
@@ -1087,7 +1029,7 @@ namespace MaxemusAPI.Controllers
 
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
-                    _response.Messages = "Subcategory deleted successfully.";
+                    _response.Messages = "category deleted successfully.";
                     return Ok(_response);
                 }
                 else if (model.MainCategoryId > 0)
@@ -1109,7 +1051,7 @@ namespace MaxemusAPI.Controllers
                         await _context.SaveChangesAsync();
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = true;
-                        _response.Messages = "MainCategory deleted successfully.";
+                        _response.Messages = "Category deleted successfully.";
                         return Ok(_response);
                     }
 
@@ -1118,7 +1060,7 @@ namespace MaxemusAPI.Controllers
 
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
-                    _response.Messages = "MainCategory and its Subcategories deleted successfully.";
+                    _response.Messages = "categories deleted successfully.";
                     return Ok(_response);
                 }
 

@@ -110,86 +110,108 @@ namespace MaxemusAPI.Controllers
             _context.Add(product);
             await _context.SaveChangesAsync();
 
-           
-            var cameraVariants = new CameraVariants
+
+            CameraVariants cameraVariants = new CameraVariants();
+            foreach (var item in model.Camera)
             {
-                ProductId = product.ProductId
-               
-                
-            };
-            _mapper.Map(model, cameraVariants);
-            _context.Add(cameraVariants);
-            await _context.SaveChangesAsync();
+                cameraVariants.ProductId = product.ProductId;
+                cameraVariants.Appearance = item.Appearance;
 
+                _mapper.Map(item, cameraVariants);
+                _context.Add(cameraVariants);
+                await _context.SaveChangesAsync();
+            }
 
-            var audioVariants = new AudioVariants
+            var audioVariants = new AudioVariants();
+            foreach (var item in model.Audio)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
+                audioVariants.ProductId = product.ProductId;
+                audioVariants.VariantId = cameraVariants.VariantId;
 
-            };
-            _mapper.Map(model, audioVariants);
-            _context.Add(audioVariants);
+                _mapper.Map(item, audioVariants);
+                _context.Add(audioVariants);
+                await _context.SaveChangesAsync();
 
+            }
 
-            var certificationVariants = new CertificationVariants
+            var certificationVariants = new CertificationVariants();
+            foreach (var item in model.Certification)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, certificationVariants);
-            _context.Add(certificationVariants);
+                certificationVariants.ProductId = product.ProductId;
+                certificationVariants.VariantId = cameraVariants.VariantId;
 
+                _mapper.Map(item, certificationVariants);
+                _context.Add(certificationVariants);
+                await _context.SaveChangesAsync();
 
-            var environmentVariants = new EnvironmentVariants
+            }
+
+            var environmentVariants = new EnvironmentVariants();
+            foreach (var item in model.Environment)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, environmentVariants);
-            _context.Add(environmentVariants);
+                environmentVariants.ProductId = product.ProductId;
+                environmentVariants.VariantId = cameraVariants.VariantId;
 
+                _mapper.Map(item, environmentVariants);
+                await _context.SaveChangesAsync();
+                _context.Add(environmentVariants);
+            }
 
-            var generalVariants = new GeneralVariants
+            var generalVariants = new GeneralVariants();
+            foreach (var item in model.General)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, generalVariants);
-            _context.Add(generalVariants);
+                generalVariants.ProductId = product.ProductId;
+                generalVariants.VariantId = cameraVariants.VariantId;
 
+                _mapper.Map(item, generalVariants);
+                await _context.SaveChangesAsync();
+                _context.Add(generalVariants);
+            }
 
-            var lensVariants = new LensVariants
+            var lensVariants = new LensVariants();
+            foreach (var item in model.Lens)
             {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, lensVariants);
-            _context.Add(lensVariants);
+                lensVariants.VariantId = cameraVariants.VariantId;
 
+                _mapper.Map(item, lensVariants);
+                await _context.SaveChangesAsync();
+                _context.Add(lensVariants);
 
-            var networkVariants = new NetworkVariants
+            }
+
+            var networkVariants = new NetworkVariants();
+            foreach (var item in model.Network)
             {
-                ProductId = product.ProductId,
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, networkVariants);
-            _context.Add(networkVariants);
+                networkVariants.ProductId = product.ProductId;
+                networkVariants.VariantId = cameraVariants.VariantId;
 
 
-            var powerVariants = new PowerVariants
+                _mapper.Map(item, networkVariants);
+                await _context.SaveChangesAsync();
+                _context.Add(networkVariants);
+            }
+
+            var powerVariants = new PowerVariants();
+            foreach (var item in model.Power)
             {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, powerVariants);
-            _context.Add(powerVariants);
+                powerVariants.VariantId = cameraVariants.VariantId;
 
 
-            var videoVariants = new VideoVariants
+                _mapper.Map(item, powerVariants);
+                await _context.SaveChangesAsync();
+                _context.Add(powerVariants);
+            }
+
+            var videoVariants = new VideoVariants();
+            foreach (var item in model.Video)
             {
-                VariantId = cameraVariants.VariantId
-            };
-            _mapper.Map(model, videoVariants);
-            _context.Add(videoVariants);
+                videoVariants.VariantId = cameraVariants.VariantId;
+
+                _mapper.Map(item, videoVariants);
+                await _context.SaveChangesAsync();
+                _context.Add(videoVariants);
+            }
+
 
             var accessoriesVariants = new AccessoriesVariants
             {
@@ -197,25 +219,23 @@ namespace MaxemusAPI.Controllers
             };
             _mapper.Map(model, accessoriesVariants);
             _context.Add(accessoriesVariants);
-
-
             await _context.SaveChangesAsync();
 
-
             var response = _mapper.Map<ProductResponsesDTO>(product);
-            response.ProductId = product.ProductId;
-            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyyy");
+            response.VariantId = cameraVariants.VariantId;
+            response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
+            response.Audio = _mapper.Map<AudioVariantsDTO>(model.Audio.FirstOrDefault());
+            response.Camera = _mapper.Map<CameraVariantsDTO>(model.Camera.FirstOrDefault());
+            response.Certification = _mapper.Map<CertificationVariantsDTO>(model.Certification.FirstOrDefault());
+            response.Environment = _mapper.Map<EnvironmentVariantsDTO>(model.Environment.FirstOrDefault());
+            response.General = _mapper.Map<GeneralVariantsDTO>(model.General.FirstOrDefault());
 
-            _mapper.Map(cameraVariants, response);
-            _mapper.Map(audioVariants, response);
-            _mapper.Map(certificationVariants, response);
-            _mapper.Map(environmentVariants, response);
-            _mapper.Map(generalVariants, response);
-            _mapper.Map(lensVariants, response);
-            _mapper.Map(networkVariants, response);
-            _mapper.Map(powerVariants, response);
-            _mapper.Map(videoVariants, response);
-            _mapper.Map(accessoriesVariants, response);
+            response.Lens = _mapper.Map<LensVariantsDTO>(model.Lens.FirstOrDefault());
+            response.Network = _mapper.Map<NetworkVariantsDTO>(model.Network.FirstOrDefault());
+            response.Power = _mapper.Map<PowerVariantsDTO>(model.Power.FirstOrDefault());
+            response.Video = _mapper.Map<VideoVariantsDTO>(model.Video.FirstOrDefault());
+
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
@@ -236,7 +256,7 @@ namespace MaxemusAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> UpdateProduct([FromBody] ProductResponsesDTO model)
+        public async Task<IActionResult> UpdateProduct([FromBody] ProductUpdateDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -295,12 +315,14 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
+
             var cameraVariants = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (cameraVariants != null)
             {
-                _mapper.Map(model, cameraVariants);
+                _mapper.Map(model.Camera, cameraVariants);
                 _context.Update(cameraVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -312,9 +334,12 @@ namespace MaxemusAPI.Controllers
             var audioVariants = await _context.AudioVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (audioVariants != null)
             {
-                _mapper.Map(model, audioVariants);
+
+                _mapper.Map(model.Audio, audioVariants);
                 _context.Update(audioVariants);
                 await _context.SaveChangesAsync();
+
+
             }
             else
             {
@@ -326,9 +351,11 @@ namespace MaxemusAPI.Controllers
             var certificationVariants = await _context.CertificationVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (certificationVariants != null)
             {
-                _mapper.Map(model, certificationVariants);
+
+                _mapper.Map(model.Certification, certificationVariants);
                 _context.Update(certificationVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -340,9 +367,10 @@ namespace MaxemusAPI.Controllers
             var environmentVariants = await _context.EnvironmentVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (environmentVariants != null)
             {
-                _mapper.Map(model, environmentVariants);
+                _mapper.Map(model.Environment, environmentVariants);
                 _context.Update(environmentVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -354,9 +382,10 @@ namespace MaxemusAPI.Controllers
             var generalVariants = await _context.GeneralVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (generalVariants != null)
             {
-                _mapper.Map(model, generalVariants);
+                _mapper.Map(model.General, generalVariants);
                 _context.Update(generalVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -368,9 +397,11 @@ namespace MaxemusAPI.Controllers
             var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
             if (lensVariants != null)
             {
-                _mapper.Map(model, lensVariants);
+
+                _mapper.Map(model.Lens, lensVariants);
                 _context.Update(lensVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -382,9 +413,11 @@ namespace MaxemusAPI.Controllers
             var networkVariants = await _context.NetworkVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (networkVariants != null)
             {
-                _mapper.Map(model, networkVariants);
+
+                _mapper.Map(model.Network, networkVariants);
                 _context.Update(networkVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -396,9 +429,11 @@ namespace MaxemusAPI.Controllers
             var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
             if (powerVariants != null)
             {
-                _mapper.Map(model, powerVariants);
+
+                _mapper.Map(model.Power, powerVariants);
                 _context.Update(powerVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -410,9 +445,11 @@ namespace MaxemusAPI.Controllers
             var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
             if (videoVariants != null)
             {
-                _mapper.Map(model, videoVariants);
+
+                _mapper.Map(model.Video, videoVariants);
                 _context.Update(videoVariants);
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -423,24 +460,11 @@ namespace MaxemusAPI.Controllers
             }
 
 
-            var response = _mapper.Map<ProductResponsesDTO>(product);
-            response.ProductId = product.ProductId;
-            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
-            //response.Accessories = await _context.AccessoriesVariants.Where(u => u.ProductId == product.ProductId)
-            //                      .Select(u => u.AccessoryId).FirstOrDefaultAsync();
-            _mapper.Map(cameraVariants, response);
-            _mapper.Map(audioVariants, response);
-            _mapper.Map(certificationVariants, response);
-            _mapper.Map(environmentVariants, response);
-            _mapper.Map(generalVariants, response);
-            _mapper.Map(lensVariants, response);
-            _mapper.Map(networkVariants, response);
-            _mapper.Map(powerVariants, response);
-            _mapper.Map(videoVariants, response);
+
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Data = response;
+            _response.Data = model;
             _response.Messages = "Product Updated successfully.";
             return Ok(_response);
 
@@ -492,7 +516,7 @@ namespace MaxemusAPI.Controllers
             var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
 
             var mappedData = _mapper.Map<List<ProductResponseDTO>>(items);
-            
+
 
             if (model.mainProductCategoryId > 0)
             {
@@ -599,21 +623,20 @@ namespace MaxemusAPI.Controllers
 
             var accessoriesVariants = await _context.AccessoriesVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
 
-
             var response = _mapper.Map<ProductResponsesDTO>(product);
-            response.ProductId = product.ProductId;
-            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyyy");
+            response.VariantId = cameraVariants.VariantId;
 
-            _mapper.Map(cameraVariants, response);
-            _mapper.Map(audioVariants, response);
-            _mapper.Map(certificationVariants, response);
-            _mapper.Map(environmentVariants, response);
-            _mapper.Map(generalVariants, response);
-            _mapper.Map(lensVariants, response);
-            _mapper.Map(networkVariants, response);
-            _mapper.Map(powerVariants, response);
-            _mapper.Map(videoVariants, response);
-            _mapper.Map(accessoriesVariants, response);
+            response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
+            response.Audio = _mapper.Map<AudioVariantsDTO>(audioVariants);
+            response.Camera = _mapper.Map<CameraVariantsDTO>(cameraVariants);
+            response.Certification = _mapper.Map<CertificationVariantsDTO>(certificationVariants);
+            response.Environment = _mapper.Map<EnvironmentVariantsDTO>(environmentVariants);
+            response.General = _mapper.Map<GeneralVariantsDTO>(generalVariants);
+            response.Lens = _mapper.Map<LensVariantsDTO>(lensVariants);
+            response.Network = _mapper.Map<NetworkVariantsDTO>(networkVariants);
+            response.Power = _mapper.Map<PowerVariantsDTO>(powerVariants);
+            response.Video = _mapper.Map<VideoVariantsDTO>(videoVariants);
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

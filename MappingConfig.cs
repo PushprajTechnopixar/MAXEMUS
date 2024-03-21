@@ -81,6 +81,32 @@ namespace MaxemusAPI
             CreateMap<ProductVariantDTO, PowerVariants>().ReverseMap();
             CreateMap<ProductVariantDTO, VideoVariants>().ReverseMap();
 
+            CreateMap<ProductUpdateDTO, Product>().ReverseMap();
+            CreateMap<ProductUpdateDTO, AccessoriesVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, AudioVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, CameraVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, CertificationVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, EnvironmentVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, GeneralVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, InstallationDocumentVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, LensVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, NetworkVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, PowerVariants>().ReverseMap();
+            CreateMap<ProductUpdateDTO, VideoVariants>().ReverseMap();
+
+            CreateMap<CameraVariantsDTO, CameraVariants>().ReverseMap();
+            CreateMap<AudioVariantsDTO, AudioVariants>().ReverseMap();
+            CreateMap<CertificationVariantsDTO, CertificationVariants>().ReverseMap();
+            CreateMap<EnvironmentVariantsDTO, EnvironmentVariants>().ReverseMap();
+            CreateMap<GeneralVariantsDTO, GeneralVariants>().ReverseMap();
+            CreateMap<LensVariantsDTO, LensVariants>().ReverseMap();
+            CreateMap<NetworkVariantsDTO, NetworkVariants>().ReverseMap();
+            CreateMap<PowerVariantsDTO, PowerVariants>().ReverseMap();
+            CreateMap<VideoVariantsDTO, VideoVariants>().ReverseMap();
+            CreateMap<AccessoriesVariantsDTO, AccessoriesVariants>().ReverseMap();
+
+            CreateMap<ProductResponsesDTO, ProductVariantDTO>().ReverseMap();
+
             CreateMap<ProductResponsesDTO, Product>().ReverseMap();
             CreateMap<ProductResponsesDTO, AccessoriesVariants>().ReverseMap();
             CreateMap<ProductResponsesDTO, AudioVariants>().ReverseMap();

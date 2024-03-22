@@ -186,12 +186,12 @@ namespace MaxemusAPI.Controllers
             var companyDetail = await _context.CompanyDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
             if (companyDetail != null)
             {
-                
+
                 var response = _mapper.Map<AdminResponseDTO>(userDetail);
                 _mapper.Map(companyDetail, response);
 
-                var adminCountry= await _context.CountryMaster.Where(u => u.CountryId == response.CountryId).FirstOrDefaultAsync();
-                var adminState= await _context.StateMaster.Where(u => u.StateId == response.StateId).FirstOrDefaultAsync();
+                var adminCountry = await _context.CountryMaster.Where(u => u.CountryId == response.CountryId).FirstOrDefaultAsync();
+                var adminState = await _context.StateMaster.Where(u => u.StateId == response.StateId).FirstOrDefaultAsync();
                 response.CountryName = adminCountry.CountryName;
                 response.StateName = adminState.StateName;
 
@@ -449,7 +449,7 @@ namespace MaxemusAPI.Controllers
                     _response.Messages = "Token expired.";
                     return Ok(_response);
                 }
-            
+
                 var brandList = _context.Brand.Select(item => new BrandListDTO
                 {
                     BrandId = item.BrandId,
@@ -1080,7 +1080,267 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
+        #region GetDistributorList
+        /// <summary>
+        ///   Get Dealer List.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("GetDistributorList")]
 
+        public async Task<IActionResult> GetDistributorList([FromQuery] FilterationListDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var distributorUser = await _userManager.GetUsersInRoleAsync(Role.Distributor.ToString());
+            if (distributorUser.Count < 1)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Record not found.";
+                return Ok(_response);
+            }
+
+            List<AdminUserListDTO> distributorUserList = new List<AdminUserListDTO>();
+            foreach (var item in distributorUser)
+            {
+                var distributorUserDetail = _userManager.FindByIdAsync(item.Id).GetAwaiter().GetResult();
+                var distributorUserProfileDetail = await _context.ApplicationUsers.FirstOrDefaultAsync(u => (u.Id == item.Id) && (u.IsDeleted == false));
+                if (distributorUserProfileDetail != null)
+                {
+                    var mappedData = _mapper.Map<AdminUserListDTO>(item);
+                    mappedData.profilepic = distributorUserProfileDetail.ProfilePic;
+                    mappedData.gender = distributorUserProfileDetail.Gender;
+                    //mappedData.modifyDate = distributorUserProfileDetail.modifyDate;
+                    distributorUserList.Add(mappedData);
+                }
+            }
+
+            distributorUserList = distributorUserList.OrderByDescending(u => u.modifyDate).ToList();
+
+            if (!string.IsNullOrEmpty(model.searchQuery))
+            {
+                distributorUserList = distributorUserList.Where(u => u.firstName.ToLower().Contains(model.searchQuery.ToLower())
+                || u.email.ToLower().Contains(model.searchQuery.ToLower())
+                ).ToList();
+            }
+
+            // Get's No of Rows Count   
+            int count = distributorUserList.Count();
+
+            // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
+            int CurrentPage = model.pageNumber;
+
+            // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
+            int PageSize = model.pageSize;
+
+            // Display TotalCount to Records to User  
+            int TotalCount = count;
+
+            // Calculating Totalpage by Dividing (No of Records / Pagesize)  
+            int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
+
+            // Returns List of Customer after applying Paging   
+            var items = distributorUserList.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+
+            // if CurrentPage is greater than 1 means it has previousPage  
+            var previousPage = CurrentPage > 1 ? "Yes" : "No";
+
+            // if TotalPages is greater than CurrentPage means it has nextPage  
+            var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
+
+            // Returing List of Customers Collections  
+            FilterationResponseModel<AdminUserListDTO> obj = new FilterationResponseModel<AdminUserListDTO>();
+            obj.totalCount = TotalCount;
+            obj.pageSize = PageSize;
+            obj.currentPage = CurrentPage;
+            obj.totalPages = TotalPages;
+            obj.previousPage = previousPage;
+            obj.nextPage = nextPage;
+            obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
+            obj.dataList = items.ToList();
+
+            if (obj == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Error while adding.";
+                return Ok(_response);
+            }
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = obj;
+            _response.Messages = "List shown successfully.";
+            return Ok(_response);
+
+
+
+
+
+
+
+
+
+
+
+            return Ok(_response);
+        }
+        #endregion
+
+        #region GetDistributorDetail
+        /// <summary>
+        ///   Get Distributor Detail.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("GetDistributorDetail")]
+
+        public async Task<IActionResult> GetDistributorDetail([FromQuery] string id)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var distributor = _userManager.FindByIdAsync(id).GetAwaiter().GetResult();
+            if (distributor == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == id);
+            if (distributorDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            var distributorAddress = await _context.DistributorAddress.FirstOrDefaultAsync(u => u.DistributorId == distributorDetail.DistributorId);
+            if (distributorAddress == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+
+         
+
+            var response = new DistributorDetailsDTO();
+     
+            _mapper.Map(distributor, response);
+            _mapper.Map(distributorDetail, response);
+            _mapper.Map(distributorAddress, response);
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = response;
+            _response.Messages = "distributor detail shown successfully.";
+            return Ok(_response);
+
+
+        }
+        #endregion
+
+
+        #region SetProductStatus
+        /// <summary>
+        ///   Set distributor status [Pending = 0; Approved = 1; Rejected = 2]..
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("SetDistributorStatus")]
+        public async Task<IActionResult> SetDistributorStatus([FromBody] SetDistributorStatusDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            if (model.status != Convert.ToInt32(Status.Pending)
+          && model.status != Convert.ToInt32(Status.Approved)
+          && model.status != Convert.ToInt32(Status.Rejected))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Please select a valid status.";
+                return Ok(_response);
+            }
+
+            var distributor = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.DistributorId == model.distributorId);
+
+            if (distributor == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+
+            distributor.Status = model.status.ToString();
+
+            _context.Update(distributor);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "distributor status updated successfully.";
+
+            return Ok(_response);
+        }
+
+        #endregion
 
 
 

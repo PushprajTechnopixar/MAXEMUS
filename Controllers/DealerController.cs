@@ -55,9 +55,9 @@ namespace MaxemusAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        [Route("AddOrUpdateAddress")]
+        [Route("AddAddress")]
         [Authorize]
-        public async Task<IActionResult> AddOrUpdateAddress([FromBody] DealerProfileDTO model)
+        public async Task<IActionResult> AddAddress([FromBody] DealerProfileDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -128,7 +128,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            
+
 
             _response.StatusCode = HttpStatusCode.BadRequest;
             _response.IsSuccess = false;
@@ -163,16 +163,16 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgUserNotFound;
                 return Ok(_response);
             }
-
-            var mappedData = _mapper.Map<UserDetailDTO>(userDetail);
-
+            var dealerDetail = await _context.DealerDetail.Where(u => u.UserId == currentUserId).FirstOrDefaultAsync();
+            var mappedData = _mapper.Map<DealerResponseDTO>(userDetail);
+            _mapper.Map(dealerDetail, mappedData);
             var userProfileDetail = await _context.ApplicationUsers.Where(u => u.Id == currentUserId).FirstOrDefaultAsync();
             var updateProfile = _mapper.Map(userProfileDetail, mappedData);
 
             var userCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == userProfileDetail.CountryId).FirstOrDefaultAsync();
             var userStateDetail = await _context.StateMaster.Where(u => u.StateId == userProfileDetail.StateId).FirstOrDefaultAsync();
-            mappedData.countryName = userCountryDetail.CountryName;
-            mappedData.stateName = userStateDetail.StateName;
+            mappedData.CountryName = userCountryDetail.CountryName;
+            mappedData.StateName = userStateDetail.StateName;
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
@@ -189,7 +189,7 @@ namespace MaxemusAPI.Controllers
         [HttpPost]
         [Route("UpdateProfile")]
         [Authorize(Roles = "Dealer")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UserRequestDTO model)
+        public async Task<IActionResult> UpdateProfile([FromBody] DealerRequestDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -243,6 +243,18 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
+            var dealerDetail = await _context.DealerDetail.Where(u => u.UserId == currentUserId).FirstOrDefaultAsync();
+            if (dealerDetail != null)
+            {
+                dealerDetail.Address1 = model.Address1;
+                dealerDetail.Address2 = model.Address2;
+            }
+          
+
+
+            _context.Update(dealerDetail);
+            await _context.SaveChangesAsync();
+
             var mappedData = _mapper.Map(model, userDetail);
             _context.Update(userDetail);
             await _context.SaveChangesAsync();
@@ -252,8 +264,12 @@ namespace MaxemusAPI.Controllers
             _context.ApplicationUsers.Update(updateProfile);
             await _context.SaveChangesAsync();
 
+            var response = _mapper.Map<DealerResponseDTO>(dealerDetail);
+            _mapper.Map(userProfileDetail, response);
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
+            _response.Data = response;
             _response.Messages = "Profile updated successfully.";
             return Ok(_response);
         }

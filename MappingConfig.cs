@@ -13,14 +13,14 @@ namespace MaxemusAPI
         {
             CreateMap<UserDTO, ApplicationUser>().ReverseMap();
             CreateMap<LoginResponseDTO, ApplicationUser>().ReverseMap();
-            CreateMap<DistributorAddressDTO, ApplicationUser>().ReverseMap();
+            //CreateMap<DistributorAddressDTO, ApplicationUser>().ReverseMap();
             CreateMap<LoginResponseDTO, ApplicationUser>().ReverseMap();
             CreateMap<DealerDetailDTO, DealerDetail>().ReverseMap();
             CreateMap<DealerProfileDTO, DealerDetail>().ReverseMap();
             CreateMap<DealerDetailDTO, ApplicationUser>().ReverseMap();
             CreateMap<DealerProfileDTO, ApplicationUser>().ReverseMap();
-            CreateMap<DistributorAddressDTO, DistributorDetail>().ReverseMap();
-            CreateMap<DistributorAddressDTO, DistributorAddress>().ReverseMap();
+            //CreateMap<DistributorAddressDTO, DistributorDetail>().ReverseMap();
+            //CreateMap<DistributorAddressDTO, DistributorAddress>().ReverseMap();
             CreateMap<DistributorAddress, ApplicationUser>().ReverseMap();
             CreateMap<ApplicationUser, DistributorAddress>().ReverseMap();
             CreateMap<UserDetailDTO, ApplicationUser>().ReverseMap();
@@ -30,10 +30,27 @@ namespace MaxemusAPI
             CreateMap<NotificationSent, NotificationSentDTO>().ReverseMap();
             CreateMap<NotificationSentDTO, NotificationSent>().ReverseMap();
 
+
+            CreateMap<DistributorDetailsDTO, ApplicationUser>().ReverseMap();
+            CreateMap<DistributorDetailsDTO, DistributorAddress>().ReverseMap();
+            CreateMap<DistributorDetailsDTO, DistributorDetail>().ReverseMap();
+
+
+
+
+
+
+
             CreateMap<DistributorAddressResponseDTO, DistributorAddress>().ReverseMap();
+            CreateMap<AdminUserListDTO, ApplicationUser>().ReverseMap();
             CreateMap<DistributorAddressResponseDTO, ApplicationUser>().ReverseMap();
             CreateMap<DistributorAddressResponseDTO, DistributorDetail>().ReverseMap();
-            CreateMap<DistributorAddressResponseDTO, DistributorAddressDTO>().ReverseMap();
+
+            CreateMap<DealerResponseDTO, ApplicationUser>().ReverseMap();
+            CreateMap<DealerRequestDTO, ApplicationUser>().ReverseMap();
+            CreateMap<DealerRequestDTO, DealerDetail>().ReverseMap();
+            CreateMap<DealerResponseDTO, DealerDetail>().ReverseMap();
+
 
             CreateMap<AddBrandDTO, Brand>().ReverseMap();
             CreateMap<BrandDTO, Brand>().ReverseMap();

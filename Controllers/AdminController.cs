@@ -1263,10 +1263,14 @@ namespace MaxemusAPI.Controllers
          
 
             var response = new DistributorDetailsDTO();
-     
             _mapper.Map(distributor, response);
             _mapper.Map(distributorDetail, response);
             _mapper.Map(distributorAddress, response);
+            var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.CountryId).FirstOrDefaultAsync();
+            var distributorState = await _context.StateMaster.Where(u => u.StateId == response.StateId).FirstOrDefaultAsync();
+            response.CountryName = distributorCountry.CountryName;
+            response.StateName = distributorState.StateName;
+  
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

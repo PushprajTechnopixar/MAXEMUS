@@ -1279,7 +1279,7 @@ namespace MaxemusAPI.Controllers
         #endregion
 
 
-        #region SetProductStatus
+        #region SetDistributorStatus
         /// <summary>
         ///   Set distributor status [Pending = 0; Approved = 1; Rejected = 2]..
         /// </summary>
@@ -1287,7 +1287,7 @@ namespace MaxemusAPI.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [Route("SetDistributorStatus")]
         public async Task<IActionResult> SetDistributorStatus([FromBody] SetDistributorStatusDTO model)
         {

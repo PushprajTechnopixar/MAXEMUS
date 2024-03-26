@@ -39,6 +39,7 @@ namespace MaxemusAPI.Data
         public virtual DbSet<NotificationSent> NotificationSent { get; set; } = null!;
         public virtual DbSet<OderAddress> OderAddress { get; set; } = null!;
         public virtual DbSet<OrderedPoduct> OrderedPoduct { get; set; } = null!;
+        public virtual DbSet<OrderedProductQr> OrderedProductQr { get; set; } = null!;
         public virtual DbSet<PowerVariants> PowerVariants { get; set; } = null!;
         public virtual DbSet<Product> Product { get; set; } = null!;
         public virtual DbSet<ProductStock> ProductStock { get; set; } = null!;
@@ -676,6 +677,22 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.TotalMrp).HasColumnName("TotalMRP");
             });
 
+            modelBuilder.Entity<OrderedProductQr>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("OrderedProductQR");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany()
+                    .HasForeignKey(d => d.ProductId)
+                    .HasConstraintName("FK_OrderedProductQR_Product");
+
+                entity.HasOne(d => d.ProductStock)
+                    .WithMany()
+                    .HasForeignKey(d => d.ProductStockId)
+                    .HasConstraintName("FK_OrderedProductQR_ProductStock");
+            });
             modelBuilder.Entity<PowerVariants>(entity =>
             {
                 entity.HasKey(e => e.VariantId)

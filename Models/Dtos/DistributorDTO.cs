@@ -52,7 +52,7 @@ namespace MaxemusAPI.Models.Dtos
         public int AddressId { get; set; }
         public string Name { get; set; }
         public string email { get; set; }
-        public string profilepic { get; set; }
+        public string? Image { get; set; }
         public string? RegistrationNumber { get; set; }
         public string? Description { get; set; }
         public string AddressType { get; set; } = null!;

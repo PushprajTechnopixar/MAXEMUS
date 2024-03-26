@@ -1122,14 +1122,15 @@ namespace MaxemusAPI.Controllers
             List<AdminUserListDTO> distributorUserList = new List<AdminUserListDTO>();
             foreach (var item in distributorUser)
             {
-                var distributorUserDetail = _userManager.FindByIdAsync(item.Id).GetAwaiter().GetResult();
+                var distributorUserDetail = await _context.DistributorDetail.ToListAsync();
                 var distributorUserProfileDetail = await _context.ApplicationUsers.FirstOrDefaultAsync(u => (u.Id == item.Id) && (u.IsDeleted == false));
                 if (distributorUserProfileDetail != null)
                 {
                     var mappedData = _mapper.Map<AdminUserListDTO>(item);
                     mappedData.profilepic = distributorUserProfileDetail.ProfilePic;
                     mappedData.gender = distributorUserProfileDetail.Gender;
-                    //mappedData.modifyDate = distributorUserProfileDetail.modifyDate;
+                    mappedData.Status = distributorUserDetail.Select(u => u.Status).FirstOrDefault();
+                    //mappedData.modifyDate = distributorUserDetail.Select(u => u.ModifyDate).FirstOrDefault().ToString("dd-MM-yyyy");
                     distributorUserList.Add(mappedData);
                 }
             }

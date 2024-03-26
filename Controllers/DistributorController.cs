@@ -17,6 +17,8 @@ using Google.Api.Gax;
 using MaxemusAPI.Common;
 using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
+using TimeZoneConverter;
+using System.Linq;
 
 namespace MaxemusAPI.Controllers
 {
@@ -309,6 +311,523 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
+        #region AddProductToCart
+        /// <summary>
+        ///  Add product to cart.
+        /// </summary>
+        [HttpPost("AddProductToCart")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> AddProductToCart(int productId)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == productId && u.IsActive == true);
+                if (product == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Record not found.";
+                    return Ok(_response);
+                }
+
+                var cart = await _context.Cart.FirstOrDefaultAsync(c => c.ProductId == productId && c.DistributorId == currentUserId);
+                if (cart == null)
+                {
+                    cart = new Cart
+                    {
+                        ProductId = productId,
+                        DistributorId = currentUserId,
+                        ProductCountInCart = 1,
+                        CreateDate = DateTime.Now
+                    };
+                    _context.Cart.Add(cart);
+                }
+                else
+                {
+                    cart.ModifyDate = DateTime.Now;
+                    cart.ProductCountInCart++;
+                    _context.Cart.Update(cart);
+                }
+
+                await _context.SaveChangesAsync();
+
+                var response = _mapper.Map<CartResponseDTO>(cart);
+                _mapper.Map(product, response);
+                response.CreateDate = cart.CreateDate.ToString();
+                response.TotalMrp = (double)(product.TotalMrp * cart.ProductCountInCart);
+                response.Discount = (double)(product.Discount * cart.ProductCountInCart);
+                response.DiscountType = product.DiscountType;
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = response;
+                _response.Messages = "Product added to cart successfully.";
+
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+
+        #region PlaceOrder
+        /// <summary>
+        ///  PlaceOrder for Distributor.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("PlaceOrder")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequestDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                var cart = await _context.Cart.Where(u => u.DistributorId == currentUserId).ToListAsync();
+                if (cart == null || !cart.Any())
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+
+                var distributorOrder = new DistributorOrder()
+                {
+                    UserId = currentUserId,
+                    FirstName = userDetail.FirstName,
+                    LastName = userDetail.LastName,
+                    PaymentMethod = model.PaymentMethod,
+                    OrderDate = DateTime.UtcNow,
+                    CreateDate = DateTime.UtcNow
+                };
+
+                double? totalMrp = 0;
+                double? totalDiscountAmount = 0;
+                double? totalSellingPrice = 0;
+
+                foreach (var item in cart)
+                {
+                    var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
+                    if (product == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+
+                    totalMrp += product.TotalMrp * item.ProductCountInCart;
+                    totalDiscountAmount += product.Discount * item.ProductCountInCart;
+                    totalSellingPrice += product.SellingPrice * item.ProductCountInCart;
+                }
+
+                distributorOrder.TotalMrp = totalMrp;
+                distributorOrder.TotalDiscountAmount = totalDiscountAmount;
+                distributorOrder.TotalSellingPrice = totalSellingPrice;
+                distributorOrder.TotalProducts = cart.Sum(u => u.ProductCountInCart);
+
+                _context.Add(distributorOrder);
+                await _context.SaveChangesAsync();
+
+                foreach (var item in cart)
+                {
+                    var distributorOrderedProduct = new DistributorOrderedProduct();
+
+                    distributorOrderedProduct.OrderId = distributorOrder.OrderId;
+
+                    var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
+                    if (product == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    distributorOrderedProduct.ProductId = product.ProductId;
+                    distributorOrderedProduct.SellingPricePerItem = product.SellingPrice;
+                    distributorOrderedProduct.TotalMrp = product.TotalMrp;
+                    distributorOrderedProduct.DiscountType = product.DiscountType;
+                    distributorOrderedProduct.Discount = product.Discount;
+                    distributorOrderedProduct.SellingPrice = product.SellingPrice;
+                    distributorOrderedProduct.Quantity = item.ProductCountInCart;
+                    distributorOrderedProduct.ProductCount = item.ProductCountInCart;
+                    distributorOrderedProduct.CreateDate = DateTime.UtcNow;
+
+                    _context.Add(distributorOrderedProduct);
+                    await _context.SaveChangesAsync();
+                }
+                foreach (var item in cart)
+                {
+                    var productStock = new ProductStock();
+                    var product = await _context.ProductStock.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
+                    if (product == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+
+                    _context.Remove(productStock);
+                    await _context.SaveChangesAsync();
+
+                }
+                _context.RemoveRange(cart);
+                await _context.SaveChangesAsync();
+
+                var response = _mapper.Map<OrderResponseDTO>(distributorOrder);
+                response.CreateDate = distributorOrder.CreateDate.ToShortDateString();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "order placed successfully.";
+                _response.Data = response;
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+
+        #region OrderList
+        /// <summary>
+        ///  Get OrderList for Distributor.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("OrderList")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> OrderList([FromQuery] DistributorOrderFiltrationListDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                List<DistributorOrder> orderList;
+                orderList = (await _context.DistributorOrder.Where(u => u.UserId == currentUserId).ToListAsync()).OrderByDescending(u => u.OrderDate).ToList();
+
+                if (model.fromDate != null && model.toDate != null)
+                {
+                    orderList = orderList.Where(x => (x.OrderDate.Date >= model.fromDate) && (x.OrderDate.Date <= model.toDate)).ToList();
+                }
+
+                var orderIds = orderList.Select(order => order.OrderId).ToList();
+                var productId = await _context.DistributorOrderedProduct.Where(u => orderIds.Contains(u.OrderId)).ToListAsync();
+
+                var productName = await _context.Product.ToListAsync();
+                var response = _mapper.Map<List<DistributorOrderedListDTO>>(orderList);
+
+                foreach (var item in response)
+                {
+                    var ctz = TZConvert.GetTimeZoneInfo("India Standard Time");
+                    var convertedZoneDate = TimeZoneInfo.ConvertTimeFromUtc(Convert.ToDateTime(item.OrderDate), ctz);
+                    item.OrderTime = Convert.ToDateTime(convertedZoneDate).ToString(@"hh:mm tt");
+                    item.OrderDate = Convert.ToDateTime(convertedZoneDate).ToString(@"dd-MM-yyyy");
+                    item.CreateDate = Convert.ToDateTime(convertedZoneDate).ToString(@"dd-MM-yyyy");
+
+                }
+
+                if (!string.IsNullOrEmpty(model.paymentStatus))
+                {
+                    response = response.Where(x => (x.PaymentStatus == model.paymentStatus)
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(model.orderStatus))
+                {
+                    response = response.Where(x => (x.OrderStatus == model.orderStatus)
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(model.searchQuery))
+                {
+                    response = response.Where(x => (x.PaymentStatus?.IndexOf(model.searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                    ).ToList();
+                }
+
+
+
+                // Get's No of Rows Count   
+                int count = response.Count();
+
+                // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
+                int CurrentPage = model.pageNumber;
+
+                // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
+                int PageSize = model.pageSize;
+
+                // Display TotalCount to Records to User  
+                int TotalCount = count;
+
+                // Calculating Totalpage by Dividing (No of Records / Pagesize)  
+                int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
+
+                // Returns List of Customer after applying Paging   
+                var items = response.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+
+                // if CurrentPage is greater than 1 means it has previousPage  
+                var previousPage = CurrentPage > 1 ? "Yes" : "No";
+
+                // if TotalPages is greater than CurrentPage means it has nextPage  
+                var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
+
+                // Returing List of Customers Collections  
+                FilterationResponseModel<DistributorOrderedListDTO> obj = new FilterationResponseModel<DistributorOrderedListDTO>();
+                obj.totalCount = TotalCount;
+                obj.pageSize = PageSize;
+                obj.currentPage = CurrentPage;
+                obj.totalPages = TotalPages;
+                obj.previousPage = previousPage;
+                obj.nextPage = nextPage;
+                obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
+                obj.dataList = items.ToList();
+
+                if (obj == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
+                    return Ok(_response);
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = obj;
+                _response.Messages = "order list shown successfully.";
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region OrderDetail
+        /// <summary>
+        ///  Get OrderDetail for Distributor.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("OrderDetail")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> OrderDetail(long orderId)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                var distributorOrder = await _context.DistributorOrder.FindAsync(orderId);
+                if (distributorOrder == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+
+                var distributorOrderProducts = await _context.DistributorOrderedProduct
+                    .Where(u => u.OrderId == orderId)
+                    .ToListAsync();
+
+                if (distributorOrderProducts == null || distributorOrderProducts.Count == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+
+                var response = _mapper.Map<DistributorOrderDetailDTO>(distributorOrder);
+                response.DistributorOrderedProduct = _mapper.Map<List<DistributorOrderedProductDTO>>(distributorOrderProducts);
+
+                response.CreateDate = distributorOrder.CreateDate.ToShortDateString();
+                response.OrderDate = distributorOrder.OrderDate.ToShortDateString();
+                response.DeliveredDate = distributorOrder.DeliveredDate.ToString();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "order detail shown successfully.";
+                _response.Data = response;
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region CancelOrder
+        /// <summary>
+        ///  CancelOrder for Distributor.
+        /// </summary>
+        /// <returns></returns>
+        ///    [HttpPost]
+        [HttpPost("CancelOrder")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> CancelOrder(CancelOrderDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var userDetail = await _userManager.FindByIdAsync(currentUserId);
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                var roles = await _userManager.GetRolesAsync(userDetail);
+                var roleName = roles.FirstOrDefault();
+
+                var orderDetail = await _context.DistributorOrder
+                    .FirstOrDefaultAsync(u => u.OrderId == model.OrderId);
+
+                if (orderDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+
+                var orderedProducts = await _context.DistributorOrderedProduct
+                    .Where(u => u.OrderId == model.OrderId)
+                    .ToListAsync();
+
+                foreach (var item in orderedProducts)
+                {
+                    item.ProductCount ??= 0;
+                }
+                await _context.SaveChangesAsync();
+
+                orderDetail.OrderStatus = OrderStatus.Cancelled.ToString();
+                orderDetail.CancelledBy = roleName;
+                _context.Update(orderDetail);
+                await _context.SaveChangesAsync();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Order cancelled successfully";
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion 
 
     }
 }

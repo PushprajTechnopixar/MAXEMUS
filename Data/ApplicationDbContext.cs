@@ -16,6 +16,7 @@ namespace MaxemusAPI.Data
         public virtual DbSet<AudioVariants> AudioVariants { get; set; } = null!;
         public virtual DbSet<Brand> Brand { get; set; } = null!;
         public virtual DbSet<CameraVariants> CameraVariants { get; set; } = null!;
+        public virtual DbSet<Cart> Cart { get; set; } = null!;
         public virtual DbSet<CertificationVariants> CertificationVariants { get; set; } = null!;
         public virtual DbSet<CityMaster> CityMaster { get; set; } = null!;
         public virtual DbSet<CompanyDetail> CompanyDetail { get; set; } = null!;
@@ -70,7 +71,7 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.AccessoryId).ValueGeneratedOnAdd();
 
                 entity.HasOne(d => d.Product)
-                    .WithMany()
+                    .WithMany(d => d.AccessoriesVariants)
                     .HasForeignKey(d => d.ProductId)
                     .HasConstraintName("FK_AccessoriesVariants_Product");
             });
@@ -147,6 +148,25 @@ namespace MaxemusAPI.Data
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CameraVariants_Product");
+            });
+
+            modelBuilder.Entity<Cart>(entity =>
+            {
+                entity.Property(e => e.CartId).HasColumnName("CartID");
+
+                entity.Property(e => e.CreateDate).HasColumnType("datetime");
+
+                entity.Property(e => e.DistributorId).HasColumnName("DistributorID");
+
+                entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ProductId).HasColumnName("ProductID");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.Cart)
+                    .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Cart__ModifyDate__67DE6983");
             });
 
             modelBuilder.Entity<CertificationVariants>(entity =>

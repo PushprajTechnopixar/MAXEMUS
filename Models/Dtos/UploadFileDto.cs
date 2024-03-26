@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace MaxemusAPI.Models
 {
-    public class UploadFileDto
+    public class UploadInstallationDocumentFileDto
     {
-        public IFormFile File { get; set; }
-        public string Id { get; set; }
+        public int VariantId { get; set; }
+        public int ProductId { get; set; }
+        public IFormFile PdfLink { get; set; }
     }
     public class UploadProfilePicDto
     {
@@ -30,6 +31,11 @@ namespace MaxemusAPI.Models
         public int brandId { get; set; }
         public IFormFile brandImage { get; set; }
     }
+    public partial class UploadProductImageDTO
+    {
+        public int ProductId { get; set; }
+        public List<IFormFile>? ProductImage { get; set; }
+    }
     public partial class UploadBannerImageDTO
     {
         public int bannerId { get; set; }
@@ -39,6 +45,11 @@ namespace MaxemusAPI.Models
     {
         public int salonId { get; set; }
         public IFormFile? salonImage { get; set; }
+    }
+    public partial class UploadDistributorDetailImageDTO
+    {
+        public int DistributorId { get; set; }
+        public IFormFile? Image { get; set; }
     }
     public partial class UploadPaymentReceipt
     {

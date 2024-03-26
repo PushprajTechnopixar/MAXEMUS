@@ -21,6 +21,7 @@
         public string lastName { get; set; }
         public string profilepic { get; set; }
         public string? gender { get; set; }
+        public string Status { get; set; }
         public DateTime? modifyDate { get; set; }
     }
 }

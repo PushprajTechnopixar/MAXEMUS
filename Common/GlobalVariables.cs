@@ -10,6 +10,8 @@
         public static readonly string SalonImageContainer = "SalonImages/";
         public static readonly string paymentReceipt = "PaymentReceipt/";
         public static readonly string qrImageContainer = "QRImages/";
+        public static readonly string productImageContainer = "ProductImages/";
+        public static readonly string installationDocumentContainer = "installationDocument/";
         public static readonly string serviceImageContainer = "ServiceImages/";
         public static readonly string collectionImageContainer = "CollectionImages/";
         public static readonly string passwordValidationMessage = "Your password must be at least 8 characters long, contain at least one number and have a mixture of uppercase and lowercase letters";
@@ -94,7 +96,23 @@
             Grocery = 1,
             Dairy,
         }
-
+        public enum ProductStatus
+        {
+            Pending = 0,
+            Active = 1,
+            InActive = 2,
+            OutOfStock = 3
+        }
+        public enum OrderStatus
+        {
+            Pending = 0,
+            Processing = 1,
+            OnTheWay = 2,
+            Delivered,
+            Cancelled,
+            ReadyToPickUp,
+            Returned
+        }
         public enum CategoryName
         {
             DairyandEggs = 3 // 3 is dairy category id

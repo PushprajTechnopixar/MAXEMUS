@@ -17,6 +17,7 @@ using Twilio.Http;
 using MaxemusAPI.Common;
 using static Google.Apis.Requests.BatchRequest;
 using AutoMapper.Configuration.Annotations;
+using static MaxemusAPI.Common.GlobalVariables;
 
 namespace MaxemusAPI.Controllers
 {
@@ -244,6 +245,63 @@ namespace MaxemusAPI.Controllers
 
             return Ok(_response);
 
+
+        }
+        #endregion
+
+        #region AddProductToStock
+        /// <summary>
+        ///  AddProductToStock. 
+        /// </summary>
+        [HttpPost("AddProductToStock")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> AddProductToStock([FromBody] AddQR model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+
+            var existingProduct = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsDeleted != true);
+            if (existingProduct == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any product.";
+                return Ok(_response);
+            }
+
+            var productStock = new ProductStock()
+            {
+                ProductId = model.ProductId,
+                Qrcode = model.Qrcode,
+                SerialNumber = model.SerialNumber,
+                CreateDate = DateTime.UtcNow
+            };
+
+            _context.Add(productStock);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = model;
+            _response.Messages = "product stock updated successfully.";
+            return Ok(_response);
 
         }
         #endregion
@@ -698,6 +756,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgUserNotFound;
                 return Ok(_response);
             }
+
 
             var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.productId && u.IsDeleted == false);
 

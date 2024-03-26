@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
-
 
 namespace MaxemusAPI.Models
 {
@@ -10,8 +7,10 @@ namespace MaxemusAPI.Models
     {
         public Product()
         {
+            AccessoriesVariants = new HashSet<AccessoriesVariants>();
             AudioVariants = new HashSet<AudioVariants>();
             CameraVariants = new HashSet<CameraVariants>();
+            Cart = new HashSet<Cart>();
             CertificationVariants = new HashSet<CertificationVariants>();
             DealerOrderedProduct = new HashSet<DealerOrderedProduct>();
             DistributorOrderedProduct = new HashSet<DistributorOrderedProduct>();
@@ -48,8 +47,10 @@ namespace MaxemusAPI.Models
         public virtual Brand Brand { get; set; } = null!;
         public virtual MainCategory MainCategory { get; set; } = null!;
         public virtual SubCategory SubCategory { get; set; } = null!;
+        public virtual ICollection<AccessoriesVariants> AccessoriesVariants { get; set; } = null!;
         public virtual ICollection<AudioVariants> AudioVariants { get; set; }
         public virtual ICollection<CameraVariants> CameraVariants { get; set; }
+        public virtual ICollection<Cart> Cart { get; set; }
         public virtual ICollection<CertificationVariants> CertificationVariants { get; set; }
         public virtual ICollection<DealerOrderedProduct> DealerOrderedProduct { get; set; }
         public virtual ICollection<DistributorOrderedProduct> DistributorOrderedProduct { get; set; }

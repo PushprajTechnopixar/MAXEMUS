@@ -57,4 +57,13 @@ namespace MaxemusAPI.Models.Dtos
         public int? brandId { get; set; }
         public string? searchQuery { get; set; }
     }
+
+    public class AddQR
+    {
+        //public int ProductStockId { get; set; }
+        public int ProductId { get; set; }
+        public string SerialNumber { get; set; }
+        public string? Qrcode { get; set; }
+
+    }
 }

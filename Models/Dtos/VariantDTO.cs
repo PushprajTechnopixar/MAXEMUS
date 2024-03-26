@@ -79,6 +79,13 @@ namespace MaxemusAPI.Models.Dtos
         public byte[] PdfLink { get; set; } = null!;
 
     }
+    public class InstallationDocumentDTO
+    {
+        public int VariantId { get; set; }
+        public int ProductId { get; set; }
+        public string PdfLink { get; set; } 
+
+    }
     public class LensVariantsDTO
     {
         public string? LensType { get; set; }

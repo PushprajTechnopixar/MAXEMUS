@@ -37,8 +37,13 @@ namespace MaxemusAPI.Models.Dtos
         [Required]
         public string? gender { get; set; }
         [Required]
+        public string? deviceType { get; set; }
+
         public string? dialCode { get; set; }
         [Required]
+        public string password { get; set; }
+        [Required]
+
         public string phoneNumber { get; set; }
         public int countryId { get; set; }
         public int stateId { get; set; }

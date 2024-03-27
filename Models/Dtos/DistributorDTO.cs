@@ -21,6 +21,8 @@ namespace MaxemusAPI.Models.Dtos
         public int CountryId { get; set; }
         public int StateId { get; set; }
         public string City { get; set; }
+        public string? HouseNoOrBuildingName { get; set; }
+
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
@@ -28,7 +30,7 @@ namespace MaxemusAPI.Models.Dtos
     }
     public class DistributorRequestDTO
     {
-        public int? DistributorId { get; set; }
+        public int DistributorId { get; set; }
         public UserRequestDTO personalProfile { get; set; }
         public DistributorBusinessRequestDTO businessProfile { get; set; }
     }

@@ -20,6 +20,7 @@ using static Google.Apis.Requests.BatchRequest;
 using TimeZoneConverter;
 using System.Linq;
 using System.Web.Helpers;
+using GSF.Net.Smtp;
 
 namespace MaxemusAPI.Controllers
 {
@@ -74,7 +75,14 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "Token expired.";
                 return Ok(_response);
             }
-
+            var userDetail = await _userManager.FindByIdAsync(currentUserId);
+            if (userDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
             var userProfileDetail = await _context.ApplicationUsers.FindAsync(currentUserId);
             if (userProfileDetail == null)
             {
@@ -84,10 +92,31 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
+            if (Gender.Male.ToString() != model.personalProfile.gender && Gender.Female.ToString() != model.personalProfile.gender && Gender.Others.ToString() != model.personalProfile.gender)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Please enter valid gender.";
+                return Ok(_response);
+            }
+
+            var roles = await _userManager.GetRolesAsync(userDetail);
+            var roleName = roles.FirstOrDefault();
+
             if (model.DistributorId > 0)
             {
+                var user = await _context.ApplicationUsers
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == model.personalProfile.email.ToLower());
+                if (user == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Distributor detail not found.";
+                    return Ok(_response);
+                }
+
                 var distributorDetail = await _context.DistributorDetail
-                    .FirstOrDefaultAsync(u => u.UserId == currentUserId && u.DistributorId == model.DistributorId);
+                    .FirstOrDefaultAsync(u => u.UserId == user.Id && u.DistributorId == model.DistributorId);
                 if (distributorDetail == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
@@ -105,25 +134,44 @@ namespace MaxemusAPI.Controllers
                     return Ok(_response);
                 }
 
+
+                user.Email = model.personalProfile.email;
+                user.UserName = model.personalProfile.email;
+                user.NormalizedEmail = model.personalProfile.email.ToUpper();
+                user.FirstName = model.personalProfile.firstName;
+                user.LastName = model.personalProfile.lastName;
+                user.PhoneNumber = model.personalProfile.phoneNumber;
+                user.CountryId = model.personalProfile.countryId;
+                user.StateId = model.personalProfile.stateId;
+                user.City = model.personalProfile.City;
+                user.PostalCode = model.personalProfile.PostalCode;
+                user.Gender = model.personalProfile.gender;
+                user.DialCode = model.personalProfile.dialCode;
+                user.DeviceType = model.personalProfile.deviceType;
+
+
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
                 addressExists.DistributorId = model.DistributorId;
-                addressExists.AddressType = model.DistributorAddress.AddressType;
-                addressExists.CountryId = model.DistributorAddress.CountryId;
-                addressExists.StateId = model.DistributorAddress.StateId;
-                addressExists.City = model.DistributorAddress.City;
-                addressExists.HouseNoOrBuildingName = model.DistributorAddress.HouseNoOrBuildingName;
-                addressExists.StreetAddress = model.DistributorAddress.StreetAddress;
-                addressExists.Landmark = model.DistributorAddress.Landmark;
-                addressExists.PostalCode = model.DistributorAddress.PostalCode;
-                addressExists.PhoneNumber = model.DistributorAddress.PhoneNumber;
-
-
+                addressExists.AddressType = "Individual";
+                addressExists.CountryId = model.businessProfile.CountryId;
+                addressExists.StateId = model.businessProfile.StateId;
+                addressExists.City = model.businessProfile.City;
+                addressExists.HouseNoOrBuildingName = model.businessProfile.HouseNoOrBuildingName;
+                addressExists.StreetAddress = model.businessProfile.StreetAddress;
+                addressExists.Landmark = model.businessProfile.Landmark;
+                addressExists.PostalCode = model.businessProfile.PostalCode;
+                addressExists.PhoneNumber = model.businessProfile.PhoneNumber;
 
                 _context.Update(addressExists);
                 await _context.SaveChangesAsync();
 
-                distributorDetail.Name = userProfileDetail.FirstName + " " + userProfileDetail.LastName;
-                distributorDetail.RegistrationNumber = model.RegistrationNumber;
-                distributorDetail.Description = model.Description;
+
+                distributorDetail.UserId = user.Id;
+                distributorDetail.Name = user.FirstName + " " + user.LastName;
+                distributorDetail.RegistrationNumber = model.businessProfile.RegistrationNumber;
+                distributorDetail.Description = model.businessProfile.Description;
                 distributorDetail.ModifyDate = DateTime.UtcNow;
 
                 _context.Update(distributorDetail);
@@ -133,7 +181,7 @@ namespace MaxemusAPI.Controllers
 
                 response.UserId = currentUserId;
                 response.DistributorId = distributorDetail.DistributorId;
-                response.AddressId = model.AddressId;
+                response.AddressId = addressExists.AddressId;
                 response.Name = distributorDetail.Name;
                 response.RegistrationNumber = distributorDetail.RegistrationNumber;
                 response.Description = distributorDetail.Description;
@@ -159,8 +207,37 @@ namespace MaxemusAPI.Controllers
 
             if (model.DistributorId == 0)
             {
+                ApplicationUser user = new()
+                {
+                    Email = model.personalProfile.email,
+                    UserName = model.personalProfile.email,
+                    NormalizedEmail = model.personalProfile.email.ToUpper(),
+                    FirstName = model.personalProfile.firstName,
+                    LastName = model.personalProfile.lastName,
+                    PhoneNumber = model.personalProfile.phoneNumber,
+                    CountryId = model.personalProfile.countryId,
+                    StateId = model.personalProfile.stateId,
+                    City = model.personalProfile.City,
+                    PostalCode = model.personalProfile.PostalCode,
+                    Gender = model.personalProfile.gender,
+                    DialCode = model.personalProfile.dialCode,
+                    DeviceType = model.personalProfile.deviceType
+                };
+
+                var result = await _userManager.CreateAsync(user, model.personalProfile.password);
+                if (result.Succeeded)
+                {
+                    if (!await _roleManager.RoleExistsAsync("Distributor"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole("Distributor"));
+                    }
+
+                    await _userManager.AddToRoleAsync(user, "Distributor");
+
+                }
+
                 var distributorDetail = await _context.DistributorDetail
-                    .FirstOrDefaultAsync(u => u.UserId == currentUserId);
+                    .FirstOrDefaultAsync(u => u.UserId == user.Id);
                 if (distributorDetail != null)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
@@ -171,10 +248,10 @@ namespace MaxemusAPI.Controllers
 
                 distributorDetail = new DistributorDetail
                 {
-                    UserId = currentUserId,
-                    Name = userProfileDetail.FirstName + " " + userProfileDetail.LastName,
-                    RegistrationNumber = model.RegistrationNumber,
-                    Description = model.Description,
+                    UserId = user.Id,
+                    Name = user.FirstName + " " + user.LastName,
+                    RegistrationNumber = model.businessProfile.RegistrationNumber,
+                    Description = model.businessProfile.Description,
                     CreateDate = DateTime.UtcNow
                 };
 
@@ -194,15 +271,15 @@ namespace MaxemusAPI.Controllers
                 var distributorAddress = new DistributorAddress
                 {
                     DistributorId = distributorDetail.DistributorId,
-                    AddressType = model.DistributorAddress.AddressType,
-                    CountryId = model.DistributorAddress.CountryId,
-                    StateId = model.DistributorAddress.StateId,
-                    City = model.DistributorAddress.City,
-                    HouseNoOrBuildingName = model.DistributorAddress.HouseNoOrBuildingName,
-                    StreetAddress = model.DistributorAddress.StreetAddress,
-                    Landmark = model.DistributorAddress.Landmark,
-                    PostalCode = model.DistributorAddress.PostalCode,
-                    PhoneNumber = model.DistributorAddress.PhoneNumber
+                    AddressType = "Individual",
+                    CountryId = model.businessProfile.CountryId,
+                    StateId = model.businessProfile.StateId,
+                    City = model.businessProfile.City,
+                    HouseNoOrBuildingName = model.businessProfile.HouseNoOrBuildingName,
+                    StreetAddress = model.businessProfile.StreetAddress,
+                    Landmark = model.businessProfile.Landmark,
+                    PostalCode = model.businessProfile.PostalCode,
+                    PhoneNumber = model.businessProfile.PhoneNumber
                 };
 
                 _context.Add(distributorAddress);

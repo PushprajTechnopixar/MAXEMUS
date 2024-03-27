@@ -88,14 +88,14 @@ namespace MaxemusAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterationRequestDTO model)
         {
-            bool ifUserNameUnique = _userRepo.IsUniqueUser(model.email, model.phoneNumber);
-            if (!ifUserNameUnique)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Email or phone number already exists.";
-                return Ok(_response);
-            }
+            // bool ifUserNameUnique = _userRepo.IsUniqueUser(model.email, model.phoneNumber);
+            // if (!ifUserNameUnique)
+            // {
+            //     _response.StatusCode = HttpStatusCode.OK;
+            //     _response.IsSuccess = false;
+            //     _response.Messages = "Email or phone number already exists.";
+            //     return Ok(_response);
+            // }
 
             if (Gender.Male.ToString() != model.gender && Gender.Female.ToString() != model.gender && Gender.Others.ToString() != model.gender)
             {
@@ -116,7 +116,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            
+
             var user = await _userRepo.Register(model);
             if (user == null)
             {
@@ -164,11 +164,11 @@ namespace MaxemusAPI.Controllers
             //}
             //else
             //{
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Data = user;
-                _response.Messages = "Registered successfully.";
-                return Ok(_response);
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = false;
+            _response.Data = user;
+            _response.Messages = "Registered successfully.";
+            return Ok(_response);
             //}
         }
         #endregion

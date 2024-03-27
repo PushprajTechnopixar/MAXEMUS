@@ -91,6 +91,7 @@ namespace MaxemusAPI
             CreateMap<AdminCompanyDTO, ApplicationUser>().ReverseMap();
             CreateMap<AdminCompanyResponseDTO, CompanyDetail>().ReverseMap();
             CreateMap<AdminCompanyResponseDTO, ApplicationUser>().ReverseMap();
+            CreateMap<AdminProfileRequestDTO, ApplicationUser>().ReverseMap();
 
             CreateMap<AddProductDTO, Product>().ReverseMap();
             CreateMap<ProductResponseDTO, Product>().ReverseMap();

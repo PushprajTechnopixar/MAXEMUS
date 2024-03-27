@@ -129,6 +129,7 @@ namespace MaxemusAPI.Controllers
                 addressExists.Landmark = model.DistributorAddress.Landmark;
                 addressExists.PostalCode = model.DistributorAddress.PostalCode;
                 addressExists.PhoneNumber = model.DistributorAddress.PhoneNumber;
+                
 
 
                 _context.Update(addressExists);
@@ -137,6 +138,7 @@ namespace MaxemusAPI.Controllers
                 distributorDetail.Name = userProfileDetail.FirstName + " " + userProfileDetail.LastName;
                 distributorDetail.RegistrationNumber = model.RegistrationNumber;
                 distributorDetail.Description = model.Description;
+                distributorDetail.ModifyDate = DateTime.UtcNow;
 
                 _context.Update(distributorDetail);
                 await _context.SaveChangesAsync();
@@ -187,6 +189,7 @@ namespace MaxemusAPI.Controllers
                     Name = userProfileDetail.FirstName + " " + userProfileDetail.LastName,
                     RegistrationNumber = model.RegistrationNumber,
                     Description = model.Description,
+                    CreateDate = DateTime.UtcNow
                 };
 
                 _context.Add(distributorDetail);

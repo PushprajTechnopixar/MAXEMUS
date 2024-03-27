@@ -46,6 +46,29 @@ namespace MaxemusAPI.Models.Dtos
         public string PostalCode { get; set; }
     }
 
+
+    public class AdminProfileRequestDTO
+    {
+        [Required]
+        [EmailAddress]
+        public string email { get; set; }
+        [Required]
+        public string firstName { get; set; }
+        public string lastName { get; set; }
+        [Required]
+        public string? gender { get; set; }
+        [Required]
+        public string? dialCode { get; set; }
+        [Required]
+        public string phoneNumber { get; set; }
+        public int countryId { get; set; }
+        public int stateId { get; set; }
+        public string City { get; set; }
+        public string PostalCode { get; set; }
+        public AdminCompanyDTO companyProfile { get; set; }
+
+    }
+
     public class UpdateLiveLocationDTO
     {
         public string addressLongitude { get; set; }

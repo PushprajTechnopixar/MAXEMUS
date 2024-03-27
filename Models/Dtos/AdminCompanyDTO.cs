@@ -2,17 +2,17 @@
 {
     public class AdminCompanyDTO
     {
-        public int CompanyId { get; set; }
-        public string CompanyName { get; set; } = null!;
-        public string? RegistrationNumber { get; set; }
-        public string? Image { get; set; }
-        public string? City { get; set; }
-        public string? StreetAddress { get; set; }
-        public string? Landmark { get; set; }
-        public string? PostalCode { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? WhatsAppNumber { get; set; }
-        public string? AboutUs { get; set; }
+        public string companyName { get; set; } = null!;
+        public string? registrationNumber { get; set; }
+        public int countryId { get; set; }
+        public int stateId { get; set; }
+        public string? city { get; set; }
+        public string? streetAddress { get; set; }
+        public string? landmark { get; set; }
+        public string? postalCode { get; set; }
+        public string? phoneNumber { get; set; }
+        public string? whatsAppNumber { get; set; }
+        public string? aboutUs { get; set; }
     }
 
     public class AdminCompanyResponseDTO
@@ -24,6 +24,8 @@
         public string? Image { get; set; }
         public int CountryId { get; set; }
         public int StateId { get; set; }
+        public string? countryName { get; set; }
+        public string? stateName { get; set; }
         public string? City { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
@@ -35,29 +37,20 @@
     }
     public class AdminResponseDTO
     {
-        public int CompanyId { get; set; }
-        public string? UserId { get; set; }
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string? Gender { get; set; }
-        public string? DialCode { get; set; }
-        public string? ProfilePic { get; set; }
-        public string? PAN { get; set; }
-        public string CompanyName { get; set; } = null!;
-        public string? RegistrationNumber { get; set; }
-        public string? Image { get; set; }
-        public int CountryId { get; set; }
-        public int StateId { get; set; }
-        public string CountryName { get; set; }
-        public string StateName { get; set; }
+        public int companyId { get; set; }
+        public string? userId { get; set; }
+        public string email { get; set; }
+        public string firstName { get; set; }
+        public string lastName { get; set; }
+        public string? gender { get; set; }
+        public string? dialCode { get; set; }
+        public string? profilePic { get; set; }
+        public int countryId { get; set; }
+        public int stateId { get; set; }
+        public string? countryName { get; set; }
+        public string? stateName { get; set; }
         public string? City { get; set; }
-        public string? StreetAddress { get; set; }
-        public string? Landmark { get; set; }
-        public string? PostalCode { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? WhatsAppNumber { get; set; }
-        public string? AboutUs { get; set; }
+        public AdminCompanyResponseDTO? companyProfile { get; set; }
 
     }
 }

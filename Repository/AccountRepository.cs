@@ -165,8 +165,6 @@ namespace MaxemusAPI.Repository
 
                     return loginResponseDTO;
                 }
-
-
             }
             catch (Exception e)
             {
@@ -175,8 +173,5 @@ namespace MaxemusAPI.Repository
 
             return new LoginResponseDTO();
         }
-
-      
-
     }
 }

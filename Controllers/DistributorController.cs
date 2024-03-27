@@ -55,7 +55,6 @@ namespace MaxemusAPI.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-
         #region AddOrUpdateProfile
         /// <summary>
         ///  Add Or Update Profile for Distributor.
@@ -64,8 +63,8 @@ namespace MaxemusAPI.Controllers
         [HttpPost("AddOrUpdateProfile")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Distributor")]
-        public async Task<IActionResult> AddOrUpdateProfile([FromBody] DistributorDetailDTO model)
+        [Authorize(Roles = "Distributor,Admin")]
+        public async Task<IActionResult> AddOrUpdateProfile([FromBody] DistributorRequestDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -73,18 +72,6 @@ namespace MaxemusAPI.Controllers
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
                 _response.Messages = "Token expired.";
-                return Ok(_response);
-            }
-
-            if (AddressType.Individual.ToString() != model.DistributorAddress.AddressType
-                && AddressType.Company.ToString() != model.DistributorAddress.AddressType
-                && AddressType.Shipping.ToString() != model.DistributorAddress.AddressType
-                && AddressType.Billing.ToString() != model.DistributorAddress.AddressType
-               )
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Please enter correct address type.";
                 return Ok(_response);
             }
 
@@ -96,7 +83,6 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "user.";
                 return Ok(_response);
             }
-
 
             if (model.DistributorId > 0)
             {
@@ -129,7 +115,7 @@ namespace MaxemusAPI.Controllers
                 addressExists.Landmark = model.DistributorAddress.Landmark;
                 addressExists.PostalCode = model.DistributorAddress.PostalCode;
                 addressExists.PhoneNumber = model.DistributorAddress.PhoneNumber;
-                
+
 
 
                 _context.Update(addressExists);

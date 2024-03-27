@@ -834,99 +834,6 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region GetCategoryDetail
-        /// <summary>
-        ///  Get category Detail.
-        /// </summary>
-        [HttpGet("GetCategoryDetail")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
-        public async Task<IActionResult> GetCategoryDetail([FromQuery] GetCategoryDetailRequestDTO model)
-        {
-            try
-            {
-                string currentUserId = (HttpContext.User.Claims.First().Value);
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Token expired.";
-                    return Ok(_response);
-                }
-
-                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
-                if (currentUserDetail == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgUserNotFound;
-                    return Ok(_response);
-                }
-
-                CategoryDTO category = null;
-                if (model.SubCategoryId > 0)
-                {
-                    var subCategoryDetail = await _context.SubCategory.FirstOrDefaultAsync(u => u.SubCategoryId == model.SubCategoryId);
-                    if (subCategoryDetail == null)
-                    {
-                        _response.StatusCode = HttpStatusCode.NotFound;
-                        _response.IsSuccess = false;
-                        _response.Messages = ResponseMessages.msgNotFound + "record.";
-                        return Ok(_response);
-                    }
-
-                    category = _mapper.Map<CategoryDTO>(subCategoryDetail);
-
-                    category.CategoryName = subCategoryDetail.SubCategoryName;
-                    category.CategoryImage = subCategoryDetail.SubCategoryImage;
-                    category.CreateDate = subCategoryDetail.CreateDate.ToString("dd-MM-yyyy");
-                }
-                else if (model.MainCategoryId > 0)
-                {
-                    var mainCategoryDetail = await _context.MainCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId);
-                    if (mainCategoryDetail == null)
-                    {
-                        _response.StatusCode = HttpStatusCode.OK;
-                        _response.IsSuccess = false;
-                        _response.Messages = ResponseMessages.msgNotFound + "record.";
-                        return Ok(_response);
-                    }
-
-                    category = _mapper.Map<CategoryDTO>(mainCategoryDetail);
-
-                    category.CategoryName = mainCategoryDetail.MainCategoryName;
-                    category.CategoryImage = mainCategoryDetail.MainCategoryImage;
-                    category.CreateDate = mainCategoryDetail.CreateDate.ToString("dd-MM-yyyy");
-                }
-
-                if (category != null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = true;
-                    _response.Data = category;
-                    _response.Messages = "category detail shown successfully.";
-                }
-                else
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "No category detail found.";
-                }
-
-                return Ok(_response);
-
-            }
-            catch (Exception ex)
-            {
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Messages = ex.Message;
-                return Ok(_response);
-            }
-        }
-        #endregion
-
         #region DeleteCategory
         /// <summary>
         ///  Delete category.
@@ -1151,82 +1058,100 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region GetDistributorDetail
+        #region GetCategoryDetail
         /// <summary>
-        ///   Get Distributor Detail.
+        ///  Get category Detail.
         /// </summary>
-        /// <returns></returns>
-        [HttpGet]
+        [HttpGet("GetCategoryDetail")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        [Route("GetDistributorDetail")]
-
-        public async Task<IActionResult> GetDistributorDetail([FromQuery] string id)
+        public async Task<IActionResult> GetCategoryDetail([FromQuery] GetCategoryDetailRequestDTO model)
         {
-            string currentUserId = (HttpContext.User.Claims.First().Value);
-            if (string.IsNullOrEmpty(currentUserId))
+            try
             {
-                _response.StatusCode = HttpStatusCode.OK;
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (currentUserDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                CategoryDTO category = null;
+                if (model.SubCategoryId > 0)
+                {
+                    var subCategoryDetail = await _context.SubCategory.FirstOrDefaultAsync(u => u.SubCategoryId == model.SubCategoryId);
+                    if (subCategoryDetail == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.NotFound;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    category = _mapper.Map<CategoryDTO>(subCategoryDetail);
+
+                    category.CategoryName = subCategoryDetail.SubCategoryName;
+                    category.CategoryImage = subCategoryDetail.SubCategoryImage;
+                    category.CreateDate = subCategoryDetail.CreateDate.ToString("dd-MM-yyyy");
+                }
+                else if (model.MainCategoryId > 0)
+                {
+                    var mainCategoryDetail = await _context.MainCategory.FirstOrDefaultAsync(u => u.MainCategoryId == model.MainCategoryId);
+                    if (mainCategoryDetail == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    category = _mapper.Map<CategoryDTO>(mainCategoryDetail);
+
+                    category.CategoryName = mainCategoryDetail.MainCategoryName;
+                    category.CategoryImage = mainCategoryDetail.MainCategoryImage;
+                    category.CreateDate = mainCategoryDetail.CreateDate.ToString("dd-MM-yyyy");
+                }
+
+                if (category != null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = category;
+                    _response.Messages = "category detail shown successfully.";
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "No category detail found.";
+                }
+
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.IsSuccess = false;
-                _response.Messages = "Token expired.";
+                _response.Messages = ex.Message;
                 return Ok(_response);
             }
-            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
-            if (currentUserDetail == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgUserNotFound;
-                return Ok(_response);
-            }
-
-            var distributor = _userManager.FindByIdAsync(id).GetAwaiter().GetResult();
-            if (distributor == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgNotFound + "record.";
-                return Ok(_response);
-            }
-            var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == id);
-            if (distributorDetail == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgNotFound + "record.";
-                return Ok(_response);
-            }
-            var distributorAddress = await _context.DistributorAddress.FirstOrDefaultAsync(u => u.DistributorId == distributorDetail.DistributorId);
-            if (distributorAddress == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgNotFound + "record.";
-                return Ok(_response);
-            }
-
-
-
-            var response = new DistributorDetailsDTO();
-            _mapper.Map(distributor, response);
-            _mapper.Map(distributorDetail, response);
-            _mapper.Map(distributorAddress, response);
-            var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.CountryId).FirstOrDefaultAsync();
-            var distributorState = await _context.StateMaster.Where(u => u.StateId == response.StateId).FirstOrDefaultAsync();
-            response.CountryName = distributorCountry.CountryName;
-            response.StateName = distributorState.StateName;
-
-
-            _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Data = response;
-            _response.Messages = "distributor detail shown successfully.";
-            return Ok(_response);
-
-
         }
         #endregion
+        
+
 
         #region SetDistributorStatus
         /// <summary>

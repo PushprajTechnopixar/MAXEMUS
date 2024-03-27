@@ -223,7 +223,7 @@ namespace MaxemusAPI.Controllers
             await _context.SaveChangesAsync();
 
             var response = _mapper.Map<ProductResponsesDTO>(product);
-            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyyy");
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
             response.VariantId = cameraVariants.VariantId;
             response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
             response.Audio = _mapper.Map<AudioVariantsDTO>(model.Audio.FirstOrDefault());
@@ -661,7 +661,7 @@ namespace MaxemusAPI.Controllers
             var accessoriesVariants = await _context.AccessoriesVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
 
             var response = _mapper.Map<ProductResponsesDTO>(product);
-            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyyy");
+            response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
             response.VariantId = cameraVariants.VariantId;
 
             response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);

@@ -19,6 +19,7 @@ using Twilio.Http;
 using static Google.Apis.Requests.BatchRequest;
 using TimeZoneConverter;
 using System.Linq;
+using System.Web.Helpers;
 
 namespace MaxemusAPI.Controllers
 {
@@ -395,6 +396,238 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
+        #region GetProductListFromCart
+        /// <summary>
+        ///  Get product list from cart.
+        /// </summary>
+        [HttpGet("GetProductListFromCart")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> GetProductListFromCart()
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var userDetail = await _userManager.FindByIdAsync(currentUserId);
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return NotFound(_response);
+                }
+
+                var cart = await _context.Cart.Where(u => u.DistributorId == currentUserId).ToListAsync();
+                if (cart.Count == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+
+                CartDetailDTO cartDetail = new CartDetailDTO();
+                var mappedData = new List<ProductListFromCart>();
+
+                // Calculate totals
+                int totalItem = 0;
+                double totalMrp = 0;
+                double totalSellingPrice = 0;
+                double totalDiscountAmount = 0;
+
+                foreach (var item in cart)
+                {
+                    var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
+                    if (product != null)
+                    {
+                        var productResponse = _mapper.Map<ProductListFromCart>(product);
+                        productResponse.ProductCountInCart = item.ProductCountInCart;
+                        productResponse.TotalMrp = (double)(product.TotalMrp * item.ProductCountInCart);
+                        productResponse.Discount = (double)(product.Discount * item.ProductCountInCart);
+                        productResponse.DiscountType = product.DiscountType;
+                        productResponse.SellingPrice = productResponse.TotalMrp - productResponse.Discount;
+
+                        mappedData.Add(productResponse);
+
+                        // Update totals
+                        totalItem++;
+                        totalMrp += productResponse.TotalMrp;
+                        totalSellingPrice += productResponse.SellingPrice;
+                        totalDiscountAmount += productResponse.Discount;
+                    }
+                }
+
+                // Populate CartDetailDTO
+
+                cartDetail.totalItem = totalItem;
+                cartDetail.totalMrp = Math.Round(totalMrp, 2);
+                cartDetail.totalSellingPrice = Math.Round(totalSellingPrice, 2);
+                cartDetail.totalDiscountAmount = Math.Round(totalDiscountAmount, 2);
+                cartDetail.totalDiscount = totalMrp != 0 ? Math.Round((totalDiscountAmount * 100 / totalMrp), 2) : 0;
+                cartDetail.productLists = mappedData;
+
+                // Prepare response
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = cartDetail;
+                _response.Messages = "cart product list shown successfully.";
+
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region RemoveProductFromCart
+        /// <summary>
+        ///  Remove product from cart.
+        /// </summary>
+        [HttpDelete("RemoveProductFromCart")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> RemoveProductFromCart(int productId)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                var cart = await _context.Cart.FirstOrDefaultAsync(u => u.DistributorId == currentUserId && u.ProductId == productId);
+
+                if (cart == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Product not found.";
+                    return Ok(_response);
+                }
+                else if (cart.ProductCountInCart > 0)
+                {
+                    cart.ProductCountInCart--;
+
+                    if (cart.ProductCountInCart == 0)
+                    {
+                        _context.Cart.Remove(cart);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Messages = "Product removed successfully.";
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Product count in cart is already zero.";
+                    return Ok(_response);
+                }
+
+
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region GetProductCountInCart
+        /// <summary>
+        ///  Product count in cart.
+        /// </summary>
+        [HttpGet("GetProductCountInCart")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> GetProductCountInCart()
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+                if (userDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgUserNotFound;
+                    return Ok(_response);
+                }
+
+                var count = await _context.Cart.Where(u => u.DistributorId == currentUserId && u.ProductCountInCart > 0).CountAsync();
+
+                if (count == 0)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    return Ok(_response);
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = count.ToString();
+                _response.Messages = "Count retrieved successfully.";
+                return Ok(_response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
 
         #region PlaceOrder
         /// <summary>
@@ -541,7 +774,6 @@ namespace MaxemusAPI.Controllers
             }
         }
         #endregion
-
 
         #region OrderList
         /// <summary>

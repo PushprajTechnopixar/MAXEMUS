@@ -1127,15 +1127,16 @@ namespace MaxemusAPI.Controllers
                 if (distributorUserProfileDetail != null)
                 {
                     var mappedData = _mapper.Map<AdminUserListDTO>(item);
-                    mappedData.profilepic = distributorUserProfileDetail.ProfilePic;
+                    mappedData.distributorId = distributorUserDetail.Select(u => u.DistributorId).FirstOrDefault();;
+                    mappedData.profilePic = distributorUserProfileDetail.ProfilePic;
                     mappedData.gender = distributorUserProfileDetail.Gender;
                     mappedData.Status = distributorUserDetail.Select(u => u.Status).FirstOrDefault();
-                    //mappedData.modifyDate = distributorUserDetail.Select(u => u.ModifyDate).FirstOrDefault().ToString("dd-MM-yyyy");
+                    mappedData.createDate = distributorUserDetail.Select(u => u.CreateDate).FirstOrDefault().ToShortDateString();
                     distributorUserList.Add(mappedData);
                 }
             }
 
-            distributorUserList = distributorUserList.OrderByDescending(u => u.modifyDate).ToList();
+            distributorUserList = distributorUserList.OrderByDescending(u => u.createDate).ToList();
 
             if (!string.IsNullOrEmpty(model.searchQuery))
             {

@@ -703,24 +703,32 @@ namespace MaxemusAPI.Repository
 
         public async Task<Object> GetDistributorList(FilterationListDTO model)
         {
-            var distributorUser = await _userManager.GetUsersInRoleAsync(Role.Distributor.ToString());
+            var distributorUser = await _context.DistributorDetail.ToListAsync();
 
             List<AdminUserListDTO> distributorUserList = new List<AdminUserListDTO>();
             foreach (var item in distributorUser)
             {
-                var distributorUserDetail = await _context.DistributorDetail.ToListAsync();
-                var distributorUserProfileDetail = await _context.ApplicationUsers.FirstOrDefaultAsync(u => (u.Id == item.Id) && (u.IsDeleted == false));
+                var distributorUserProfileDetail = await _context.ApplicationUsers
+                    .Where(u => u.Id == item.UserId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+
                 if (distributorUserProfileDetail != null)
                 {
                     var mappedData = _mapper.Map<AdminUserListDTO>(item);
-                    mappedData.distributorId = distributorUserDetail.Select(u => u.DistributorId).FirstOrDefault(); ;
+                    mappedData.distributorId = item.DistributorId;
+                    mappedData.id = distributorUserProfileDetail.Id;
+                    mappedData.email = distributorUserProfileDetail.Email;
+                    mappedData.firstName = distributorUserProfileDetail.FirstName;
+                    mappedData.lastName = distributorUserProfileDetail.LastName;
                     mappedData.profilePic = distributorUserProfileDetail.ProfilePic;
                     mappedData.gender = distributorUserProfileDetail.Gender;
-                    mappedData.Status = distributorUserDetail.Select(u => u.Status).FirstOrDefault();
-                    mappedData.createDate = distributorUserDetail.Select(u => u.CreateDate).FirstOrDefault().ToShortDateString();
+                    mappedData.Status = item.Status; 
+                    mappedData.createDate = item.CreateDate.ToShortDateString(); 
+
                     distributorUserList.Add(mappedData);
                 }
             }
+
 
             distributorUserList = distributorUserList.OrderByDescending(u => u.createDate).ToList();
 

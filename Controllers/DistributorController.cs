@@ -366,7 +366,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-            var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == id);
+            var distributorDetail = await _context.DistributorDetail.Where(u => u.UserId == id).FirstOrDefaultAsync();
             if (distributorDetail == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
@@ -374,7 +374,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-            var distributorAddress = await _context.DistributorAddress.FirstOrDefaultAsync(u => u.DistributorId == distributorDetail.DistributorId);
+            var distributorAddress = await _context.DistributorAddress.Where(u => u.DistributorId == distributorDetail.DistributorId).FirstOrDefaultAsync();
             if (distributorAddress == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;

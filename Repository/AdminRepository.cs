@@ -18,6 +18,7 @@ using System.ComponentModel.Design;
 using Twilio.Types;
 using static MaxemusAPI.Common.GlobalVariables;
 using Twilio.Http;
+using GSF.Console;
 
 namespace MaxemusAPI.Repository
 {
@@ -156,14 +157,19 @@ namespace MaxemusAPI.Repository
             var response = _mapper.Map<AdminResponseDTO>(userDetail);
             if (companyDetail != null)
             {
-                var companyResponse = _mapper.Map<AdminCompanyResponseDTO>(companyDetail);
-                var cpmpanyCountry = await _context.CountryMaster.Where(u => u.CountryId == companyResponse.CountryId).FirstOrDefaultAsync();
-                var companyState = await _context.StateMaster.Where(u => u.StateId == companyResponse.StateId).FirstOrDefaultAsync();
-                companyResponse.countryName = cpmpanyCountry.CountryName;
-                companyResponse.stateName = companyState.StateName;
+                response.companyProfile = _mapper.Map<AdminCompanyResponseDTO>(companyDetail);
 
-                response = _mapper.Map<AdminResponseDTO>(userDetail);
-                response.companyProfile = companyResponse;
+                var companyCountry = await _context.CountryMaster.Where(u => u.CountryId == response.companyProfile.CountryId).FirstOrDefaultAsync();
+                var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
+
+                var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
+                var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+
+                response.userId = userDetail.Id;
+                response.countryName = userCountry.CountryName;
+                response.stateName = userState.StateName;
+                response.companyProfile.countryName = companyCountry.CountryName;
+                response.companyProfile.stateName = companyState.StateName;
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
@@ -174,6 +180,7 @@ namespace MaxemusAPI.Repository
 
             var adminCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
             var adminStateDetail = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+            response.userId = userDetail.Id;
             response.countryName = adminCountryDetail.CountryName;
             response.stateName = adminStateDetail.StateName;
 
@@ -722,8 +729,8 @@ namespace MaxemusAPI.Repository
                     mappedData.lastName = distributorUserProfileDetail.LastName;
                     mappedData.profilePic = distributorUserProfileDetail.ProfilePic;
                     mappedData.gender = distributorUserProfileDetail.Gender;
-                    mappedData.Status = item.Status; 
-                    mappedData.createDate = item.CreateDate.ToShortDateString(); 
+                    mappedData.Status = item.Status;
+                    mappedData.createDate = item.CreateDate.ToShortDateString();
 
                     distributorUserList.Add(mappedData);
                 }

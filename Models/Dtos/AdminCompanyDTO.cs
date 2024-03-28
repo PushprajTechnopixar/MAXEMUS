@@ -37,7 +37,6 @@
     }
     public class AdminResponseDTO
     {
-        public int companyId { get; set; }
         public string? userId { get; set; }
         public string email { get; set; }
         public string firstName { get; set; }

@@ -137,9 +137,21 @@ namespace MaxemusAPI.Repository
                 await _context.SaveChangesAsync();
             }
 
-            var companyResponse = _mapper.Map<AdminCompanyResponseDTO>(existingCompany);
+            //var companyResponse = _mapper.Map<AdminCompanyResponseDTO>(existingCompany);
             var response = _mapper.Map<AdminResponseDTO>(userProfileDetail);
-            response.companyProfile = companyResponse;
+            response.companyProfile = _mapper.Map<AdminCompanyResponseDTO>(existingCompany);
+
+            var companyCountry = await _context.CountryMaster.Where(u => u.CountryId == response.companyProfile.CountryId).FirstOrDefaultAsync();
+            var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
+
+            var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
+            var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+
+            response.userId = userDetail.Id;
+            response.countryName = userCountry.CountryName;
+            response.stateName = userState.StateName;
+            response.companyProfile.countryName = companyCountry.CountryName;
+            response.companyProfile.stateName = companyState.StateName;
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

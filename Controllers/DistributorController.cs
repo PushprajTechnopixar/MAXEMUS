@@ -207,6 +207,14 @@ namespace MaxemusAPI.Controllers
 
             if (model.DistributorId == 0)
             {
+                 bool ifUserNameUnique = _userRepo.IsUniqueUser(model.personalProfile.email, model.personalProfile.phoneNumber);
+                 if (!ifUserNameUnique)
+                 {
+                     _response.StatusCode = HttpStatusCode.OK;
+                     _response.IsSuccess = false;
+                     _response.Messages = "Email or phone number already exists.";
+                     return Ok(_response);
+                 }
                 ApplicationUser user = new()
                 {
                     Email = model.personalProfile.email,

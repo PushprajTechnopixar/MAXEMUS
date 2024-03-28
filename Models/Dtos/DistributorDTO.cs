@@ -42,21 +42,28 @@ namespace MaxemusAPI.Models.Dtos
         public int distributorId { get; set; }
         public int status { get; set; }
     }
-
+    public class UserResponseDTO
+    {
+        public string email { get; set; } 
+        public string firstName { get; set; }
+        public string lastName { get; set; }   
+        public string? gender { get; set; }
+        public string? dialCode { get; set; }
+        public string phoneNumber { get; set; }
+        public int countryId { get; set; }
+        public int stateId { get; set; }
+        public string City { get; set; }
+        public string PostalCode { get; set; }
+    }
     public class DistributorDetailsDTO
     {
         public string? UserId { get; set; }
         public int DistributorId { get; set; }
         public int? AddressId { get; set; }
-        public string Name { get; set; }
-        public string? RegistrationNumber { get; set; }
-        public string? Description { get; set; }
-        public string? Image { get; set; }
-        public string Status { get; set; }
-        public string CreateDate { get; set; }
-        public string ModifyDate { get; set; }
         public string CountryName { get; set; }
         public string StateName { get; set; }
-        public DistributorAddressDTO DistributorAddress { get; set; }
+        public UserResponseDTO personalProfile { get; set; }
+        public DistributorBusinessRequestDTO businessProfile { get; set; }
+
     }
 }

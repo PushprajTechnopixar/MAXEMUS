@@ -13,7 +13,7 @@
         public string role { get; set; }
     }
 
-    public class AdminUserListDTO
+    public class DistributorUserListDTO
     {
         public int distributorId { get; set; }
         public string id { get; set; }

@@ -705,7 +705,7 @@ namespace MaxemusAPI.Repository
         {
             var distributorUser = await _context.DistributorDetail.ToListAsync();
 
-            List<AdminUserListDTO> distributorUserList = new List<AdminUserListDTO>();
+            List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
             foreach (var item in distributorUser)
             {
                 var distributorUserProfileDetail = await _context.ApplicationUsers
@@ -714,7 +714,7 @@ namespace MaxemusAPI.Repository
 
                 if (distributorUserProfileDetail != null)
                 {
-                    var mappedData = _mapper.Map<AdminUserListDTO>(item);
+                    var mappedData = _mapper.Map<DistributorUserListDTO>(item);
                     mappedData.distributorId = item.DistributorId;
                     mappedData.id = distributorUserProfileDetail.Id;
                     mappedData.email = distributorUserProfileDetail.Email;
@@ -764,7 +764,7 @@ namespace MaxemusAPI.Repository
             var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
 
             // Returing List of Customers Collections  
-            FilterationResponseModel<AdminUserListDTO> obj = new FilterationResponseModel<AdminUserListDTO>();
+            FilterationResponseModel<DistributorUserListDTO> obj = new FilterationResponseModel<DistributorUserListDTO>();
             obj.totalCount = TotalCount;
             obj.pageSize = PageSize;
             obj.currentPage = CurrentPage;

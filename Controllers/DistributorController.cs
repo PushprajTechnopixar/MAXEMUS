@@ -169,7 +169,7 @@ namespace MaxemusAPI.Controllers
 
 
                 distributorDetail.UserId = user.Id;
-                distributorDetail.Name = user.FirstName + " " + user.LastName;
+                distributorDetail.Name = model.businessProfile.Name;
                 distributorDetail.RegistrationNumber = model.businessProfile.RegistrationNumber;
                 distributorDetail.Description = model.businessProfile.Description;
                 distributorDetail.ModifyDate = DateTime.UtcNow;
@@ -249,7 +249,7 @@ namespace MaxemusAPI.Controllers
                 distributorDetail = new DistributorDetail
                 {
                     UserId = user.Id,
-                    Name = user.FirstName + " " + user.LastName,
+                    Name = model.businessProfile.Name,
                     RegistrationNumber = model.businessProfile.RegistrationNumber,
                     Description = model.businessProfile.Description,
                     CreateDate = DateTime.UtcNow

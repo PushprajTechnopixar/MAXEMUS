@@ -16,6 +16,7 @@ namespace MaxemusAPI.Models.Dtos
     }
     public class DistributorBusinessRequestDTO
     {
+        public string Name { get; set; }
         public string? RegistrationNumber { get; set; }
         public string? Description { get; set; }
         public int CountryId { get; set; }

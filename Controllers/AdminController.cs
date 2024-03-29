@@ -83,6 +83,22 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
+            var countryId = await _context.CountryMaster.FindAsync(model.countryId);
+            if (countryId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "please enter valid countryId.";
+                return Ok(_response);
+            }
+            var stateId = await _context.StateMaster.FindAsync(model.stateId);
+            if (stateId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "please enter valid stateId.";
+                return Ok(_response);
+            }
             var userDetail = await _context.ApplicationUsers.FindAsync(currentUserId);
             if (userDetail == null)
             {
@@ -490,7 +506,7 @@ namespace MaxemusAPI.Controllers
 
         #region GetDistributorList
         /// <summary>
-        ///   Get Dealer List.
+        ///   Get Distributor List.
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -586,6 +602,124 @@ namespace MaxemusAPI.Controllers
         }
 
         #endregion
+
+        #region GetDealerList
+        /// <summary>
+        ///   Get Dealer List.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("GetDealerList")]
+
+        public async Task<IActionResult> GetDealerList([FromQuery] FilterationListDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var dealerUser = await _context.DealerDetail.ToListAsync();
+
+            List<DealerUserListDTO> dealerUserList = new List<DealerUserListDTO>();
+            foreach (var item in dealerUser)
+            {
+                var dealerUserProfileDetail = await _context.ApplicationUsers
+                    .Where(u => u.Id == item.UserId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+
+                if (dealerUserProfileDetail != null)
+                {
+                    var mappedData = _mapper.Map<DealerUserListDTO>(item);
+                    mappedData.dealerId = item.DealerId;
+                    mappedData.userId = dealerUserProfileDetail.Id;
+                    mappedData.email = dealerUserProfileDetail.Email;
+                    mappedData.firstName = dealerUserProfileDetail.FirstName;
+                    mappedData.lastName = dealerUserProfileDetail.LastName;
+                    mappedData.profilePic = dealerUserProfileDetail.ProfilePic;
+                    mappedData.gender = dealerUserProfileDetail.Gender;
+                    mappedData.Status = item.Status.ToString() == "1" ? "Approved" : (item.Status.ToString() == "2" ? "Rejected" : "Pending");
+                    mappedData.createDate = item.CreateDate.ToShortDateString();
+
+                    dealerUserList.Add(mappedData);
+                }
+            }
+
+
+            dealerUserList = dealerUserList.OrderByDescending(u => u.createDate).ToList();
+
+            if (!string.IsNullOrEmpty(model.searchQuery))
+            {
+                dealerUserList = dealerUserList.Where(u => u.firstName.ToLower().Contains(model.searchQuery.ToLower())
+                || u.email.ToLower().Contains(model.searchQuery.ToLower())
+                ).ToList();
+            }
+
+            // Get's No of Rows Count   
+            int count = dealerUserList.Count();
+
+            // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
+            int CurrentPage = model.pageNumber;
+
+            // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
+            int PageSize = model.pageSize;
+
+            // Display TotalCount to Records to User  
+            int TotalCount = count;
+
+            // Calculating Totalpage by Dividing (No of Records / Pagesize)  
+            int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
+
+            // Returns List of Customer after applying Paging   
+            var items = dealerUserList.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+
+            // if CurrentPage is greater than 1 means it has previousPage  
+            var previousPage = CurrentPage > 1 ? "Yes" : "No";
+
+            // if TotalPages is greater than CurrentPage means it has nextPage  
+            var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
+
+            // Returing List of Customers Collections  
+            FilterationResponseModel<DealerUserListDTO> obj = new FilterationResponseModel<DealerUserListDTO>();
+            obj.totalCount = TotalCount;
+            obj.pageSize = PageSize;
+            obj.currentPage = CurrentPage;
+            obj.totalPages = TotalPages;
+            obj.previousPage = previousPage;
+            obj.nextPage = nextPage;
+            obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
+            obj.dataList = items.ToList();
+
+            if (obj == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Error while adding.";
+                return Ok(_response);
+            }
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = obj;
+            _response.Messages = "List shown successfully.";
+            return Ok(_response);
+        }
+        #endregion
+
 
     }
 }

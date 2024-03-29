@@ -20,6 +20,7 @@ namespace MaxemusAPI.Models
         public string City { get; set; }
         public string? HouseNoOrBuildingName { get; set; }
         public string? StreetAddress { get; set; }
+        public string? Email { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
         public string? PhoneNumber { get; set; }

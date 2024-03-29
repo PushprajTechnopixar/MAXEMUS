@@ -115,7 +115,22 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "Please enter valid role.";
                 return Ok(_response);
             }
-
+            var countryId = await _context.CountryMaster.FindAsync(model.countryId);
+            if (countryId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "please enter valid countryId.";
+                return Ok(_response);
+            }
+            var stateId = await _context.StateMaster.FindAsync(model.stateId);
+            if (stateId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "please enter valid stateId.";
+                return Ok(_response);
+            }
 
             var user = await _userRepo.Register(model);
             if (user == null)

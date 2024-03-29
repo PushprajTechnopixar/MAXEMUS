@@ -345,6 +345,10 @@ namespace MaxemusAPI.Data
                     .HasMaxLength(255)
                     .IsUnicode(false);
 
+                entity.Property(e => e.City).HasMaxLength(250);
+
+                entity.Property(e => e.Email).HasMaxLength(256);
+
                 entity.Property(e => e.HouseNoOrBuildingName).HasMaxLength(500);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(50);
@@ -377,6 +381,8 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.CreateDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Email).HasMaxLength(256);
 
                 entity.Property(e => e.ModifyDate)
                     .HasColumnType("datetime")

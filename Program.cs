@@ -37,14 +37,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 });
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
-    options.Password.RequireDigit = true;
+    options.Password.RequireDigit = false;  // No requirement for digits
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6;
-    options.Password.RequiredUniqueChars = 1;
+    options.Password.RequiredLength = 6;  // Required length is 6 characters
+    options.Password.RequiredUniqueChars = 0;  // No requirement for unique characters
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
 });
 // builder.Services.AddHostedService<MyBackgroundService>();
 

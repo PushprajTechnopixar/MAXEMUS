@@ -528,7 +528,7 @@ namespace MaxemusAPI.Repository
                         if (subCategory != null)
                         {
                             subCategory.SubCategoryName = model.CategoryName;
-                            subCategory.CreateDate = DateTime.Now;
+                            subCategory.ModifyDate = DateTime.Now;
 
                             _context.Update(subCategory);
                             await _context.SaveChangesAsync();
@@ -545,7 +545,7 @@ namespace MaxemusAPI.Repository
                         if (mainCategory != null)
                         {
                             mainCategory.MainCategoryName = model.CategoryName;
-                            mainCategory.CreateDate = DateTime.Now;
+                            mainCategory.ModifyDate = DateTime.Now;
 
                             _context.Update(mainCategory);
                             await _context.SaveChangesAsync();
@@ -725,23 +725,32 @@ namespace MaxemusAPI.Repository
             var distributorUser = await _context.DistributorDetail.ToListAsync();
 
             List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
+
+           
+
             foreach (var item in distributorUser)
             {
                 var distributorUserProfileDetail = await _context.ApplicationUsers
                     .Where(u => u.Id == item.UserId && u.IsDeleted == false)
                     .FirstOrDefaultAsync();
 
+
+
                 if (distributorUserProfileDetail != null)
                 {
                     var mappedData = _mapper.Map<DistributorUserListDTO>(item);
                     mappedData.distributorId = item.DistributorId;
-                    mappedData.id = distributorUserProfileDetail.Id;
+                    mappedData.userId = distributorUserProfileDetail.Id;
+                    mappedData.companyName = item.Name;
                     mappedData.email = distributorUserProfileDetail.Email;
                     mappedData.firstName = distributorUserProfileDetail.FirstName;
                     mappedData.lastName = distributorUserProfileDetail.LastName;
                     mappedData.profilePic = distributorUserProfileDetail.ProfilePic;
                     mappedData.gender = distributorUserProfileDetail.Gender;
-                    mappedData.Status = item.Status;
+
+                    mappedData.Status = item.Status.ToString() == "1" ? "Approved" : (item.Status.ToString() == "2" ? "Rejected" : "Pending");
+
+
                     mappedData.createDate = item.CreateDate.ToShortDateString();
 
                     distributorUserList.Add(mappedData);

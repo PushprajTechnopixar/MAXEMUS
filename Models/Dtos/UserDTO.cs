@@ -16,10 +16,11 @@
     public class DistributorUserListDTO
     {
         public int distributorId { get; set; }
-        public string id { get; set; }
+        public string userId { get; set; }
         public string email { get; set; }
         public string firstName { get; set; }
         public string lastName { get; set; }
+        public string companyName {  get; set; }
         public string profilePic { get; set; }
         public string? gender { get; set; }
         public string Status { get; set; }

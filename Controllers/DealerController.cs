@@ -49,95 +49,6 @@ namespace MaxemusAPI.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-        #region AddOrUpdateAddress
-        /// <summary>
-        ///  AddOrUpdateProfile for Dealer.
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        [Route("AddAddress")]
-        [Authorize]
-        public async Task<IActionResult> AddAddress([FromBody] DealerProfileDTO model)
-        {
-            string currentUserId = (HttpContext.User.Claims.First().Value);
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Token expired.";
-                return Ok(_response);
-            }
-
-            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
-            if (existingUser == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "not found any user.";
-                return Ok(_response);
-            }
-
-            if (model.DealerId > 0)
-            {
-                var existingDealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.DealerId == model.DealerId && u.UserId == currentUserId);
-                if (existingDealerDetail == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Dealer profile not found.";
-                    return Ok(_response);
-                }
-
-                existingDealerDetail.Address1 = model.Address1;
-                existingDealerDetail.Address2 = model.Address2;
-
-                _context.Update(existingDealerDetail);
-                await _context.SaveChangesAsync();
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Messages = "Profile updated successfully.";
-                return Ok(_response);
-            }
-
-            var dealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
-
-            if (dealerDetail != null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "User profile is already present.";
-                return Ok(_response);
-            }
-
-            dealerDetail = new DealerDetail
-            {
-                UserId = currentUserId,
-                Address1 = model.Address1,
-                Address2 = model.Address2
-            };
-
-            if (model.DealerId == 0)
-            {
-                _context.Add(dealerDetail);
-                await _context.SaveChangesAsync();
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Messages = "Profile added successfully.";
-                return Ok(_response);
-            }
-
-
-
-            _response.StatusCode = HttpStatusCode.BadRequest;
-            _response.IsSuccess = false;
-            _response.Messages = "Invalid request.";
-            return BadRequest(_response);
-
-        }
-        #endregion
-
         #region GetProfileDetail
         /// <summary>
         ///  Get profile.
@@ -207,6 +118,22 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgUserNotFound;
                 return Ok(_response);
             }
+            var countryId = await _context.CountryMaster.FindAsync(model.countryId);
+            if (countryId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "please enter valid countryId.";
+                return Ok(_response);
+            }
+            var stateId = await _context.StateMaster.FindAsync(model.stateId);
+            if (stateId == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "please enter valid stateId.";
+                return Ok(_response);
+            }
             if (model.email.ToLower() != userDetail.Email.ToLower())
             {
                 var userProfile = await _context.ApplicationUsers.Where(u => u.Email == model.email && u.Id != currentUserId).FirstOrDefaultAsync();
@@ -244,15 +171,28 @@ namespace MaxemusAPI.Controllers
             }
 
             var dealerDetail = await _context.DealerDetail.Where(u => u.UserId == currentUserId).FirstOrDefaultAsync();
-            if (dealerDetail != null)
+
+            if (dealerDetail == null)
+            {
+                dealerDetail = new DealerDetail
+                {
+                    UserId = currentUserId,
+                    Address1 = model.Address1,
+                    Address2 = model.Address2,
+                    CreateDate = DateTime.UtcNow
+                };
+
+                _context.Add(dealerDetail);
+            }
+            else
             {
                 dealerDetail.Address1 = model.Address1;
                 dealerDetail.Address2 = model.Address2;
+                dealerDetail.ModifyDate = DateTime.UtcNow;
+
+                _context.Update(dealerDetail);
             }
-          
 
-
-            _context.Update(dealerDetail);
             await _context.SaveChangesAsync();
 
             var mappedData = _mapper.Map(model, userDetail);
@@ -266,6 +206,12 @@ namespace MaxemusAPI.Controllers
 
             var response = _mapper.Map<DealerResponseDTO>(dealerDetail);
             _mapper.Map(userProfileDetail, response);
+
+            var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
+            var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+
+            response.CountryName = userCountry.CountryName;
+            response.StateName = userState.StateName;
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

@@ -257,7 +257,7 @@ namespace MaxemusAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> AddProductToStock([FromBody] AddQR model)
+        public async Task<IActionResult> AddProductToStock([FromForm] AddQR model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))

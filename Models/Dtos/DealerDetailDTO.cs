@@ -76,4 +76,18 @@ namespace MaxemusAPI.Models.Dtos
        public string Address1 { get; set; }
         public string? Address2 { get; set; }
     }
+
+    public class DealerUserListDTO
+    {
+        public int dealerId { get; set; }
+        public string userId { get; set; }
+        public string email { get; set; }
+        public string firstName { get; set; }
+        public string lastName { get; set; }
+        public string profilePic { get; set; }
+        public string? gender { get; set; }
+        public string Status { get; set; }
+        public string createDate { get; set; }
+    }
+
 }

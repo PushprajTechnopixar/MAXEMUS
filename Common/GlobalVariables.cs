@@ -30,8 +30,8 @@
         // public const string twilio_phoneNumber = "+16206709247";
         // #endregion
 
-        public const string imgURL = "https://salon-near-me-file.s3.ap-south-1.amazonaws.com/FileToSave/";
-        public const string bucketURL = "https://salon-near-me-file.s3.ap-south-1.amazonaws.com/FileToSave/";
+        public const string imgURL = "https://maxemus-dev-file.s3.ap-south-1.amazonaws.com/FileToSave/";
+        public const string bucketURL = "https://maxemus-dev-file.s3.ap-south-1.amazonaws.com/FileToSave/";
         public const string imgData = $"data:image/jpeg;base64,";
         public static readonly string vendor_registration = "Vendor_Register.html";
         public static readonly string distributor_registration = "Distributor_Register.html";

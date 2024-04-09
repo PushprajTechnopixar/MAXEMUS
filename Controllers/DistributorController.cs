@@ -875,8 +875,10 @@ namespace MaxemusAPI.Controllers
 
                 foreach (var item in cart)
                 {
-                    var product = await _context.ProductStock.Where(u => u.ProductId == item.ProductId).ToListAsync();
-                    if (product.Count < 1)
+                    var products = await _context.ProductStock
+                        .Where(u => u.ProductId == item.ProductId).ToListAsync();
+
+                    if (products.Count < item.ProductCountInCart)
                     {
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = false;
@@ -884,13 +886,24 @@ namespace MaxemusAPI.Controllers
                         return Ok(_response);
                     }
 
-                    var productStock = await _context.ProductStock
-                           .FirstOrDefaultAsync(u => u.ProductStockId == product[0].ProductStockId);
+                    for (int i = 0; i < item.ProductCountInCart; i++)
+                    {
+                        var cartItemToRemove = await _context.Cart
+                            .Where(u => u.ProductId == item.ProductId)
+                            .FirstOrDefaultAsync();
 
-                    _context.Remove(productStock);
+                        var productStockToRemove = await _context.ProductStock
+                            .FirstOrDefaultAsync(u => u.ProductStockId == products[i].ProductStockId);
+
+                        _context.Remove(productStockToRemove);
+                        _context.Cart.Remove(cartItemToRemove);
+                    }
+
                     await _context.SaveChangesAsync();
-
                 }
+
+
+
                 foreach (var item in cart)
                 {
                     var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
@@ -945,8 +958,7 @@ namespace MaxemusAPI.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                _context.RemoveRange(cart);
-                await _context.SaveChangesAsync();
+
 
                 var response = _mapper.Map<OrderResponseDTO>(distributorOrder);
                 response.CreateDate = distributorOrder.CreateDate.ToShortDateString();

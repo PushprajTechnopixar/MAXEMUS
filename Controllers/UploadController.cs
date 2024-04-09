@@ -90,6 +90,7 @@ namespace MaxemusAPI.Controllers
             var documentPath = profilePicContainer + documentFile;
             userDetail.ProfilePic = documentPath;
             _context.ApplicationUsers.Update(userDetail);
+            _context.SaveChangesAsync();
             bool uploadStatus = await _uploadRepository.UploadFilesToServer(
                     model.profilePic,
                     profilePicContainer,

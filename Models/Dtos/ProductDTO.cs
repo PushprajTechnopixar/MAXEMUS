@@ -63,7 +63,17 @@ namespace MaxemusAPI.Models.Dtos
         //public int ProductStockId { get; set; }
         public int ProductId { get; set; }
         public string SerialNumber { get; set; }
-        public string? Qrcode { get; set; }
+        public IFormFile Qrcode { get; set; }
+
+    }
+    public class ProductStockResponseDTO
+    {
+        public int productStockId { get; set; }
+        public int productId { get; set; }
+        public string serialNumber { get; set; }
+        public string? qrcode { get; set; }
+        public string createDate { get; set; }
+        public string modifyDate { get; set; }
 
     }
 }

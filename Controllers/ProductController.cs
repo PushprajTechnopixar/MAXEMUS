@@ -18,6 +18,9 @@ using MaxemusAPI.Common;
 using static Google.Apis.Requests.BatchRequest;
 using AutoMapper.Configuration.Annotations;
 using static MaxemusAPI.Common.GlobalVariables;
+using Microsoft.IdentityModel.Tokens;
+using MaxemusAPI.Repository;
+using System.Net.Http.Headers;
 
 namespace MaxemusAPI.Controllers
 {
@@ -31,6 +34,7 @@ namespace MaxemusAPI.Controllers
         private readonly IAccountRepository _userRepo;
         private readonly RoleManager<IdentityRole> _roleManager;
         private string secretKey;
+        private readonly IUploadRepository _uploadRepository;
         private readonly IEmailManager _emailSender;
         private ITwilioManager _twilioManager;
         protected APIResponse _response;
@@ -38,11 +42,12 @@ namespace MaxemusAPI.Controllers
         private readonly IWebHostEnvironment _hostingEnvironment;
 
         public ProductController(IAccountRepository userRepo, IWebHostEnvironment hostingEnvironment, ApplicationDbContext context, IConfiguration configuration,
-            UserManager<ApplicationUser> userManager, IMapper mapper, IContentRepository contentRepository, RoleManager<IdentityRole> roleManager, IEmailManager emailSender, ITwilioManager twilioManager)
+            UserManager<ApplicationUser> userManager, IMapper mapper, IContentRepository contentRepository, RoleManager<IdentityRole> roleManager, IEmailManager emailSender, IUploadRepository uploadRepository, ITwilioManager twilioManager)
         {
             _userRepo = userRepo;
             _response = new();
             _context = context;
+            _uploadRepository = uploadRepository;
             _mapper = mapper;
             _emailSender = emailSender;
             _twilioManager = twilioManager;
@@ -286,22 +291,76 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var productStock = new ProductStock()
+            var existingProductStock = await _context.ProductStock
+                .Where(ps => ps.ProductId == model.ProductId && ps.SerialNumber == model.SerialNumber)
+                .FirstOrDefaultAsync();
+
+            if (existingProductStock != null)
+            {
+                var qrcodeFileName = ContentDispositionHeaderValue.Parse(model.Qrcode.ContentDisposition).FileName.Trim('"');
+                qrcodeFileName = CommonMethod.EnsureCorrectFilename(qrcodeFileName);
+                qrcodeFileName = CommonMethod.RenameFileName(qrcodeFileName);
+
+                var qrcodePath = qrCodeContainer + qrcodeFileName;
+
+                existingProductStock.ModifyDate = DateTime.UtcNow;
+                existingProductStock.Qrcode = qrcodePath;
+
+                _context.ProductStock.Update(existingProductStock);
+                await _context.SaveChangesAsync();
+
+                bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                    model.Qrcode,
+                    qrCodeContainer,
+                    qrcodeFileName
+                );
+
+                var responseDTO = _mapper.Map<ProductStockResponseDTO>(existingProductStock);
+                responseDTO.modifyDate = existingProductStock.ModifyDate.ToString();
+                responseDTO.createDate = existingProductStock.CreateDate.ToShortDateString();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = responseDTO;
+                _response.Messages = "Product stock updated successfully.";
+
+                return Ok(_response);
+            }
+
+            var newProductStock = new ProductStock
             {
                 ProductId = model.ProductId,
-                Qrcode = model.Qrcode,
                 SerialNumber = model.SerialNumber,
                 CreateDate = DateTime.UtcNow
             };
 
-            _context.Add(productStock);
+            var newQrcodeFileName = ContentDispositionHeaderValue.Parse(model.Qrcode.ContentDisposition).FileName.Trim('"');
+            newQrcodeFileName = CommonMethod.EnsureCorrectFilename(newQrcodeFileName);
+            newQrcodeFileName = CommonMethod.RenameFileName(newQrcodeFileName);
+
+            var newQrcodePath = qrCodeContainer + newQrcodeFileName;
+
+            newProductStock.Qrcode = newQrcodePath;
+
+            _context.ProductStock.Add(newProductStock);
             await _context.SaveChangesAsync();
+
+            bool newUploadStatus = await _uploadRepository.UploadFilesToServer(
+                model.Qrcode,
+                qrCodeContainer,
+                newQrcodeFileName
+            );
+
+            var newResponseDTO = _mapper.Map<ProductStockResponseDTO>(newProductStock);
+            newResponseDTO.createDate = newProductStock.CreateDate.ToShortDateString();
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Data = model;
-            _response.Messages = "product stock updated successfully.";
+            _response.Data = newResponseDTO;
+            _response.Messages = "Product stock added successfully.";
+
             return Ok(_response);
+
 
         }
         #endregion

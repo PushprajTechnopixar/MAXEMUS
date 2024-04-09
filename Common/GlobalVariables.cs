@@ -3,6 +3,7 @@
     public class GlobalVariables
     {
         public static readonly string profilePicContainer = "ProfileImages/";
+        public static readonly string qrCodeContainer = "qrCodeImages/";
         public static readonly string categoryImageContainer = "CategoryImages/";
         public static readonly string brandImageContainer = "BrandImages/";
         public static readonly string bannerImageContainer = "BannerImages/";

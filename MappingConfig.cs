@@ -27,6 +27,8 @@ namespace MaxemusAPI
             CreateMap<NotificationSentDTO, NotificationSent>().ReverseMap();
             CreateMap<InstallationDocumentDTO, InstallationDocumentVariants>().ReverseMap();
 
+            CreateMap<ProductStockResponseDTO, ProductStock>().ReverseMap();
+
             CreateMap<DistributorDetailsDTO, ApplicationUser>().ReverseMap();
             CreateMap<UserResponseDTO, ApplicationUser>().ReverseMap();
             CreateMap<DistributorDetailsDTO, DistributorDetail>().ReverseMap();

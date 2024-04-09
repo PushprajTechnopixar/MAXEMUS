@@ -532,6 +532,15 @@ namespace MaxemusAPI.Controllers
                     return Ok(_response);
                 }
 
+                var productStock = await _context.ProductStock.Where(u => u.ProductId == productId).ToListAsync();
+                if (productStock.Count < 1)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "product is out of stock.";
+                    return Ok(_response);
+                }
+
                 var cart = await _context.Cart.FirstOrDefaultAsync(c => c.ProductId == productId && c.DistributorId == currentUserId);
                 if (cart == null)
                 {
@@ -866,6 +875,24 @@ namespace MaxemusAPI.Controllers
 
                 foreach (var item in cart)
                 {
+                    var product = await _context.ProductStock.Where(u => u.ProductId == item.ProductId).ToListAsync();
+                    if (product.Count < 1)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = ResponseMessages.msgNotFound + "record.";
+                        return Ok(_response);
+                    }
+
+                    var productStock = await _context.ProductStock
+                           .FirstOrDefaultAsync(u => u.ProductStockId == product[0].ProductStockId);
+
+                    _context.Remove(productStock);
+                    await _context.SaveChangesAsync();
+
+                }
+                foreach (var item in cart)
+                {
                     var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
                     if (product == null)
                     {
@@ -917,23 +944,7 @@ namespace MaxemusAPI.Controllers
                     _context.Add(distributorOrderedProduct);
                     await _context.SaveChangesAsync();
                 }
-                foreach (var item in cart)
-                {
-                    var productStock = new ProductStock();
-                    var product = await _context.ProductStock.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
-                    if (product == null)
-                    {
-                        _response.StatusCode = HttpStatusCode.OK;
-                        _response.IsSuccess = false;
-                        _response.Messages = ResponseMessages.msgNotFound + "record.";
-                        return Ok(_response);
-                    }
 
-
-                    _context.Remove(productStock);
-                    await _context.SaveChangesAsync();
-
-                }
                 _context.RemoveRange(cart);
                 await _context.SaveChangesAsync();
 

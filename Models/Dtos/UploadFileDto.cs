@@ -22,9 +22,7 @@ namespace MaxemusAPI.Models
     {
         public int? mainCategoryId { get; set; }
         public int? subCategoryId { get; set; }
-        //  public int? SubSubProductCategoryId { get; set; }
-        public IFormFile? CategoryImageMale { get; set; }
-        public IFormFile? CategoryImageFemale { get; set; }
+        public IFormFile? categoryImage { get; set; }
     }
     public partial class UploadBrandImageDTO
     {

@@ -6,6 +6,8 @@
         public static readonly string qrCodeContainer = "qrCodeImages/";
         public static readonly string categoryImageContainer = "CategoryImages/";
         public static readonly string brandImageContainer = "BrandImages/";
+        public static readonly string mainCategoryImageContainer = "mainCategoryImages/";
+        public static readonly string subCategoryImageContainer = "subCategoryImages/";
         public static readonly string bannerImageContainer = "BannerImages/";
         public static readonly string SalonBannerImageContainer = "SalonBannerImages/";
         public static readonly string SalonImageContainer = "SalonImages/";

@@ -49,6 +49,7 @@ namespace MaxemusAPI.Controllers
             _mapper = mapper;
 
         }
+
         #region UploadProfilePic
         /// <summary>
         ///  Upload profile picture.
@@ -160,6 +161,118 @@ namespace MaxemusAPI.Controllers
                 _response.IsSuccess = true;
                 _response.Data = brandResponse;
                 _response.Messages = "Brand image uploaded successfully.";
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region UploadCategoryImage
+        /// <summary>
+        ///  Upload Category image.
+        /// </summary>
+        [HttpPost("UploadCategoryImage")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> UploadCategoryImage([FromForm] UploadCategoryImageDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                if (model.mainCategoryId > 0 && model.subCategoryId > 0)
+                {
+                    var subCategory = await _context.SubCategory.Where(u => u.MainCategoryId == model.mainCategoryId && u.SubCategoryId == model.subCategoryId).FirstOrDefaultAsync();
+                    if (subCategory == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "sub Category not found.";
+                        return Ok(_response);
+                    }
+
+                    if (!string.IsNullOrEmpty(subCategory.SubCategoryImage))
+                    {
+                        var chk = await _uploadRepository.DeleteFilesFromServer("FileToSave/" + subCategory.SubCategoryImage);
+                    }
+
+                    var documentFile = ContentDispositionHeaderValue.Parse(model.categoryImage.ContentDisposition).FileName.Trim('"');
+                    documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                    documentFile = CommonMethod.RenameFileName(documentFile);
+
+                    var documentPath = subCategoryImageContainer + documentFile;
+                    bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                            model.categoryImage,
+                            subCategoryImageContainer,
+                            documentFile
+                        );
+                    subCategory.SubCategoryImage = documentPath;
+                    _context.SubCategory.Update(subCategory);
+                    await _context.SaveChangesAsync();
+
+                    var subResponse = _mapper.Map<CategoryImageDTO>(subCategory);
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = subResponse;
+                    _response.Messages = "sub category image uploaded successfully.";
+
+                    return Ok(_response);
+                }
+                else if (model.mainCategoryId > 0)
+                {
+                    var mainCategory = await _context.MainCategory.Where(u => u.MainCategoryId == model.mainCategoryId).FirstOrDefaultAsync();
+                    if (mainCategory == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "main Category not found.";
+                        return Ok(_response);
+                    }
+
+                    if (!string.IsNullOrEmpty(mainCategory.MainCategoryImage))
+                    {
+                        var chk = await _uploadRepository.DeleteFilesFromServer("FileToSave/" + mainCategory.MainCategoryImage);
+                    }
+
+                    var documentFile = ContentDispositionHeaderValue.Parse(model.categoryImage.ContentDisposition).FileName.Trim('"');
+                    documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                    documentFile = CommonMethod.RenameFileName(documentFile);
+
+                    var documentPath = mainCategoryImageContainer + documentFile;
+                    bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                            model.categoryImage,
+                            mainCategoryImageContainer,
+                            documentFile
+                        );
+                    mainCategory.MainCategoryImage = documentPath;
+                    _context.MainCategory.Update(mainCategory);
+                    await _context.SaveChangesAsync();
+
+                    var mainResponse = _mapper.Map<CategoryImageDTO>(mainCategory);
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = mainResponse;
+                    _response.Messages = "main category image uploaded successfully.";
+
+                    return Ok(_response);
+                }
+
                 return Ok(_response);
             }
             catch (Exception ex)
@@ -295,7 +408,7 @@ namespace MaxemusAPI.Controllers
                 await _context.SaveChangesAsync();
 
                 var getProduct = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == productDetail.ProductId);
-                var response = _mapper.Map<ProductResponseDTO>(getProduct);
+                var response = _mapper.Map<ProductResponselistDTO>(getProduct);
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
@@ -399,7 +512,7 @@ namespace MaxemusAPI.Controllers
                     _response.Messages = "Token expired.";
                     return Ok(_response);
                 }
-                var camera = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.VariantId == model.VariantId); 
+                var camera = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.VariantId == model.VariantId);
                 if (camera == null)
                 {
                     _response.StatusCode = HttpStatusCode.OK;

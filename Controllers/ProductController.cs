@@ -21,6 +21,7 @@ using static MaxemusAPI.Common.GlobalVariables;
 using Microsoft.IdentityModel.Tokens;
 using MaxemusAPI.Repository;
 using System.Net.Http.Headers;
+using System.ComponentModel.DataAnnotations;
 
 namespace MaxemusAPI.Controllers
 {
@@ -601,61 +602,123 @@ namespace MaxemusAPI.Controllers
 
             var product = await _context.Product.Where(u => u.IsDeleted == false).ToListAsync();
 
-            int count = product.Count();
+            List<ProductResponselistDTO> productList = new List<ProductResponselistDTO>();
 
-            int CurrentPage = model.pageNumber;
-            int PageSize = model.pageSize;
+            foreach (var item in product)
+            {
+                var mappedData = _mapper.Map<ProductResponselistDTO>(item);
 
-            int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
 
-            var items = product.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+                mappedData.ProductId = item.ProductId;
+                mappedData.MainCategoryId = item.MainCategoryId;
+                mappedData.MainCategoryName = await _context.MainCategory.Where(u => u.MainCategoryId == item.MainCategoryId).Select(u => u.MainCategoryName).FirstOrDefaultAsync();
+                mappedData.SubCategoryId = item.SubCategoryId;
+                mappedData.SubCategoryName = await _context.SubCategory.Where(u => u.MainCategoryId == item.MainCategoryId && u.SubCategoryId == item.SubCategoryId).Select(u => u.SubCategoryName).FirstOrDefaultAsync();
+                mappedData.BrandId = item.BrandId;
+                mappedData.Model = item.Model;
+                mappedData.Name = item.Name;
+                mappedData.Description = item.Description;
+                mappedData.Image1 = item.Image1;
+                mappedData.Image2 = item.Image2;
+                mappedData.Image3 = item.Image3;
+                mappedData.Image4 = item.Image4;
+                mappedData.Image5 = item.Image5;
+                mappedData.IsActive = item.IsActive;
+                mappedData.TotalMrp = item.TotalMrp;
+                mappedData.Discount = item.Discount;
+                mappedData.DiscountType = item.DiscountType;
+                mappedData.SellingPrice = item.SellingPrice;
+                mappedData.RewardPoint = item.RewardPoint;
+                mappedData.CreateDate = item.CreateDate.ToShortDateString();
 
-            var previousPage = CurrentPage > 1 ? "Yes" : "No";
-            var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
+                productList.Add(mappedData);
+            }
 
-            var mappedData = _mapper.Map<List<ProductResponseDTO>>(items);
-
+            productList = productList.OrderByDescending(u => u.CreateDate).ToList();
+            if (!string.IsNullOrEmpty(model.mainCategoryName))
+            {
+                model.searchQuery = model.searchQuery.TrimEnd();
+                productList = productList
+                    .Where(u => u.MainCategoryName.ToLower().Contains(model.mainCategoryName.ToLower()))
+                    .ToList();
+            }
+            if (!string.IsNullOrEmpty(model.subCategoryName))
+            {
+                model.searchQuery = model.searchQuery.TrimEnd();
+                productList = productList
+                    .Where(u => u.SubCategoryName.ToLower().Contains(model.subCategoryName.ToLower()))
+                    .ToList();
+            }
 
             if (model.mainProductCategoryId > 0)
             {
-                mappedData = mappedData.Where(u => u.MainCategoryId == model.mainProductCategoryId).ToList();
+                productList = productList.Where(u => u.MainCategoryId == model.mainProductCategoryId).ToList();
             }
 
             if (model.subProductCategoryId > 0)
             {
-                mappedData = mappedData.Where(u => u.SubCategoryId == model.subProductCategoryId).ToList();
+                productList = productList.Where(u => u.SubCategoryId == model.subProductCategoryId).ToList();
             }
             if (model.brandId > 0)
             {
-                mappedData = mappedData.Where(u => u.BrandId == model.brandId).ToList();
+                productList = productList.Where(u => u.BrandId == model.brandId).ToList();
             }
 
             if (!string.IsNullOrEmpty(model.searchQuery))
             {
                 model.searchQuery = model.searchQuery.TrimEnd();
-                mappedData = mappedData
+                productList = productList
                     .Where(u => u.Name.ToLower().Contains(model.searchQuery.ToLower())
                                  || u.Model.ToLower().Contains(model.searchQuery.ToLower()))
                     .ToList();
             }
 
 
-            FilterationResponseModel<ProductResponseDTO> obj = new FilterationResponseModel<ProductResponseDTO>
-            {
-                totalCount = count,
-                pageSize = PageSize,
-                currentPage = CurrentPage,
-                totalPages = TotalPages,
-                previousPage = previousPage,
-                nextPage = nextPage,
-                searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery,
-                dataList = mappedData
-            };
+            int count = productList.Count();
 
+            // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
+            int CurrentPage = model.pageNumber;
+
+            // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
+            int PageSize = model.pageSize;
+
+            // Display TotalCount to Records to User  
+            int TotalCount = count;
+
+            // Calculating Totalpage by Dividing (No of Records / Pagesize)  
+            int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
+
+            // Returns List of Customer after applying Paging   
+            var items = productList.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+
+            // if CurrentPage is greater than 1 means it has previousPage  
+            var previousPage = CurrentPage > 1 ? "Yes" : "No";
+
+            // if TotalPages is greater than CurrentPage means it has nextPage  
+            var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
+
+            // Returing List of Customers Collections  
+            FilterationResponseModel<ProductResponselistDTO> obj = new FilterationResponseModel<ProductResponselistDTO>();
+            obj.totalCount = TotalCount;
+            obj.pageSize = PageSize;
+            obj.currentPage = CurrentPage;
+            obj.totalPages = TotalPages;
+            obj.previousPage = previousPage;
+            obj.nextPage = nextPage;
+            obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
+            obj.dataList = items.ToList();
+
+            if (obj == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Error while adding.";
+                return Ok(_response);
+            }
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = obj;
-            _response.Messages = "Product list shown successfully.";
+            _response.Messages = "List shown successfully.";
 
             return Ok(_response);
         }

@@ -24,7 +24,13 @@ namespace MaxemusAPI.Models
         public bool isNext { get; set; } = false;
         public string CreateDate { get; set; }
     }
+    public partial class CategoryImageDTO
+    {
+        public int? MainCategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
+        public string? CategoryImage { get; set; }
 
+    }
     public partial class CategoryRequestDTO
     {
         public int? MainCategoryId { get; set; }

@@ -637,14 +637,14 @@ namespace MaxemusAPI.Controllers
             productList = productList.OrderByDescending(u => u.CreateDate).ToList();
             if (!string.IsNullOrEmpty(model.mainCategoryName))
             {
-                model.searchQuery = model.searchQuery.TrimEnd();
+               
                 productList = productList
                     .Where(u => u.MainCategoryName.ToLower().Contains(model.mainCategoryName.ToLower()))
                     .ToList();
             }
             if (!string.IsNullOrEmpty(model.subCategoryName))
             {
-                model.searchQuery = model.searchQuery.TrimEnd();
+              
                 productList = productList
                     .Where(u => u.SubCategoryName.ToLower().Contains(model.subCategoryName.ToLower()))
                     .ToList();

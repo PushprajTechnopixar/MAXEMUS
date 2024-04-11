@@ -662,7 +662,7 @@ namespace MaxemusAPI.Repository
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     _response.Data = response;
-                    _response.Messages = "Category detail shown successfully.";
+                    _response.Messages = "Category list shown successfully.";
 
                     return _response;
                 }
@@ -777,7 +777,6 @@ namespace MaxemusAPI.Repository
                     distributorUserList.Add(mappedData);
                 }
             }
-
 
             distributorUserList = distributorUserList.OrderByDescending(u => u.createDate).ToList();
 

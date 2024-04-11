@@ -8,7 +8,7 @@
     "environment"    : "MaxemusAPI-test",
     "enable-xray"    : false,
     "enhanced-health-type" : "basic",
-    "additional-options"   : "\"aws:autoscaling:launchconfiguration,SecurityGroups\"=\"sg-0e7994fd5c79e83e5\";\"aws:ec2:vpc,Subnets\"=\"subnet-0864dfaa443c8d131\"",
+    "additional-options"   : "",
     "proxy-server"         : "nginx",
     "solution-stack"       : "64bit Amazon Linux 2 v2.7.0 running .NET Core",
     "environment-type"     : "SingleInstance",

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -7,12 +8,11 @@ namespace MaxemusAPI.Models
     {
         public Product()
         {
-            AccessoriesVariants = new HashSet<AccessoriesVariants>();
             AudioVariants = new HashSet<AudioVariants>();
             CameraVariants = new HashSet<CameraVariants>();
             Cart = new HashSet<Cart>();
             CertificationVariants = new HashSet<CertificationVariants>();
-            DealerOrderedProduct = new HashSet<DealerOrderedProduct>();
+            DealerProduct = new HashSet<DealerProduct>();
             DistributorOrderedProduct = new HashSet<DistributorOrderedProduct>();
             EnvironmentVariants = new HashSet<EnvironmentVariants>();
             GeneralVariants = new HashSet<GeneralVariants>();
@@ -47,12 +47,12 @@ namespace MaxemusAPI.Models
         public virtual Brand Brand { get; set; } = null!;
         public virtual MainCategory MainCategory { get; set; } = null!;
         public virtual SubCategory SubCategory { get; set; } = null!;
-        public virtual ICollection<AccessoriesVariants> AccessoriesVariants { get; set; } = null!;
+        public virtual AccessoriesVariants AccessoriesVariants { get; set; } = null!;
         public virtual ICollection<AudioVariants> AudioVariants { get; set; }
         public virtual ICollection<CameraVariants> CameraVariants { get; set; }
         public virtual ICollection<Cart> Cart { get; set; }
         public virtual ICollection<CertificationVariants> CertificationVariants { get; set; }
-        public virtual ICollection<DealerOrderedProduct> DealerOrderedProduct { get; set; }
+        public virtual ICollection<DealerProduct> DealerProduct { get; set; }
         public virtual ICollection<DistributorOrderedProduct> DistributorOrderedProduct { get; set; }
         public virtual ICollection<EnvironmentVariants> EnvironmentVariants { get; set; }
         public virtual ICollection<GeneralVariants> GeneralVariants { get; set; }

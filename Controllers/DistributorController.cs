@@ -292,6 +292,11 @@ namespace MaxemusAPI.Controllers
                 _context.Add(distributorAddress);
                 await _context.SaveChangesAsync();
 
+
+                distributorDetail.AddressId = distributorAddress.AddressId;
+                _context.Update(distributorDetail);
+                await _context.SaveChangesAsync();
+
                 var response = _mapper.Map<DistributorDetailsDTO>(user);
                 response.personalProfile = _mapper.Map<UserResponseDTO>(user);
                 response.businessProfile = _mapper.Map<DistributorBusinessResponseDTO>(distributorDetail);
@@ -501,7 +506,7 @@ namespace MaxemusAPI.Controllers
         [HttpPost("AddProductToCart")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> AddProductToCart(int productId)
         {
             try
@@ -594,7 +599,7 @@ namespace MaxemusAPI.Controllers
         [HttpGet("GetProductListFromCart")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> GetProductListFromCart()
         {
             try
@@ -693,7 +698,7 @@ namespace MaxemusAPI.Controllers
         [HttpDelete("RemoveProductFromCart")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> RemoveProductFromCart(int productId)
         {
             try
@@ -770,7 +775,7 @@ namespace MaxemusAPI.Controllers
         [HttpGet("GetProductCountInCart")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> GetProductCountInCart()
         {
             try
@@ -828,7 +833,7 @@ namespace MaxemusAPI.Controllers
         [HttpPost("PlaceOrder")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequestDTO model)
         {
             try
@@ -988,7 +993,7 @@ namespace MaxemusAPI.Controllers
         [HttpGet("OrderList")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> OrderList([FromQuery] DistributorOrderFiltrationListDTO model)
         {
             try
@@ -1122,7 +1127,7 @@ namespace MaxemusAPI.Controllers
         [HttpGet("OrderDetail")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> OrderDetail(long orderId)
         {
             try
@@ -1194,11 +1199,11 @@ namespace MaxemusAPI.Controllers
         ///  CancelOrder for Distributor.
         /// </summary>
         /// <returns></returns>
-        ///    [HttpPost]
+
         [HttpPost("CancelOrder")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
+        [Authorize(Roles = "Distributor")]
         public async Task<IActionResult> CancelOrder(CancelOrderDTO model)
         {
             try

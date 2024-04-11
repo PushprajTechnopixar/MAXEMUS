@@ -450,15 +450,21 @@ namespace MaxemusAPI.Repository
                     var newMainCategory = new MainCategory
                     {
                         MainCategoryName = model.CategoryName,
+                        Description = model.Description,
                         CreateDate = DateTime.Now
                     };
 
                     _context.Add(newMainCategory);
                     await _context.SaveChangesAsync();
 
+                    var response = _mapper.Map<CategoryResponseDTO>(newMainCategory);
+                    response.CategoryName = model.CategoryName;
+                    response.CreateDate = newMainCategory.CreateDate.ToShortDateString();
+
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     _response.Messages = "Category added successfully.";
+                    _response.Data = response;
                     return _response;
 
 
@@ -483,15 +489,21 @@ namespace MaxemusAPI.Repository
                         {
                             MainCategoryId = model.MainCategoryId,
                             SubCategoryName = model.CategoryName,
+                            Description = model.Description,
                             CreateDate = DateTime.Now
                         };
 
                         _context.Add(newSubCategory);
                         await _context.SaveChangesAsync();
 
+                        var response = _mapper.Map<CategoryResponseDTO>(newSubCategory);
+                        response.CategoryName = model.CategoryName;
+                        response.CreateDate = newSubCategory.CreateDate.ToShortDateString();
+
                         _response.StatusCode = HttpStatusCode.OK;
                         _response.IsSuccess = true;
                         _response.Messages = "Category added successfully.";
+                        _response.Data = response;
                         return _response;
                     }
 
@@ -528,14 +540,20 @@ namespace MaxemusAPI.Repository
                         if (subCategory != null)
                         {
                             subCategory.SubCategoryName = model.CategoryName;
+                            subCategory.Description = model.Description;
                             subCategory.ModifyDate = DateTime.Now;
 
                             _context.Update(subCategory);
                             await _context.SaveChangesAsync();
 
+                            var response = _mapper.Map<CategoryResponseDTO>(subCategory);
+                            response.CategoryName = model.CategoryName;
+                            response.CreateDate = subCategory.ModifyDate.ToShortDateString();
+
                             _response.StatusCode = HttpStatusCode.OK;
                             _response.IsSuccess = true;
                             _response.Messages = "Category updated successfully.";
+                            _response.Data = response;
                             return _response;
                         }
                     }
@@ -545,14 +563,20 @@ namespace MaxemusAPI.Repository
                         if (mainCategory != null)
                         {
                             mainCategory.MainCategoryName = model.CategoryName;
+                            mainCategory.Description = model.Description;
                             mainCategory.ModifyDate = DateTime.Now;
 
                             _context.Update(mainCategory);
                             await _context.SaveChangesAsync();
 
+                            var response = _mapper.Map<CategoryResponseDTO>(mainCategory);
+                            response.CategoryName = model.CategoryName;
+                            response.CreateDate = mainCategory.ModifyDate.ToShortDateString();
+
                             _response.StatusCode = HttpStatusCode.OK;
                             _response.IsSuccess = true;
                             _response.Messages = "Category updated successfully.";
+                            _response.Data = response;
                             return _response;
                         }
                     }
@@ -593,6 +617,7 @@ namespace MaxemusAPI.Repository
                                 SubCategoryId = item.SubCategoryId,
                                 CategoryName = item.SubCategoryName,
                                 CategoryImage = item.SubCategoryImage,
+                                Description = item.Description,
                                 CreateDate = item.CreateDate.ToString("dd-MM-yyyy")
                             };
 
@@ -629,6 +654,7 @@ namespace MaxemusAPI.Repository
                         {
                             item.CategoryName = mainCategory.MainCategoryName;
                             item.CategoryImage = mainCategory.MainCategoryImage;
+                            item.Description = mainCategory.Description;
                             item.CreateDate = mainCategory.CreateDate.ToString("dd-MM-yyyy");
                         }
                     }
@@ -726,15 +752,11 @@ namespace MaxemusAPI.Repository
 
             List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
 
-           
-
             foreach (var item in distributorUser)
             {
                 var distributorUserProfileDetail = await _context.ApplicationUsers
                     .Where(u => u.Id == item.UserId && u.IsDeleted == false)
                     .FirstOrDefaultAsync();
-
-
 
                 if (distributorUserProfileDetail != null)
                 {
@@ -749,7 +771,6 @@ namespace MaxemusAPI.Repository
                     mappedData.gender = distributorUserProfileDetail.Gender;
 
                     mappedData.Status = item.Status.ToString() == "1" ? "Approved" : (item.Status.ToString() == "2" ? "Rejected" : "Pending");
-
 
                     mappedData.createDate = item.CreateDate.ToShortDateString();
 

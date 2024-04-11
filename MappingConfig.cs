@@ -15,6 +15,7 @@ namespace MaxemusAPI
             CreateMap<LoginResponseDTO, ApplicationUser>().ReverseMap();
             CreateMap<LoginResponseDTO, ApplicationUser>().ReverseMap();
             CreateMap<DealerDetailDTO, DealerDetail>().ReverseMap();
+            CreateMap<DealerProductDTO, DealerProduct>().ReverseMap();
             CreateMap<DealerProfileDTO, DealerDetail>().ReverseMap();
             CreateMap<DealerDetailDTO, ApplicationUser>().ReverseMap();
             CreateMap<DealerProfileDTO, ApplicationUser>().ReverseMap();
@@ -66,7 +67,8 @@ namespace MaxemusAPI
             CreateMap<ProductResponselistDTO, Product>().ReverseMap();
             CreateMap<ProductResponselistDTO, MainCategory>().ReverseMap();
             CreateMap<ProductResponselistDTO, SubCategory>().ReverseMap();
-
+            CreateMap<CategoryResponseDTO, MainCategory>().ReverseMap();
+            CreateMap<CategoryResponseDTO, SubCategory>().ReverseMap();
             CreateMap<DistributorUserListDTO, ApplicationUser>().ReverseMap();
             CreateMap<DistributorUserListDTO, DistributorDetail>().ReverseMap();
 

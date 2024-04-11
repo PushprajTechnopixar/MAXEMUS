@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using MaxemusAPI;
 using MaxemusAPI.Models;
 
-
 namespace MaxemusAPI.Models
 {
     public partial class ProductStock
     {
+        public ProductStock()
+        {
+            DealerProduct = new HashSet<DealerProduct>();
+        }
+
         public int ProductStockId { get; set; }
         public int ProductId { get; set; }
         public string SerialNumber { get; set; } = null!;
@@ -16,5 +20,6 @@ namespace MaxemusAPI.Models
         public DateTime? ModifyDate { get; set; }
 
         public virtual Product Product { get; set; } = null!;
+        public virtual ICollection<DealerProduct> DealerProduct { get; set; }
     }
 }

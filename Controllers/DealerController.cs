@@ -14,6 +14,7 @@ using MaxemusAPI.Common;
 using static MaxemusAPI.Common.GlobalVariables;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 
 namespace MaxemusAPI.Controllers
 {
@@ -53,8 +54,9 @@ namespace MaxemusAPI.Controllers
         /// <summary>
         ///  Get profile.
         /// </summary>
-        [HttpGet]
-        [Route("GetProfileDetail")]
+        [HttpGet("GetProfileDetail")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize(Roles = "Dealer")]
         public async Task<IActionResult> GetProfileDetail()
         {
@@ -217,6 +219,76 @@ namespace MaxemusAPI.Controllers
             _response.IsSuccess = true;
             _response.Data = response;
             _response.Messages = "Profile updated successfully.";
+            return Ok(_response);
+        }
+        #endregion
+
+        #region ScanProduct
+        /// <summary>
+        ///  Scan Product.
+        /// </summary>
+        [HttpPost("ScanProduct")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize(Roles = "Dealer")]
+        public async Task<IActionResult> ScanProduct(string qrCode)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var product = _context.ProductStock.FirstOrDefault(p => p.SerialNumber == qrCode);
+            if (product == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Record not found.";
+                return Ok(_response);
+            }
+
+            var dealerDetail = await _context.DealerDetail.Where(p => p.UserId == currentUserId).FirstOrDefaultAsync();
+
+            var distributorOrderedProduct = await _context.DistributorOrderedProduct.Where(p => p.ProductId == product.ProductId).FirstOrDefaultAsync();
+
+            var distributorOrder = await _context.DistributorOrder.Where(p => p.OrderId == distributorOrderedProduct.OrderId).FirstOrDefaultAsync();
+
+           var distributorId = await _context.DistributorDetail.Where(p => p.UserId == distributorOrder.UserId).FirstOrDefaultAsync();
+
+            var dealerProduct = new DealerProduct
+            {
+                DealerId = dealerDetail.DealerId,
+                DistributorId = distributorId.DistributorId,
+                ProductId = product.ProductId,
+                ProductStockId = product.ProductStockId,
+                CreateDate = DateTime.UtcNow
+            };
+
+            _context.Add(dealerProduct);
+            await _context.SaveChangesAsync();
+
+
+            var response = _mapper.Map<DealerProductDTO>(dealerProduct);
+            response.CreateDate = dealerProduct.CreateDate.ToShortDateString();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "dealer product added successfully.";
+            _response.Data = response;
+
             return Ok(_response);
         }
         #endregion

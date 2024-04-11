@@ -8,20 +8,32 @@ namespace MaxemusAPI.Models
     {
         public int MainCategoryId { get; set; }
         [Required] public string CategoryName { get; set; }
+        public string Description { get; set; }
     }
     public partial class UpdateCategoryDTO
     {
         public int MainCategoryId { get; set; }
         public int SubCategoryId { get; set; }
         public string CategoryName { get; set; }
+        public string Description { get; set; }
+
     }
     public partial class CategoryDTO
     {
         public int MainCategoryId { get; set; }
         public int SubCategoryId { get; set; }
         public string CategoryName { get; set; }
+        public string Description { get; set; }
         public string CategoryImage { get; set; }
         public bool isNext { get; set; } = false;
+        public string CreateDate { get; set; }
+    }
+    public class CategoryResponseDTO
+    {
+        public int MainCategoryId { get; set; }
+        public int SubCategoryId { get; set; }
+        public string CategoryName { get; set; }
+        public string Description { get; set; }
         public string CreateDate { get; set; }
     }
     public partial class CategoryImageDTO

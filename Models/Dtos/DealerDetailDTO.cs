@@ -18,7 +18,7 @@ namespace MaxemusAPI.Models.Dtos
         public string Address1 { get; set; }
         public string? Address2 { get; set; }
         [Required] public string password { get; set; }
-     //   [Required] public string role { get; set; }
+        //   [Required] public string role { get; set; }
     }
     public class DealerProfileDTO
     {
@@ -58,14 +58,14 @@ namespace MaxemusAPI.Models.Dtos
     {
         public string Id { get; set; }
         public string email { get; set; }
-       
+
         public string firstName { get; set; }
         public string lastName { get; set; }
-       
+
         public string? gender { get; set; }
-      
+
         public string? dialCode { get; set; }
-     
+
         public string phoneNumber { get; set; }
         public int countryId { get; set; }
         public string CountryName { get; set; }
@@ -73,7 +73,7 @@ namespace MaxemusAPI.Models.Dtos
         public int stateId { get; set; }
         public string City { get; set; }
         public string PostalCode { get; set; }
-       public string Address1 { get; set; }
+        public string Address1 { get; set; }
         public string? Address2 { get; set; }
     }
 
@@ -89,5 +89,14 @@ namespace MaxemusAPI.Models.Dtos
         public string Status { get; set; }
         public string createDate { get; set; }
     }
-
+    public class DealerProductDTO
+    {
+        public int OrderedProductId { get; set; }
+        public int DealerId { get; set; }
+        public int DistributorId { get; set; }
+        public int ProductId { get; set; }
+        public int ProductStockId { get; set; }
+        public int? RewardPoint { get; set; }
+        public string CreateDate { get; set; }
+    }
 }

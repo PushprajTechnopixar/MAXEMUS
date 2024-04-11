@@ -14,6 +14,8 @@ namespace MaxemusAPI.Models
 
         public int MainCategoryId { get; set; }
         public string MainCategoryName { get; set; } = null!;
+        public string Description { get; set; }
+
         public string? MainCategoryImage { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime ModifyDate { get; set; }

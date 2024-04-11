@@ -45,6 +45,7 @@
         public static readonly string emailTemplatesContainer = "EmailTemplates";
         public static readonly string tempImageContainer = "TempImages/";
         public static readonly string ExcelFileContainer = "ExcelFiles/";
+        public static readonly string DefaultDateFormat = "dd-MM-yyyy";
 
         public static readonly char stringSplitterPipe = '|';
         public static string distancematrixAPIKey = "AIzaSyBgLMQ8wvy5yda0qP1_8y1e_aJJ_HrTdZw";

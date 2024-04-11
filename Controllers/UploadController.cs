@@ -98,7 +98,6 @@ namespace MaxemusAPI.Controllers
                     documentFile
                 );
 
-
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Messages = "Uploaded successfully.";

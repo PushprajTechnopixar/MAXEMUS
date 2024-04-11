@@ -43,6 +43,7 @@
         public string lastName { get; set; }
         public string? gender { get; set; }
         public string? dialCode { get; set; }
+        public string? phoneNumber { get; set; }
         public string? profilePic { get; set; }
         public int countryId { get; set; }
         public int stateId { get; set; }

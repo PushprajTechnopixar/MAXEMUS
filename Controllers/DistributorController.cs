@@ -21,6 +21,7 @@ using TimeZoneConverter;
 using System.Linq;
 using System.Web.Helpers;
 using GSF.Net.Smtp;
+using System.Data.Common;
 
 namespace MaxemusAPI.Controllers
 {
@@ -263,7 +264,6 @@ namespace MaxemusAPI.Controllers
                 var distributorDetail = new DistributorDetail
                 {
                     UserId = user.Id,
-                    CreateDate = DateTime.UtcNow,
                     Email = model.businessProfile.Email
                 };
 
@@ -549,13 +549,11 @@ namespace MaxemusAPI.Controllers
                         ProductId = productId,
                         DistributorId = currentUserId,
                         ProductCountInCart = 1,
-                        CreateDate = DateTime.Now
                     };
                     _context.Cart.Add(cart);
                 }
                 else
                 {
-                    cart.ModifyDate = DateTime.Now;
                     cart.ProductCountInCart++;
                     _context.Cart.Update(cart);
                 }
@@ -564,7 +562,7 @@ namespace MaxemusAPI.Controllers
 
                 var response = _mapper.Map<CartResponseDTO>(cart);
                 _mapper.Map(product, response);
-                response.CreateDate = cart.CreateDate.ToString();
+                response.CreateDate = cart.CreateDate?.ToString("dd-MM-yyyy");
                 response.TotalMrp = (double)(product.TotalMrp * cart.ProductCountInCart);
                 response.Discount = (double)(product.Discount * cart.ProductCountInCart);
                 response.DiscountType = product.DiscountType;
@@ -866,7 +864,6 @@ namespace MaxemusAPI.Controllers
                     LastName = userDetail.LastName,
                     PaymentMethod = model.PaymentMethod,
                     OrderDate = DateTime.UtcNow,
-                    CreateDate = DateTime.UtcNow
                 };
 
                 double? totalMrp = 0;
@@ -952,7 +949,6 @@ namespace MaxemusAPI.Controllers
                     distributorOrderedProduct.SellingPrice = product.SellingPrice;
                     distributorOrderedProduct.Quantity = item.ProductCountInCart;
                     distributorOrderedProduct.ProductCount = item.ProductCountInCart;
-                    distributorOrderedProduct.CreateDate = DateTime.UtcNow;
 
                     _context.Add(distributorOrderedProduct);
                     await _context.SaveChangesAsync();
@@ -1031,7 +1027,6 @@ namespace MaxemusAPI.Controllers
                     item.OrderTime = Convert.ToDateTime(convertedZoneDate).ToString(@"hh:mm tt");
                     item.OrderDate = Convert.ToDateTime(convertedZoneDate).ToString(@"dd-MM-yyyy");
                     item.CreateDate = Convert.ToDateTime(convertedZoneDate).ToString(@"dd-MM-yyyy");
-
                 }
 
                 if (!string.IsNullOrEmpty(model.paymentStatus))
@@ -1168,16 +1163,15 @@ namespace MaxemusAPI.Controllers
                 var response = _mapper.Map<DistributorOrderDetailDTO>(distributorOrder);
                 response.DistributorOrderedProduct = _mapper.Map<List<DistributorOrderedProductDTO>>(distributorOrderProducts);
 
-                response.CreateDate = distributorOrder.CreateDate.ToShortDateString();
-                response.OrderDate = distributorOrder.OrderDate.ToShortDateString();
-                response.DeliveredDate = distributorOrder.DeliveredDate.ToString();
+                response.CreateDate = distributorOrder.CreateDate.ToString(DefaultDateFormat);
+                response.OrderDate = distributorOrder.OrderDate.ToString(DefaultDateFormat);
+                response.DeliveredDate = distributorOrder.DeliveredDate?.ToString(DefaultDateFormat);
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
                 _response.Messages = "order detail shown successfully.";
                 _response.Data = response;
                 return Ok(_response);
-
             }
             catch (Exception ex)
             {
@@ -1265,6 +1259,5 @@ namespace MaxemusAPI.Controllers
             }
         }
         #endregion
-
     }
 }

@@ -636,7 +636,7 @@ namespace MaxemusAPI.Repository
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
                     _response.Data = response;
-                    _response.Messages = "Category detail shown successfully.";
+                    _response.Messages = "Category list shown successfully.";
 
                     return _response;
                 }
@@ -726,15 +726,11 @@ namespace MaxemusAPI.Repository
 
             List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
 
-           
-
             foreach (var item in distributorUser)
             {
                 var distributorUserProfileDetail = await _context.ApplicationUsers
                     .Where(u => u.Id == item.UserId && u.IsDeleted == false)
                     .FirstOrDefaultAsync();
-
-
 
                 if (distributorUserProfileDetail != null)
                 {
@@ -750,13 +746,11 @@ namespace MaxemusAPI.Repository
 
                     mappedData.Status = item.Status.ToString() == "1" ? "Approved" : (item.Status.ToString() == "2" ? "Rejected" : "Pending");
 
-
                     mappedData.createDate = item.CreateDate.ToShortDateString();
 
                     distributorUserList.Add(mappedData);
                 }
             }
-
 
             distributorUserList = distributorUserList.OrderByDescending(u => u.createDate).ToList();
 

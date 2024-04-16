@@ -146,11 +146,13 @@ namespace MaxemusAPI.Data
             {
                 entity.Property(e => e.CartId).HasColumnName("CartID");
 
-                entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-                entity.Property(e => e.DistributorId).HasColumnName("DistributorID");
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+
+                entity.Property(e => e.DistributorId).HasColumnName("DistributorID");
 
                 entity.Property(e => e.ProductId).HasColumnName("ProductID");
 

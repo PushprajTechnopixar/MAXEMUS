@@ -22,6 +22,7 @@ using Microsoft.IdentityModel.Tokens;
 using MaxemusAPI.Repository;
 using System.Net.Http.Headers;
 using System.ComponentModel.DataAnnotations;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace MaxemusAPI.Controllers
 {
@@ -283,7 +284,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var existingProduct = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsDeleted != true);
+            var existingProduct = await _context.Product.Where(u => u.ProductId == model.ProductId && u.IsDeleted != true).FirstOrDefaultAsync();
             if (existingProduct == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
@@ -600,41 +601,40 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var product = await _context.Product.Where(u => u.IsDeleted == false).ToListAsync();
+            var query = from t1 in _context.Product
+                        where !t1.IsDeleted
+                        orderby t1.CreateDate descending
+                        select new ProductResponselistDTO
+                        {
+                            ProductId = t1.ProductId,
+                            MainCategoryId = t1.MainCategoryId,
+                            MainCategoryName = (from mc in _context.MainCategory
+                                                where mc.MainCategoryId == t1.MainCategoryId
+                                                select mc.MainCategoryName).FirstOrDefault(),
+                            SubCategoryId = t1.SubCategoryId,
+                            SubCategoryName = (from sc in _context.SubCategory
+                                               where sc.SubCategoryId == t1.SubCategoryId
+                                               select sc.SubCategoryName).FirstOrDefault(),
+                            BrandId = t1.BrandId,
+                            Model = t1.Model,
+                            Name = t1.Name,
+                            Description = t1.Description,
+                            Image1 = t1.Image1,
+                            Image2 = t1.Image2,
+                            Image3 = t1.Image3,
+                            Image4 = t1.Image4,
+                            Image5 = t1.Image5,
+                            IsActive = t1.IsActive,
+                            TotalMrp = t1.TotalMrp,
+                            Discount = t1.Discount,
+                            DiscountType = t1.DiscountType,
+                            SellingPrice = t1.SellingPrice,
+                            RewardPoint = t1.RewardPoint,
+                            CreateDate = t1.CreateDate.ToShortDateString() 
+                        };
 
-            List<ProductResponselistDTO> productList = new List<ProductResponselistDTO>();
+            var productList = query.ToList();
 
-            foreach (var item in product)
-            {
-                var mappedData = _mapper.Map<ProductResponselistDTO>(item);
-
-
-                mappedData.ProductId = item.ProductId;
-                mappedData.MainCategoryId = item.MainCategoryId;
-                mappedData.MainCategoryName = await _context.MainCategory.Where(u => u.MainCategoryId == item.MainCategoryId).Select(u => u.MainCategoryName).FirstOrDefaultAsync();
-                mappedData.SubCategoryId = item.SubCategoryId;
-                mappedData.SubCategoryName = await _context.SubCategory.Where(u => u.MainCategoryId == item.MainCategoryId && u.SubCategoryId == item.SubCategoryId).Select(u => u.SubCategoryName).FirstOrDefaultAsync();
-                mappedData.BrandId = item.BrandId;
-                mappedData.Model = item.Model;
-                mappedData.Name = item.Name;
-                mappedData.Description = item.Description;
-                mappedData.Image1 = item.Image1;
-                mappedData.Image2 = item.Image2;
-                mappedData.Image3 = item.Image3;
-                mappedData.Image4 = item.Image4;
-                mappedData.Image5 = item.Image5;
-                mappedData.IsActive = item.IsActive;
-                mappedData.TotalMrp = item.TotalMrp;
-                mappedData.Discount = item.Discount;
-                mappedData.DiscountType = item.DiscountType;
-                mappedData.SellingPrice = item.SellingPrice;
-                mappedData.RewardPoint = item.RewardPoint;
-                mappedData.CreateDate = item.CreateDate.ToShortDateString();
-
-                productList.Add(mappedData);
-            }
-
-            productList = productList.OrderByDescending(u => u.CreateDate).ToList();
             if (!string.IsNullOrEmpty(model.mainCategoryName))
             {
                
@@ -675,30 +675,16 @@ namespace MaxemusAPI.Controllers
 
 
             int count = productList.Count();
-
-            // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
             int CurrentPage = model.pageNumber;
-
-            // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
             int PageSize = model.pageSize;
-
-            // Display TotalCount to Records to User  
             int TotalCount = count;
-
-            // Calculating Totalpage by Dividing (No of Records / Pagesize)  
             int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
-
-            // Returns List of Customer after applying Paging   
             var items = productList.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-            // if CurrentPage is greater than 1 means it has previousPage  
             var previousPage = CurrentPage > 1 ? "Yes" : "No";
-
-            // if TotalPages is greater than CurrentPage means it has nextPage  
             var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
 
-            // Returing List of Customers Collections  
             FilterationResponseModel<ProductResponselistDTO> obj = new FilterationResponseModel<ProductResponselistDTO>();
+
             obj.totalCount = TotalCount;
             obj.pageSize = PageSize;
             obj.currentPage = CurrentPage;
@@ -712,14 +698,14 @@ namespace MaxemusAPI.Controllers
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
-                _response.Messages = "Error while adding.";
+                _response.Messages = ResponseMessages.msgSomethingWentWrong;
                 return Ok(_response);
             }
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = obj;
-            _response.Messages = "List shown successfully.";
-
+            _response.Messages = "Item" + ResponseMessages.msgListFoundSuccess;
             return Ok(_response);
         }
         #endregion

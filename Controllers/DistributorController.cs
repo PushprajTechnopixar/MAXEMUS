@@ -554,6 +554,7 @@ namespace MaxemusAPI.Controllers
                         ProductId = productId,
                         DistributorId = currentUserId,
                         ProductCountInCart = 1,
+                        CreateDate = DateTime.UtcNow,
                     };
                     _context.Cart.Add(cart);
                 }

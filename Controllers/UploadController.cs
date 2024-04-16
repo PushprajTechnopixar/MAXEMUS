@@ -19,6 +19,7 @@ using Amazon.S3;
 using MaxemusAPI.Common;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Amazon.SimpleSystemsManagement.Model;
 
 namespace MaxemusAPI.Controllers
 {
@@ -369,7 +370,7 @@ namespace MaxemusAPI.Controllers
                     documentFile = CommonMethod.RenameFileName(documentFile);
 
                     var documentPath = productImageContainer + documentFile;
-                    
+
                     if (imageNo == 1)
                     {
                         productDetail.Image1 = documentPath;
@@ -396,6 +397,8 @@ namespace MaxemusAPI.Controllers
                         imageNo++;
                     }
 
+
+
                     bool uploadStatus = await _uploadRepository.UploadFilesToServer(
                             item,
                             productImageContainer,
@@ -405,6 +408,7 @@ namespace MaxemusAPI.Controllers
 
                 _context.Update(productDetail);
                 await _context.SaveChangesAsync();
+
 
                 var getProduct = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == productDetail.ProductId);
                 var response = _mapper.Map<ProductResponselistDTO>(getProduct);
@@ -465,7 +469,7 @@ namespace MaxemusAPI.Controllers
                 documentFile = CommonMethod.RenameFileName(documentFile);
 
                 var documentPath = brandImageContainer + documentFile;
-               
+
                 distributorDetail.Image = documentPath;
                 _context.DistributorDetail.Update(distributorDetail);
                 await _context.SaveChangesAsync();
@@ -536,7 +540,7 @@ namespace MaxemusAPI.Controllers
                 documentFile = CommonMethod.RenameFileName(documentFile);
 
                 var documentPath = installationDocumentContainer + documentFile;
-               
+
                 byte[] documentBytes = Encoding.UTF8.GetBytes(documentPath);
                 installationDocument.VariantId = model.VariantId;
                 installationDocument.ProductId = model.ProductId;

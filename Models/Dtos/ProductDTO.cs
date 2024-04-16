@@ -80,9 +80,8 @@ namespace MaxemusAPI.Models.Dtos
         public int pageSize { get; set; }
         public int? mainProductCategoryId { get; set; }
         public string? mainCategoryName { get; set; }
-        public string? subCategoryName { get; set; }
-
         public int? subProductCategoryId { get; set; }
+        public string? subCategoryName { get; set; }
         public int? brandId { get; set; }
         public string? searchQuery { get; set; }
     }

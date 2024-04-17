@@ -83,21 +83,27 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var countryId = await _context.CountryMaster.FindAsync(model.countryId);
-            if (countryId == null)
+            if (model.countryId > 0)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "please enter valid countryId.";
-                return Ok(_response);
+                var countryId = await _context.CountryMaster.FindAsync(model.countryId);
+                if (countryId == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "please enter valid countryId.";
+                    return Ok(_response);
+                }
             }
-            var stateId = await _context.StateMaster.FindAsync(model.stateId);
-            if (stateId == null)
+            if (model.stateId > 0)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "please enter valid stateId.";
-                return Ok(_response);
+                var stateId = await _context.StateMaster.FindAsync(model.stateId);
+                if (stateId == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "please enter valid stateId.";
+                    return Ok(_response);
+                }
             }
             var userDetail = await _context.ApplicationUsers.FindAsync(currentUserId);
             if (userDetail == null)

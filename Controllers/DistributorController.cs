@@ -92,37 +92,49 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "user.";
                 return Ok(_response);
             }
-            var countryId = await _context.CountryMaster.FindAsync(model.businessProfile.CountryId);
-            if (countryId == null)
+            if(model.businessProfile.CountryId > 0)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "please enter valid countryId.";
-                return Ok(_response);
+                var countryId = await _context.CountryMaster.FindAsync(model.businessProfile.CountryId);
+                if (countryId == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "please enter valid countryId.";
+                    return Ok(_response);
+                }
             }
-            var stateId = await _context.StateMaster.FindAsync(model.businessProfile.StateId);
-            if (stateId == null)
+            if (model.businessProfile.StateId > 0)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "please enter valid stateId.";
-                return Ok(_response);
+                var stateId = await _context.StateMaster.FindAsync(model.businessProfile.StateId);
+                if (stateId == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "please enter valid stateId.";
+                    return Ok(_response);
+                }
             }
-            var personalProfileCountryId = await _context.CountryMaster.FindAsync(model.personalProfile.countryId);
-            if (countryId == null)
+            if (model.personalProfile.countryId > 0)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "please enter valid countryId.";
-                return Ok(_response);
+                var personalProfileCountryId = await _context.CountryMaster.FindAsync(model.personalProfile.countryId);
+                if (model.personalProfile.countryId == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "please enter valid countryId.";
+                    return Ok(_response);
+                }
             }
-            var personalProfileStateId = await _context.StateMaster.FindAsync(model.personalProfile.stateId);
-            if (stateId == null)
+            if (model.personalProfile.stateId > 0)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "please enter valid stateId.";
-                return Ok(_response);
+                var personalProfileStateId = await _context.StateMaster.FindAsync(model.personalProfile.stateId);
+                if (model.personalProfile.stateId == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "please enter valid stateId.";
+                    return Ok(_response);
+                }
             }
             if (Gender.Male.ToString() != model.personalProfile.gender && Gender.Female.ToString() != model.personalProfile.gender && Gender.Others.ToString() != model.personalProfile.gender)
             {
@@ -193,15 +205,27 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(addressExists, response.businessProfile);
 
                 response.personalProfile.AddressId = addressExists.AddressId;
-                var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
-                var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
-                response.personalProfile.CountryName = distributorCountry.CountryName;
-                response.personalProfile.StateName = distributorState.StateName;
-                var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
-                var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
-                response.businessProfile.CountryName = businessCountry.CountryName;
-                response.businessProfile.StateName = businessState.StateName;
-
+                if (response.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
+                    response.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (response.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
+                    response.personalProfile.StateName = distributorState.StateName;
+                }
+                if (response.businessProfile.CountryId > 0)
+                {
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
+                    response.businessProfile.CountryName = businessCountry.CountryName;
+                }
+                if (response.businessProfile.StateId > 0)
+                {
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
+                    response.businessProfile.StateName = businessState.StateName;
+                }
+               
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
                 _response.Messages = "Profile updated successfully.";
@@ -303,16 +327,28 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(distributorAddress, response.businessProfile);
 
                 response.UserId = user.Id;
-
                 response.personalProfile.AddressId = distributorAddress.AddressId;
-                var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
-                var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
-                response.personalProfile.CountryName = distributorCountry.CountryName;
-                response.personalProfile.StateName = distributorState.StateName;
-                var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
-                var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
-                response.businessProfile.CountryName = businessCountry.CountryName;
-                response.businessProfile.StateName = businessState.StateName;
+
+                if (response.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
+                    response.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (response.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
+                    response.personalProfile.StateName = distributorState.StateName;
+                }
+                if (response.businessProfile.CountryId > 0)
+                {
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
+                    response.businessProfile.CountryName = businessCountry.CountryName;
+                }
+                if (response.businessProfile.StateId > 0)
+                {
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
+                    response.businessProfile.StateName = businessState.StateName;
+                }
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
@@ -413,14 +449,27 @@ namespace MaxemusAPI.Controllers
                 response.personalProfile.AddressId = distributorAddress.AddressId;
                 _mapper.Map(distributorAddress, response.businessProfile);
 
-                var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
-                var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
-                response.personalProfile.CountryName = distributorCountry.CountryName;
-                response.personalProfile.StateName = distributorState.StateName;
-                var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
-                var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
-                response.businessProfile.CountryName = businessCountry.CountryName;
-                response.businessProfile.StateName = businessState.StateName;
+
+                if (response.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
+                    response.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (response.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
+                    response.personalProfile.StateName = distributorState.StateName;
+                }
+                if (response.businessProfile.CountryId > 0)
+                {
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
+                    response.businessProfile.CountryName = businessCountry.CountryName;
+                }
+                if (response.businessProfile.StateId > 0)
+                {
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
+                    response.businessProfile.StateName = businessState.StateName;
+                }
 
                 return Ok(new
                 {
@@ -478,14 +527,26 @@ namespace MaxemusAPI.Controllers
                 userResponse.personalProfile.AddressId = distributorUserAddress.AddressId;
                 _mapper.Map(distributorUserAddress, userResponse.businessProfile);
 
-                var userCountry = await _context.CountryMaster.Where(u => u.CountryId == userResponse.personalProfile.CountryId).FirstOrDefaultAsync();
-                var userState = await _context.StateMaster.Where(u => u.StateId == userResponse.personalProfile.StateId).FirstOrDefaultAsync();
-                userResponse.personalProfile.CountryName = userCountry.CountryName;
-                userResponse.personalProfile.StateName = userState.StateName;
-                var usersCountry = await _context.CountryMaster.Where(u => u.CountryId == userResponse.businessProfile.CountryId).FirstOrDefaultAsync();
-                var usersState = await _context.StateMaster.Where(u => u.StateId == userResponse.businessProfile.StateId).FirstOrDefaultAsync();
-                userResponse.businessProfile.CountryName = usersCountry.CountryName;
-                userResponse.businessProfile.StateName = usersState.StateName;
+                if (userResponse.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == userResponse.personalProfile.CountryId).FirstOrDefaultAsync();
+                    userResponse.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (userResponse.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == userResponse.personalProfile.StateId).FirstOrDefaultAsync();
+                    userResponse.personalProfile.StateName = distributorState.StateName;
+                }
+                if (userResponse.businessProfile.CountryId > 0)
+                {
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == userResponse.businessProfile.CountryId).FirstOrDefaultAsync();
+                    userResponse.businessProfile.CountryName = businessCountry.CountryName;
+                }
+                if (userResponse.businessProfile.StateId > 0)
+                {
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == userResponse.businessProfile.StateId).FirstOrDefaultAsync();
+                    userResponse.businessProfile.StateName = businessState.StateName;
+                }
 
                 return Ok(new
                 {

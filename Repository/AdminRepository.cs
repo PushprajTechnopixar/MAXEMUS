@@ -140,19 +140,28 @@ namespace MaxemusAPI.Repository
             //var companyResponse = _mapper.Map<AdminCompanyResponseDTO>(existingCompany);
             var response = _mapper.Map<AdminResponseDTO>(userProfileDetail);
             response.companyProfile = _mapper.Map<AdminCompanyResponseDTO>(existingCompany);
-
-            var companyCountry = await _context.CountryMaster.Where(u => u.CountryId == response.companyProfile.CountryId).FirstOrDefaultAsync();
-            var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
-
-            var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
-            var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
-
             response.userId = userDetail.Id;
-            response.countryName = userCountry.CountryName;
-            response.stateName = userState.StateName;
-            response.companyProfile.countryName = companyCountry.CountryName;
-            response.companyProfile.stateName = companyState.StateName;
-
+            if (response.countryId > 0)
+            {
+                var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
+                response.countryName = userCountry.CountryName;
+            }
+            if (response.stateId > 0)
+            {
+                var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+                response.stateName = userState.StateName;
+            }
+            if (response.companyProfile.CountryId > 0)
+            {
+                var companyCountry = await _context.CountryMaster.Where(u => u.CountryId == response.companyProfile.CountryId).FirstOrDefaultAsync();
+                response.companyProfile.countryName = companyCountry.CountryName;
+            }
+            if (response.companyProfile.StateId > 0)
+            {
+                var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
+                response.companyProfile.stateName = companyState.StateName;
+            }
+           
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = response;
@@ -170,18 +179,27 @@ namespace MaxemusAPI.Repository
             if (companyDetail != null)
             {
                 response.companyProfile = _mapper.Map<AdminCompanyResponseDTO>(companyDetail);
-
-                var companyCountry = await _context.CountryMaster.Where(u => u.CountryId == response.companyProfile.CountryId).FirstOrDefaultAsync();
-                var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
-
-                var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
-                var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
-
                 response.userId = userDetail.Id;
-                response.countryName = userCountry.CountryName;
-                response.stateName = userState.StateName;
-                response.companyProfile.countryName = companyCountry.CountryName;
-                response.companyProfile.stateName = companyState.StateName;
+                if (response.countryId > 0)
+                {
+                    var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
+                    response.countryName = userCountry.CountryName;
+                }
+                if (response.stateId > 0)
+                {
+                    var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+                    response.stateName = userState.StateName;
+                }
+                if (response.companyProfile.CountryId > 0)
+                {
+                    var companyCountry = await _context.CountryMaster.Where(u => u.CountryId == response.companyProfile.CountryId).FirstOrDefaultAsync();
+                    response.companyProfile.countryName = companyCountry.CountryName;
+                }
+                if (response.companyProfile.StateId > 0)
+                {
+                    var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
+                    response.companyProfile.stateName = companyState.StateName;
+                }
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
@@ -190,11 +208,18 @@ namespace MaxemusAPI.Repository
                 return _response;
             }
 
-            var adminCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
-            var adminStateDetail = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
             response.userId = userDetail.Id;
-            response.countryName = adminCountryDetail.CountryName;
-            response.stateName = adminStateDetail.StateName;
+
+            if (response.countryId > 0)
+            {
+                var userCountry = await _context.CountryMaster.Where(u => u.CountryId == response.countryId).FirstOrDefaultAsync();
+                response.countryName = userCountry.CountryName;
+            }
+            if (response.stateId > 0)
+            {
+                var userState = await _context.StateMaster.Where(u => u.StateId == response.stateId).FirstOrDefaultAsync();
+                response.stateName = userState.StateName;
+            }
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

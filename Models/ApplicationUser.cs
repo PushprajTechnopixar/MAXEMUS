@@ -14,6 +14,8 @@ namespace MaxemusAPI.Models
         public string PostalCode { get; set; }
         public string DeviceType { get; set; }
         public bool IsDeleted { get; set; }
+        public string? Fcmtoken { get; set; }
+
 
         public string? ProfilePic { get; set; }
     }

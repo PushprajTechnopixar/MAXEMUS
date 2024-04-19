@@ -20,8 +20,8 @@ namespace MaxemusAPI.Models.Dtos
         public string? Email { get; set; }
         public string? RegistrationNumber { get; set; }
         public string? Description { get; set; }
-        public int CountryId { get; set; }
-        public int StateId { get; set; }
+        public int? CountryId { get; set; }
+        public int? StateId { get; set; }
         public string City { get; set; }
         public string? HouseNoOrBuildingName { get; set; }
         public string? StreetAddress { get; set; }

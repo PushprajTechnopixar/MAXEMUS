@@ -82,7 +82,6 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "Please enter valid gender.";
                 return Ok(_response);
             }
-
             if (model.countryId > 0)
             {
                 var countryId = await _context.CountryMaster.FindAsync(model.countryId);

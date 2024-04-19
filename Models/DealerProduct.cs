@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
     public partial class DealerProduct
     {
-        public int OrderedProductId { get; set; }
+        public int DealerProductId { get; set; }
         public int DealerId { get; set; }
         public int DistributorId { get; set; }
         public int ProductId { get; set; }

@@ -83,7 +83,7 @@ namespace MaxemusAPI.Models.Dtos
     {
         public int VariantId { get; set; }
         public int ProductId { get; set; }
-        public string PdfLink { get; set; } 
+        public string PdfLink { get; set; }
 
     }
     public class LensVariantsDTO
@@ -169,11 +169,7 @@ namespace MaxemusAPI.Models.Dtos
         public string? Model { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public string? Image1 { get; set; }
-        public string? Image2 { get; set; }
-        public string? Image3 { get; set; }
-        public string? Image4 { get; set; }
-        public string? Image5 { get; set; }
+        public List<ProductImageDTO>? ProductImage { get; set; }
         public bool? IsActive { get; set; }
         public double TotalMrp { get; set; }
         public double Discount { get; set; }
@@ -193,6 +189,11 @@ namespace MaxemusAPI.Models.Dtos
         public NetworkVariantsDTO Network { get; set; }
         public PowerVariantsDTO Power { get; set; }
         public VideoVariantsDTO Video { get; set; }
+    }
+
+    public class ProductImageDTO
+    {
+        public string? productImage { get; set; }
     }
     public class ProductUpdateDTO
     {

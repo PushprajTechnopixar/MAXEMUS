@@ -38,6 +38,7 @@
         public const string imgData = $"data:image/jpeg;base64,";
         public static readonly string vendor_registration = "Vendor_Register.html";
         public static readonly string distributor_registration = "Distributor_Register.html";
+        public static readonly string dealer_registration = "Dealer_Register.html";
         public static readonly string admin_user_registration = "Admin_User_Register.html";
         public static readonly string customer_registration = "Customer_Register.html";
         public static readonly string mainTemplatesContainer = "Templates";
@@ -126,7 +127,8 @@
             Pending = 0,
             Approved = 1,
             Rejected = 2,
-            Expired
+            Expired,
+            Incomplete
         }
         public enum ServiceStatus
         {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -8,6 +7,7 @@ namespace MaxemusAPI.Models
     {
         public DistributorDetail()
         {
+            DealerDetail = new HashSet<DealerDetail>();
             DealerProduct = new HashSet<DealerProduct>();
             DistributorAddress = new HashSet<DistributorAddress>();
             OderAddress = new HashSet<OderAddress>();
@@ -19,14 +19,15 @@ namespace MaxemusAPI.Models
         public string Name { get; set; } = null!;
         public string? RegistrationNumber { get; set; }
         public string? Description { get; set; }
-        public string? Email { get; set; }
         public string? Image { get; set; }
         public string Status { get; set; } = null!;
         public bool IsDeleted { get; set; }
+        public string? Email { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? ModifyDate { get; set; }
 
         public virtual DistributorAddress? Address { get; set; }
+        public virtual ICollection<DealerDetail> DealerDetail { get; set; }
         public virtual ICollection<DealerProduct> DealerProduct { get; set; }
         public virtual ICollection<DistributorAddress> DistributorAddress { get; set; }
         public virtual ICollection<OderAddress> OderAddress { get; set; }

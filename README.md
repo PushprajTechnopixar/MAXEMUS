@@ -17,7 +17,7 @@ dotnet ef dbcontext scaffold "Server=MaxemusAPI.ctqf1e2kdq7l.us-east-2.rds.amazo
 
 
 
-dotnet ef dbcontext scaffold "Server=MaxemusAPItest.ctqf1e2kdq7l.us-east-2.rds.amazonaws.com,1433;Database=MaxemusAPItestDb;User Id=admin;Password=vshZj1ltHUCF7bWUq1cv;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer --output-dir .\Models1 --namespace MaxemusAPI.Models1 --context-namespace MaxemusAPI.Models1 --context-dir .\Models1 --context ApplicationDbContext --force --no-build --no-pluralize --no-onconfiguring
+dotnet ef dbcontext scaffold "Server=maxemus.c9sio040mxfk.ap-south-1.rds.amazonaws.com,1433;Database=Maxemus;User Id=admin;Password=Absolve_123;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer --output-dir .\Models1 --namespace MaxemusAPI.Models1 --context-namespace MaxemusAPI.Models1 --context-dir .\Models1 --context ApplicationDbContext --force --no-build --no-pluralize --no-onconfiguring
 
 dotnet ef dbcontext scaffold "Server=DESKTOP-G14R8VA;Database=Dermastation;User Id=sa;Password=;Integrated Security=true;TrustServerCertificate=True;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer --output-dir .\Models1 --namespace MaxemusAPI.Models1 --context-namespace MaxemusAPI.Models1 --context-dir .\Models1 --context ApplicationDbContext --force --no-build --no-pluralize --no-onconfiguring
 

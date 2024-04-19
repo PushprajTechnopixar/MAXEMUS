@@ -273,76 +273,68 @@ namespace MaxemusAPI.Data
             });
 
             modelBuilder.Entity<DealerProduct>(entity =>
-            {
-                entity.HasKey(e => e.OrderedProductId)
-                    .HasName("PK_DealerOrderedProduct");
+              {
+                  entity.Property(e => e.CreateDate)
+                      .HasColumnType("datetime")
+                      .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.CreateDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
+                  entity.HasOne(d => d.Dealer)
+                      .WithMany(p => p.DealerProduct)
+                      .HasForeignKey(d => d.DealerId)
+                      .OnDelete(DeleteBehavior.ClientSetNull)
+                      .HasConstraintName("FK_DealerProduct_DealerDetail");
 
-                entity.HasOne(d => d.Dealer)
-                    .WithMany(p => p.DealerProduct)
-                    .HasForeignKey(d => d.DealerId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DealerProduct_DealerDetail");
+                  entity.HasOne(d => d.Distributor)
+                      .WithMany(p => p.DealerProduct)
+                      .HasForeignKey(d => d.DistributorId)
+                      .OnDelete(DeleteBehavior.ClientSetNull)
+                      .HasConstraintName("FK_DealerProduct_DistributorDetail");
 
-                entity.HasOne(d => d.Distributor)
-                    .WithMany(p => p.DealerProduct)
-                    .HasForeignKey(d => d.DistributorId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DealerProduct_DistributorDetail");
+                  entity.HasOne(d => d.Product)
+                      .WithMany(p => p.DealerProduct)
+                      .HasForeignKey(d => d.ProductId)
+                      .OnDelete(DeleteBehavior.ClientSetNull)
+                      .HasConstraintName("FK_DealerProduct_Product");
 
-                entity.HasOne(d => d.Product)
-                    .WithMany(p => p.DealerProduct)
-                    .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DealerProduct_Product");
-
-                entity.HasOne(d => d.ProductStock)
-                    .WithMany(p => p.DealerProduct)
-                    .HasForeignKey(d => d.ProductStockId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DealerProduct_ProductStock");
-            });
-
+                  entity.HasOne(d => d.ProductStock)
+                      .WithMany(p => p.DealerProduct)
+                      .HasForeignKey(d => d.ProductStockId)
+                      .OnDelete(DeleteBehavior.ClientSetNull)
+                      .HasConstraintName("FK_DealerProduct_ProductStock");
+              });
             modelBuilder.Entity<DistributorAddress>(entity =>
-            {
-                entity.HasKey(e => e.AddressId)
-                    .HasName("PK__Distribu__091C2AFB4B1E36ED");
+                        {
+                            entity.HasKey(e => e.AddressId)
+                                .HasName("PK__Distribu__091C2AFB4B1E36ED");
 
-                entity.Property(e => e.AddressType)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                            entity.Property(e => e.AddressType)
+                                .HasMaxLength(255)
+                                .IsUnicode(false);
 
-                entity.Property(e => e.City).HasMaxLength(250);
+                            entity.Property(e => e.City).HasMaxLength(250);
 
-                entity.Property(e => e.Email).HasMaxLength(256);
+                            entity.Property(e => e.Email).HasMaxLength(256);
 
-                entity.Property(e => e.HouseNoOrBuildingName).HasMaxLength(500);
+                            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
 
-                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+                            entity.Property(e => e.PostalCode).HasMaxLength(50);
 
-                entity.Property(e => e.PostalCode).HasMaxLength(50);
+                            entity.HasOne(d => d.Country)
+                                .WithMany(p => p.DistributorAddress)
+                                .HasForeignKey(d => d.CountryId)
+                                .HasConstraintName("FK_DistributorAddress_CountryMaster");
 
-                entity.HasOne(d => d.Country)
-                    .WithMany(p => p.DistributorAddress)
-                    .HasForeignKey(d => d.CountryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DistributorAddress_CountryMaster");
+                            entity.HasOne(d => d.Distributor)
+                                .WithMany(p => p.DistributorAddress)
+                                .HasForeignKey(d => d.DistributorId)
+                                .OnDelete(DeleteBehavior.ClientSetNull)
+                                .HasConstraintName("FK_DistributorAddress_DistributorDetail");
 
-                entity.HasOne(d => d.Distributor)
-                    .WithMany(p => p.DistributorAddress)
-                    .HasForeignKey(d => d.DistributorId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DistributorAddress_DistributorDetail");
-
-                entity.HasOne(d => d.State)
-                    .WithMany(p => p.DistributorAddress)
-                    .HasForeignKey(d => d.StateId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DistributorAddress_StateMaster");
-            });
+                            entity.HasOne(d => d.State)
+                                .WithMany(p => p.DistributorAddress)
+                                .HasForeignKey(d => d.StateId)
+                                .HasConstraintName("FK_DistributorAddress_StateMaster");
+                        });
 
             modelBuilder.Entity<DistributorDetail>(entity =>
             {
@@ -398,7 +390,7 @@ namespace MaxemusAPI.Data
 
                 entity.Property(e => e.UserId).HasMaxLength(450);
 
-                
+
             });
 
             modelBuilder.Entity<DistributorOrderedProduct>(entity =>
@@ -574,7 +566,7 @@ namespace MaxemusAPI.Data
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-               
+
             });
 
             modelBuilder.Entity<NotificationSent>(entity =>
@@ -595,7 +587,7 @@ namespace MaxemusAPI.Data
 
                 entity.Property(e => e.UserId).HasMaxLength(450);
 
-               
+
             });
 
             modelBuilder.Entity<OderAddress>(entity =>
@@ -605,8 +597,6 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.AddressType)
                     .HasMaxLength(255)
                     .IsUnicode(false);
-
-                entity.Property(e => e.HouseNoOrBuildingName).HasMaxLength(500);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(50);
 

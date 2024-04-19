@@ -90,6 +90,38 @@ namespace MaxemusAPI.Controllers
             mappedData.CountryName = userCountryDetail.CountryName;
             mappedData.StateName = userStateDetail.StateName;
 
+            if (dealerDetail.DistributorId != null)
+            {
+                var distributorDetail = await _context.DistributorDetail
+                    .Where(u => u.DistributorId == dealerDetail.DistributorId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+                var distributorUserProfileDetail = await _context.ApplicationUsers
+                    .Where(u => u.Id == distributorDetail.UserId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+
+                var distributorAddress = await _context.DistributorAddress
+                .Where(u => u.DistributorId == distributorDetail.DistributorId && u.AddressType == AddressType.Individual.ToString())
+                .FirstOrDefaultAsync();
+
+                if (distributorUserProfileDetail != null && distributorAddress != null)
+                {
+                    var distributor = _mapper.Map<DistributorUserListDTO>(distributorDetail);
+                    distributor.distributorId = distributorDetail.DistributorId;
+                    distributor.userId = distributorUserProfileDetail.Id;
+                    distributor.companyName = distributorDetail.Name;
+                    distributor.email = distributorUserProfileDetail.Email;
+                    distributor.firstName = distributorUserProfileDetail.FirstName;
+                    distributor.lastName = distributorUserProfileDetail.LastName;
+                    distributor.profilePic = distributorUserProfileDetail.ProfilePic;
+                    distributor.gender = distributorUserProfileDetail.Gender;
+                    distributor.Status = distributorDetail.Status;
+                    distributor.createDate = distributorDetail.CreateDate.ToShortDateString();
+                    distributor.phoneNumber = distributorAddress.PhoneNumber;
+                    distributor.streetAddress = distributorAddress?.StreetAddress;
+                    mappedData.distributor = distributor;
+                }
+            }
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = mappedData;
@@ -184,7 +216,8 @@ namespace MaxemusAPI.Controllers
                     UserId = currentUserId,
                     Address1 = model.Address1,
                     Address2 = model.Address2,
-                    CreateDate = DateTime.UtcNow
+                    CreateDate = DateTime.UtcNow,
+                    DistributorId = model.distributorId,
                 };
 
                 _context.Add(dealerDetail);
@@ -194,6 +227,7 @@ namespace MaxemusAPI.Controllers
                 dealerDetail.Address1 = model.Address1;
                 dealerDetail.Address2 = model.Address2;
                 dealerDetail.ModifyDate = DateTime.UtcNow;
+                dealerDetail.DistributorId = model.distributorId;
 
                 _context.Update(dealerDetail);
             }
@@ -218,137 +252,42 @@ namespace MaxemusAPI.Controllers
             response.CountryName = userCountry.CountryName;
             response.StateName = userState.StateName;
 
+            if (response.distributorId != null)
+            {
+                var distributorDetail = await _context.DistributorDetail
+                    .Where(u => u.DistributorId == dealerDetail.DistributorId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+                var distributorUserProfileDetail = await _context.ApplicationUsers
+                    .Where(u => u.Id == distributorDetail.UserId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+
+                var distributorAddress = await _context.DistributorAddress
+                .Where(u => u.DistributorId == distributorDetail.DistributorId && u.AddressType == AddressType.Individual.ToString())
+                .FirstOrDefaultAsync();
+
+                if (distributorUserProfileDetail != null && distributorAddress != null)
+                {
+                    var distributor = _mapper.Map<DistributorUserListDTO>(distributorDetail);
+                    distributor.distributorId = distributorDetail.DistributorId;
+                    distributor.userId = distributorUserProfileDetail.Id;
+                    distributor.companyName = distributorDetail.Name;
+                    distributor.email = distributorUserProfileDetail.Email;
+                    distributor.firstName = distributorUserProfileDetail.FirstName;
+                    distributor.lastName = distributorUserProfileDetail.LastName;
+                    distributor.profilePic = distributorUserProfileDetail.ProfilePic;
+                    distributor.gender = distributorUserProfileDetail.Gender;
+                    distributor.Status = distributorDetail.Status;
+                    distributor.createDate = distributorDetail.CreateDate.ToShortDateString();
+                    distributor.phoneNumber = distributorAddress.PhoneNumber;
+                    distributor.streetAddress = distributorAddress?.StreetAddress;
+                    response.distributor = distributor;
+                }
+            }
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = response;
             _response.Messages = "Profile updated successfully.";
-            return Ok(_response);
-        }
-        #endregion
-
-        #region GetProductList
-        /// <summary>
-        /// Get Product List.
-        /// </summary>
-        [HttpGet("GetProductList")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Dealer")]
-        public async Task<IActionResult> GetProductList([FromQuery] ProductFiltrationListDTO model)
-        {
-            string currentUserId = (HttpContext.User.Claims.First().Value);
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Token expired.";
-                return Ok(_response);
-            }
-            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
-            if (currentUserDetail == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgUserNotFound;
-                return Ok(_response);
-            }
-
-            var query = from t1 in _context.DistributorOrderedProduct
-                        join t2 in _context.Product on t1.ProductId equals t2.ProductId
-                        orderby t1.CreateDate descending
-                        select new ProductResponselistDTO
-                        {
-                            ProductId = t2.ProductId,
-                            MainCategoryId = t2.MainCategoryId,
-                            MainCategoryName = _context.MainCategory.FirstOrDefault(u => u.MainCategoryId == t2.MainCategoryId).MainCategoryName,
-                            SubCategoryId = t2.SubCategoryId,
-                            SubCategoryName = _context.SubCategory.FirstOrDefault(u => u.SubCategoryId == t2.SubCategoryId).SubCategoryName,
-                            BrandId = t2.BrandId,
-                            Model = t2.Model,
-                            Name = t2.Name,
-                            Description = t2.Description,
-                            Image1 = t2.Image1,
-                            Image2 = t2.Image2,
-                            Image3 = t2.Image3,
-                            Image4 = t2.Image4,
-                            Image5 = t2.Image5,
-                            IsActive = t2.IsActive,
-                            TotalMrp = t2.TotalMrp,
-                            Discount = t2.Discount,
-                            DiscountType = t2.DiscountType,
-                            SellingPrice = t2.SellingPrice,
-                            RewardPoint = t2.RewardPoint,
-                            CreateDate = t2.CreateDate.ToShortDateString(),
-                        };
-
-            var productList = query.ToList();
-
-            if (!string.IsNullOrEmpty(model.mainCategoryName))
-            {
-                productList = productList
-                    .Where(u => u.MainCategoryName.ToLower().Contains(model.mainCategoryName.ToLower()))
-                    .ToList();
-            }
-            if (!string.IsNullOrEmpty(model.subCategoryName))
-            {
-                productList = productList
-                    .Where(u => u.SubCategoryName.ToLower().Contains(model.subCategoryName.ToLower()))
-                    .ToList();
-            }
-            if (model.mainProductCategoryId > 0)
-            {
-                productList = productList.Where(u => u.MainCategoryId == model.mainProductCategoryId).ToList();
-            }
-            if (model.subProductCategoryId > 0)
-            {
-                productList = productList.Where(u => u.SubCategoryId == model.subProductCategoryId).ToList();
-            }
-            if (model.brandId > 0)
-            {
-                productList = productList.Where(u => u.BrandId == model.brandId).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(model.searchQuery))
-            {
-                model.searchQuery = model.searchQuery.TrimEnd();
-                productList = productList
-                    .Where(u => u.Name.ToLower().Contains(model.searchQuery.ToLower())
-                                 || u.Model.ToLower().Contains(model.searchQuery.ToLower()))
-                    .ToList();
-            }
-
-            int count = productList.Count();
-            int CurrentPage = model.pageNumber;
-            int PageSize = model.pageSize;
-            int TotalCount = count;
-            int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
-            var items = productList.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
-            var previousPage = CurrentPage > 1 ? "Yes" : "No";
-            var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
-
-            FilterationResponseModel<ProductResponselistDTO> obj = new FilterationResponseModel<ProductResponselistDTO>();
-
-            obj.totalCount = TotalCount;
-            obj.pageSize = PageSize;
-            obj.currentPage = CurrentPage;
-            obj.totalPages = TotalPages;
-            obj.previousPage = previousPage;
-            obj.nextPage = nextPage;
-            obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
-            obj.dataList = items.ToList();
-
-            if (obj == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgSomethingWentWrong;
-                return Ok(_response);
-            }
-
-            _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Data = obj;
-            _response.Messages = "Item" + ResponseMessages.msgListFoundSuccess;
             return Ok(_response);
         }
         #endregion
@@ -361,7 +300,7 @@ namespace MaxemusAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize(Roles = "Dealer")]
-        public async Task<IActionResult> ScanProduct(string serialNumber)
+        public async Task<IActionResult> ScanProduct([FromBody] ScanProductDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -381,7 +320,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            var product = _context.ProductStock.FirstOrDefault(p => p.SerialNumber == serialNumber);
+            var product = _context.ProductStock.FirstOrDefault(p => p.SerialNumber == model.serialNumber);
             if (product == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
@@ -417,10 +356,10 @@ namespace MaxemusAPI.Controllers
             }
 
             int rewardPoint = 0;
-            if (!string.IsNullOrEmpty(serialNumber) && serialNumber.Length >= 2)
+            if (!string.IsNullOrEmpty(model.serialNumber) && model.serialNumber.Length >= 2)
             {
-                char firstChar = char.ToUpper(serialNumber[0]);
-                char secondChar = char.ToUpper(serialNumber[1]);
+                char firstChar = char.ToUpper(model.serialNumber[0]);
+                char secondChar = char.ToUpper(model.serialNumber[1]);
 
                 if (firstChar >= 'A' && firstChar <= 'J')
                 {
@@ -465,17 +404,17 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region SetDealerStatus
+        #region GetDistributorList
         /// <summary>
-        ///  Set dealer status [Pending = 0; Approved = 1; Rejected = 2].
+        ///   Get Distributor List.
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        [Route("SetDealerStatus")]
-        public async Task<IActionResult> SetDealerStatus([FromBody] SetDealerStatusDTO model)
+        [Route("GetDistributorList")]
+        public async Task<IActionResult> GetDistributorList([FromQuery] string? searchQuery)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -494,39 +433,54 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (model.status != Convert.ToInt32(Status.Pending)
-             && model.status != Convert.ToInt32(Status.Approved)
-             && model.status != Convert.ToInt32(Status.Rejected))
+            var distributorUser = await _context.DistributorDetail.Where(u => u.Status == Status.Approved.ToString()).ToListAsync();
+
+            List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
+
+            foreach (var item in distributorUser)
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Please select a valid status.";
-                return Ok(_response);
+                var distributorUserProfileDetail = await _context.ApplicationUsers
+                    .Where(u => u.Id == item.UserId && u.IsDeleted == false)
+                    .FirstOrDefaultAsync();
+
+                var distributorAddress = await _context.DistributorAddress
+                .Where(u => u.DistributorId == item.DistributorId && u.AddressType == AddressType.Individual.ToString())
+                .FirstOrDefaultAsync();
+
+                if (distributorUserProfileDetail != null && distributorAddress != null)
+                {
+                    var mappedData = _mapper.Map<DistributorUserListDTO>(item);
+                    mappedData.distributorId = item.DistributorId;
+                    mappedData.userId = distributorUserProfileDetail.Id;
+                    mappedData.companyName = item.Name;
+                    mappedData.email = distributorUserProfileDetail.Email;
+                    mappedData.firstName = distributorUserProfileDetail.FirstName;
+                    mappedData.lastName = distributorUserProfileDetail.LastName;
+                    mappedData.profilePic = distributorUserProfileDetail.ProfilePic;
+                    mappedData.gender = distributorUserProfileDetail.Gender;
+                    mappedData.Status = item.Status;
+                    mappedData.createDate = item.CreateDate.ToShortDateString();
+                    mappedData.phoneNumber = distributorAddress.PhoneNumber;
+                    mappedData.streetAddress = distributorAddress?.StreetAddress;
+
+                    distributorUserList.Add(mappedData);
+                }
             }
 
-            var dealer = await _context.DealerDetail.FirstOrDefaultAsync(u => u.DealerId == model.dealerId);
-
-            if (dealer == null)
+            if (!string.IsNullOrEmpty(searchQuery))
             {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgNotFound + "record.";
-                return Ok(_response);
+                distributorUserList = distributorUserList.Where(u => u.firstName.ToLower().Contains(searchQuery.ToLower())
+                || u.email.ToLower().Contains(searchQuery.ToLower())
+                || u.companyName.ToLower().Contains(searchQuery.ToLower())
+                ).ToList();
+
             }
-
-            dealer.Status = model.status.ToString();
-
-
-            _context.Update(dealer);
-            await _context.SaveChangesAsync();
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Messages = "dealer status updated successfully.";
-
+            _response.Messages = "Distributor List" + ResponseMessages.msgShownSuccess;
             return Ok(_response);
         }
-
         #endregion
 
     }

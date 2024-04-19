@@ -6,6 +6,13 @@
         public int pageSize { get; set; }
         public string? searchQuery { get; set; }
     }
+    public class DealerFilterationListDTO
+    {
+        public int pageNumber { get; set; }
+        public int pageSize { get; set; }
+        public int? distributorId { get; set; }
+        public string? searchQuery { get; set; }
+    }
     public class NullableFilterationListDTO
     {
         public int? pageNumber { get; set; }

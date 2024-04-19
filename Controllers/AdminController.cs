@@ -520,7 +520,6 @@ namespace MaxemusAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
         [Route("GetDistributorList")]
-
         public async Task<IActionResult> GetDistributorList([FromQuery] FilterationListDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
@@ -550,6 +549,7 @@ namespace MaxemusAPI.Controllers
             }
 
             var response = await _adminRepository.GetDistributorList(model);
+
             return Ok(response);
         }
         #endregion
@@ -583,9 +583,9 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (model.status != Convert.ToInt32(Status.Pending)
-              && model.status != Convert.ToInt32(Status.Approved)
-              && model.status != Convert.ToInt32(Status.Rejected))
+            if (model.status != (Status.Pending.ToString())
+              && model.status != (Status.Approved.ToString())
+              && model.status != (Status.Rejected.ToString()))
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -600,6 +600,18 @@ namespace MaxemusAPI.Controllers
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+
+            var distributorAddress = await _context.DistributorAddress
+                .Where(u => u.DistributorId == distributor.DistributorId && u.AddressType == AddressType.Individual.ToString())
+                .FirstOrDefaultAsync();
+
+            if (distributorAddress == null && model.status == Status.Approved.ToString())
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Can't update status while profile is incomplete.";
                 return Ok(_response);
             }
 
@@ -620,7 +632,7 @@ namespace MaxemusAPI.Controllers
         [Authorize]
         [Route("GetDealerList")]
 
-        public async Task<IActionResult> GetDealerList([FromQuery] FilterationListDTO model)
+        public async Task<IActionResult> GetDealerList([FromQuery] DealerFilterationListDTO model)
         {
             string currentUserId = (HttpContext.User.Claims.First().Value);
             if (string.IsNullOrEmpty(currentUserId))
@@ -658,8 +670,22 @@ namespace MaxemusAPI.Controllers
                     mappedData.lastName = dealerUserProfileDetail.LastName;
                     mappedData.profilePic = dealerUserProfileDetail.ProfilePic;
                     mappedData.gender = dealerUserProfileDetail.Gender;
-                    mappedData.Status = item.Status.ToString() == "1" ? "Approved" : (item.Status.ToString() == "2" ? "Rejected" : "Pending");
+                    mappedData.Status = item.Status;
                     mappedData.createDate = item.CreateDate.ToShortDateString();
+
+                    if (item.DistributorId != null)
+                    {
+                        var distributorDetail = await _context.DistributorDetail
+                                        .Where(u => u.DistributorId == item.DistributorId && u.IsDeleted == false).FirstOrDefaultAsync();
+                        var distributorProfileDetail = await _context.ApplicationUsers
+                        .Where(u => u.Id == distributorDetail.UserId).FirstOrDefaultAsync();
+                        if (distributorProfileDetail != null)
+                        {
+                            mappedData.distributorFirstName = dealerUserProfileDetail.FirstName;
+                            mappedData.distributorLastName = dealerUserProfileDetail.LastName;
+                            mappedData.distributorId = distributorDetail.DistributorId;
+                        }
+                    }
 
                     dealerUserList.Add(mappedData);
                 }
@@ -667,6 +693,15 @@ namespace MaxemusAPI.Controllers
 
 
             dealerUserList = dealerUserList.OrderByDescending(u => u.createDate).ToList();
+            if (model.distributorId != null)
+            {
+                if (model.distributorId > 0)
+                {
+                    dealerUserList = dealerUserList.Where(u => u.firstName.ToLower().Contains(model.searchQuery.ToLower())
+                    || u.email.ToLower().Contains(model.searchQuery.ToLower())
+                    ).ToList();
+                }
+            }
 
             if (!string.IsNullOrEmpty(model.searchQuery))
             {

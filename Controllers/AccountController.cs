@@ -88,14 +88,14 @@ namespace MaxemusAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterationRequestDTO model)
         {
-            // bool ifUserNameUnique = _userRepo.IsUniqueUser(model.email, model.phoneNumber);
-            // if (!ifUserNameUnique)
-            // {
-            //     _response.StatusCode = HttpStatusCode.OK;
-            //     _response.IsSuccess = false;
-            //     _response.Messages = "Email or phone number already exists.";
-            //     return Ok(_response);
-            // }
+            bool ifUserNameUnique = _userRepo.IsUniqueUser(model.email, model.phoneNumber);
+            if (!ifUserNameUnique)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Email or phone number already exists.";
+                return Ok(_response);
+            }
 
             if (Gender.Male.ToString() != model.gender && Gender.Female.ToString() != model.gender && Gender.Others.ToString() != model.gender)
             {
@@ -140,7 +140,7 @@ namespace MaxemusAPI.Controllers
             }
 
             var user = await _userRepo.Register(model);
-            if (user == null)
+            if (user.email == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -148,50 +148,44 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            //if (user.role == Role.Dealer.ToString())
-            //{
-            //    // Send email here
+            var htmlPath = (user.role == Role.Distributor.ToString() ? (distributor_registration) : (dealer_registration));
 
-            //    var pathToFile =
-            //        _hostingEnvironment.WebRootPath
-            //        + Path.DirectorySeparatorChar.ToString()
-            //        + mainTemplatesContainer
-            //        + Path.DirectorySeparatorChar.ToString()
-            //        + emailTemplatesContainer
-            //        + Path.DirectorySeparatorChar.ToString()
-            //        + customer_registration;
+            // Send email here
+            var pathToFile =
+                _hostingEnvironment.WebRootPath
+                + Path.DirectorySeparatorChar.ToString()
+                + mainTemplatesContainer
+                + Path.DirectorySeparatorChar.ToString()
+                + emailTemplatesContainer
+                + Path.DirectorySeparatorChar.ToString()
+                + htmlPath;
 
-            //    var name =
-            //        user.firstName + " " + user.lastName
-            //        ?? string.Empty + " " + user.lastName;
-            //    var body = new BodyBuilder();
-            //    using (StreamReader reader = System.IO.File.OpenText(pathToFile))
-            //    {
-            //        body.HtmlBody = reader.ReadToEnd();
-            //    }
-            //    string messageBody = body.HtmlBody;
-            //    messageBody = messageBody.Replace("{username}", name);
+            var name =
+                user.firstName + " " + user.lastName
+                ?? string.Empty + " " + user.lastName;
+            var body = new BodyBuilder();
+            using (StreamReader reader = System.IO.File.OpenText(pathToFile))
+            {
+                body.HtmlBody = reader.ReadToEnd();
+            }
+            string messageBody = body.HtmlBody;
+            messageBody = messageBody.Replace("{email}", name);
+            messageBody = messageBody.Replace("{password}", model.password);
+            messageBody = messageBody.Replace("{link}", "NA");
+            messageBody = messageBody.Replace("{distributorName}", name);
+            messageBody = messageBody.Replace("{DealerName}", name);
 
-            //    await _emailSender.SendEmailAsync(
-            //        email: user.email,
-            //        subject: "Welcome to ZigyKart!",
-            //        htmlMessage: messageBody
-            //    );
-
-            //    _response.StatusCode = HttpStatusCode.OK;
-            //    _response.IsSuccess = true;
-            //    _response.Data = user;
-            //    _response.Messages = "Registered successfully.";
-            //    return Ok(_response);
-            //}
-            //else
-            //{
+            await _emailSender.SendEmailAsync(
+                email: user.email,
+                subject: "Welcome to Maxemus!",
+                htmlMessage: messageBody
+            );
             _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = false;
+            _response.IsSuccess = true;
             _response.Data = user;
             _response.Messages = "Registered successfully.";
             return Ok(_response);
-            //}
+
         }
         #endregion
 
@@ -215,28 +209,22 @@ namespace MaxemusAPI.Controllers
                         return Ok(_response);
                     }
 
-                    // int generatedOTP = CommonMethod.GenerateOTP();
-                    // //Send email here
-                    // var msg =
-                    //     $"Hi , <br/><br/> Your ZigyKart OTP is :- "
-                    //     + generatedOTP
-                    //     + " .<br/><br/>Thanks";
-                    // await _emailSender.SendEmailAsync(
-                    //     email: model.email,
-                    //     subject: "OTP for Registration Confirmation",
-                    //     htmlMessage: msg
-                    // );
-
-                    // _response.StatusCode = HttpStatusCode.OK;
-                    // _response.IsSuccess = true;
-                    // _response.Data = new { OTP = generatedOTP };
-                    // _response.Messages = ResponseMessages.msgOTPSentOneMailuccess;
-                    // return Ok(_response);
+                    int generatedOTP = CommonMethod.GenerateOTP();
+                    //Send email here
+                    var msg =
+                        $"Hi , <br/><br/> Your Maxemus OTP is :- "
+                        + generatedOTP
+                        + " .<br/><br/>Thanks";
+                    await _emailSender.SendEmailAsync(
+                        email: model.email,
+                        subject: "OTP for Registration Confirmation",
+                        htmlMessage: msg
+                    );
 
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = true;
-                    // _response.Data = new { OTP = " " };
-                    // _response.Messages = " ";
+                    _response.Data = new { OTP = generatedOTP };
+                    _response.Messages = ResponseMessages.msgOTPSentOneMailuccess;
                     return Ok(_response);
                 }
 
@@ -571,7 +559,7 @@ namespace MaxemusAPI.Controllers
                     int generatedOTP = CommonMethod.GenerateOTP();
                     //Send email here
                     var msg =
-                        $"Hi , Your Zigy Kart OTP is :- "
+                        $"Hi , Your Maxemus OTP is :- "
                         + generatedOTP;
                     await _twilioManager.SendMessage(msg, userphoneNumber);
 

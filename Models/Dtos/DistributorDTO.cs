@@ -8,7 +8,6 @@ namespace MaxemusAPI.Models.Dtos
         public int CountryId { get; set; }
         public int StateId { get; set; }
         public string City { get; set; }
-        public string? HouseNoOrBuildingName { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
@@ -20,10 +19,9 @@ namespace MaxemusAPI.Models.Dtos
         public string? Email { get; set; }
         public string? RegistrationNumber { get; set; }
         public string? Description { get; set; }
-        public int CountryId { get; set; }
-        public int StateId { get; set; }
-        public string City { get; set; }
-        public string? HouseNoOrBuildingName { get; set; }
+        public int? CountryId { get; set; }
+        public int? StateId { get; set; }
+        public string? City { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
@@ -40,14 +38,14 @@ namespace MaxemusAPI.Models.Dtos
     public class SetDistributorStatusDTO
     {
         public int distributorId { get; set; }
-        public int status { get; set; }
+        public string status { get; set; }
     }
     public class UserResponseDTO
     {
         public int? AddressId { get; set; }
-        public string email { get; set; } 
+        public string email { get; set; }
         public string firstName { get; set; }
-        public string lastName { get; set; }   
+        public string lastName { get; set; }
         public string? gender { get; set; }
         public string? dialCode { get; set; }
         public string phoneNumber { get; set; }
@@ -77,7 +75,6 @@ namespace MaxemusAPI.Models.Dtos
         public int StateId { get; set; }
         public string StateName { get; set; }
         public string City { get; set; }
-        public string? HouseNoOrBuildingName { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }

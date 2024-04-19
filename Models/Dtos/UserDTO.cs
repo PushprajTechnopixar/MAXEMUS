@@ -20,8 +20,10 @@
         public string email { get; set; }
         public string firstName { get; set; }
         public string lastName { get; set; }
-        public string companyName {  get; set; }
+        public string companyName { get; set; }
         public string profilePic { get; set; }
+        public string? phoneNumber { get; set; }
+        public string? streetAddress { get; set; }
         public string? gender { get; set; }
         public string Status { get; set; }
         public string createDate { get; set; }

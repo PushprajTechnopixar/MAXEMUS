@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -16,6 +14,7 @@ namespace MaxemusAPI.Models
         public int ProductId { get; set; }
         public string SerialNumber { get; set; } = null!;
         public string? Qrcode { get; set; }
+        public int RewardPoint { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? ModifyDate { get; set; }
 

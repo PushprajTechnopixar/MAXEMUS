@@ -161,7 +161,7 @@ namespace MaxemusAPI.Repository
                 var companyState = await _context.StateMaster.Where(u => u.StateId == response.companyProfile.StateId).FirstOrDefaultAsync();
                 response.companyProfile.stateName = companyState.StateName;
             }
-           
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = response;
@@ -773,7 +773,7 @@ namespace MaxemusAPI.Repository
 
         public async Task<Object> GetDistributorList(FilterationListDTO model)
         {
-            var distributorUser = await _context.DistributorDetail.ToListAsync();
+            var distributorUser = await _context.DistributorDetail.OrderByDescending(u => u.CreateDate).ToListAsync();
 
             List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
 
@@ -782,6 +782,10 @@ namespace MaxemusAPI.Repository
                 var distributorUserProfileDetail = await _context.ApplicationUsers
                     .Where(u => u.Id == item.UserId && u.IsDeleted == false)
                     .FirstOrDefaultAsync();
+
+                var distributorAddress = await _context.DistributorAddress
+                .Where(u => u.DistributorId == item.DistributorId && u.AddressType == AddressType.Individual.ToString())
+                .FirstOrDefaultAsync();
 
                 if (distributorUserProfileDetail != null)
                 {
@@ -794,21 +798,23 @@ namespace MaxemusAPI.Repository
                     mappedData.lastName = distributorUserProfileDetail.LastName;
                     mappedData.profilePic = distributorUserProfileDetail.ProfilePic;
                     mappedData.gender = distributorUserProfileDetail.Gender;
-
-                    mappedData.Status = item.Status.ToString() == "1" ? "Approved" : (item.Status.ToString() == "2" ? "Rejected" : "Pending");
-
+                    mappedData.Status = item.Status;
                     mappedData.createDate = item.CreateDate.ToShortDateString();
+                    if (distributorAddress != null)
+                    {
+                        mappedData.phoneNumber = distributorAddress.PhoneNumber;
+                        mappedData.streetAddress = distributorAddress?.StreetAddress;
+                    }
 
                     distributorUserList.Add(mappedData);
                 }
             }
 
-            distributorUserList = distributorUserList.OrderByDescending(u => u.createDate).ToList();
-
             if (!string.IsNullOrEmpty(model.searchQuery))
             {
                 distributorUserList = distributorUserList.Where(u => u.firstName.ToLower().Contains(model.searchQuery.ToLower())
                 || u.email.ToLower().Contains(model.searchQuery.ToLower())
+                || u.companyName.ToLower().Contains(model.searchQuery.ToLower())
                 ).ToList();
             }
 

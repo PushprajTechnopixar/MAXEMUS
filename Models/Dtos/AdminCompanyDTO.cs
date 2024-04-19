@@ -48,6 +48,7 @@
         public int countryId { get; set; }
         public int stateId { get; set; }
         public string? countryName { get; set; }
+        public string? postalCode { get; set; }
         public string? stateName { get; set; }
         public string? City { get; set; }
         public AdminCompanyResponseDTO? companyProfile { get; set; }

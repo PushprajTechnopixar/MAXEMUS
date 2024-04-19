@@ -18,10 +18,10 @@ namespace MaxemusAPI.Models.Dtos
         [Required]
         public string phoneNumber { get; set; }
         public string? deviceType { get; set; }
-        public int countryId { get; set; }
-        public int stateId { get; set; }
-        public string City { get; set; }
-        public string PostalCode { get; set; }
+        public int? countryId { get; set; }
+        public int? stateId { get; set; }
+        public string? City { get; set; }
+        public string? PostalCode { get; set; }
         [Required]
         public string password { get; set; }
         [Required]
@@ -67,10 +67,10 @@ namespace MaxemusAPI.Models.Dtos
         public string? dialCode { get; set; }
         [Required]
         public string phoneNumber { get; set; }
-        public int countryId { get; set; }
-        public int stateId { get; set; }
-        public string City { get; set; }
-        public string PostalCode { get; set; }
+        public int? countryId { get; set; }
+        public int? stateId { get; set; }
+        public string? City { get; set; }
+        public string? PostalCode { get; set; }
         public AdminCompanyDTO companyProfile { get; set; }
 
     }

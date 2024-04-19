@@ -296,9 +296,41 @@ namespace MaxemusAPI.Controllers
             var existingProductStock = await _context.ProductStock
                 .Where(ps => ps.ProductId == model.ProductId && ps.SerialNumber == model.SerialNumber)
                 .FirstOrDefaultAsync();
+            model.SerialNumber = model.SerialNumber.ToUpper();
+            int rewardPoint = 0;
 
-            if (existingProductStock != null)
+            if (existingProductStock == null)
             {
+                string input = model.SerialNumber; // Change this to your input string
+                if (input.Length >= 2 && Char.IsLetter(input[0]) && Char.IsLetter(input[1]))
+                {
+                    char first = Char.ToUpper(input[0]);
+                    char second = Char.ToUpper(input[1]);
+
+                    if (first <= 'J' && second <= 'J')
+                    {
+                        int firstValue = first - 'A';
+                        int secondValue = second - 'A';
+
+                        string result = String.Format("{0:D2}", firstValue * 10 + secondValue);
+                        rewardPoint = Convert.ToInt32(result);
+                    }
+                    else
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "The first two letters should be between A and J..";
+                        return Ok(_response);
+                    }
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Input should contain at least two alphabetical characters.";
+                    return Ok(_response);
+                }
+
                 var qrcodeFileName = ContentDispositionHeaderValue.Parse(model.Qrcode.ContentDisposition).FileName.Trim('"');
                 qrcodeFileName = CommonMethod.EnsureCorrectFilename(qrcodeFileName);
                 qrcodeFileName = CommonMethod.RenameFileName(qrcodeFileName);
@@ -328,40 +360,14 @@ namespace MaxemusAPI.Controllers
 
                 return Ok(_response);
             }
-
-            var newProductStock = new ProductStock
+            else
             {
-                ProductId = model.ProductId,
-                SerialNumber = model.SerialNumber,
-                CreateDate = DateTime.UtcNow
-            };
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Already added.";
 
-            var newQrcodeFileName = ContentDispositionHeaderValue.Parse(model.Qrcode.ContentDisposition).FileName.Trim('"');
-            newQrcodeFileName = CommonMethod.EnsureCorrectFilename(newQrcodeFileName);
-            newQrcodeFileName = CommonMethod.RenameFileName(newQrcodeFileName);
-
-            var newQrcodePath = qrCodeContainer + newQrcodeFileName;
-
-            newProductStock.Qrcode = newQrcodePath;
-
-            _context.ProductStock.Add(newProductStock);
-            await _context.SaveChangesAsync();
-
-            bool newUploadStatus = await _uploadRepository.UploadFilesToServer(
-                model.Qrcode,
-                qrCodeContainer,
-                newQrcodeFileName
-            );
-
-            var newResponseDTO = _mapper.Map<ProductStockResponseDTO>(newProductStock);
-            newResponseDTO.createDate = newProductStock.CreateDate.ToShortDateString();
-
-            _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Data = newResponseDTO;
-            _response.Messages = "Product stock added successfully.";
-
-            return Ok(_response);
+                return Ok(_response);
+            }
 
 
         }
@@ -600,6 +606,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgUserNotFound;
                 return Ok(_response);
             }
+            var roles = await _userManager.GetRolesAsync(currentUserDetail);
 
             var query = from t1 in _context.Product
                         where !t1.IsDeleted
@@ -620,31 +627,26 @@ namespace MaxemusAPI.Controllers
                             Name = t1.Name,
                             Description = t1.Description,
                             Image1 = t1.Image1,
-                            Image2 = t1.Image2,
-                            Image3 = t1.Image3,
-                            Image4 = t1.Image4,
-                            Image5 = t1.Image5,
                             IsActive = t1.IsActive,
-                            TotalMrp = t1.TotalMrp,
-                            Discount = t1.Discount,
-                            DiscountType = t1.DiscountType,
-                            SellingPrice = t1.SellingPrice,
-                            RewardPoint = t1.RewardPoint,
-                            CreateDate = t1.CreateDate.ToShortDateString() 
+                            TotalMrp = (roles.FirstOrDefault() != "Dealer" ? t1.TotalMrp : 0),
+                            Discount = (roles.FirstOrDefault() != "Dealer" ? t1.Discount : 0),
+                            DiscountType = (roles.FirstOrDefault() != "Dealer" ? t1.DiscountType : 0),
+                            SellingPrice = (roles.FirstOrDefault() != "Dealer" ? t1.SellingPrice : 0),
+                            RewardPoint = _context.ProductStock.Where(u => u.ProductId == t1.ProductId).FirstOrDefault().RewardPoint,
+                            InStock = _context.ProductStock.Where(u => u.ProductId == t1.ProductId).ToList().Count,
+                            CreateDate = t1.CreateDate.ToShortDateString()
                         };
 
             var productList = query.ToList();
 
             if (!string.IsNullOrEmpty(model.mainCategoryName))
             {
-               
                 productList = productList
                     .Where(u => u.MainCategoryName.ToLower().Contains(model.mainCategoryName.ToLower()))
                     .ToList();
             }
             if (!string.IsNullOrEmpty(model.subCategoryName))
             {
-              
                 productList = productList
                     .Where(u => u.SubCategoryName.ToLower().Contains(model.subCategoryName.ToLower()))
                     .ToList();
@@ -672,7 +674,6 @@ namespace MaxemusAPI.Controllers
                                  || u.Model.ToLower().Contains(model.searchQuery.ToLower()))
                     .ToList();
             }
-
 
             int count = productList.Count();
             int CurrentPage = model.pageNumber;
@@ -739,6 +740,8 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
+            var roles = await _userManager.GetRolesAsync(currentUserDetail);
+
             var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == productId && u.IsDeleted != true);
             if (product == null)
             {
@@ -772,6 +775,40 @@ namespace MaxemusAPI.Controllers
             response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
             response.VariantId = cameraVariants.VariantId;
 
+
+            var productImageList = new List<ProductImageDTO>();
+            if (!string.IsNullOrEmpty(product.Image1))
+            {
+                var productImage = new ProductImageDTO();
+                productImage.productImage = product.Image1;
+                productImageList.Add(productImage);
+            }
+            if (!string.IsNullOrEmpty(product.Image2))
+            {
+                var productImage = new ProductImageDTO();
+                productImage.productImage = product.Image2;
+                productImageList.Add(productImage);
+            }
+            if (!string.IsNullOrEmpty(product.Image3))
+            {
+                var productImage = new ProductImageDTO();
+                productImage.productImage = product.Image3;
+                productImageList.Add(productImage);
+            }
+            if (!string.IsNullOrEmpty(product.Image4))
+            {
+                var productImage = new ProductImageDTO();
+                productImage.productImage = product.Image4;
+                productImageList.Add(productImage);
+            }
+            if (!string.IsNullOrEmpty(product.Image5))
+            {
+                var productImage = new ProductImageDTO();
+                productImage.productImage = product.Image5;
+                productImageList.Add(productImage);
+            }
+            response.RewardPoint = _context.ProductStock.Where(u => u.ProductId == product.ProductId).FirstOrDefault().RewardPoint;
+            response.ProductImage = productImageList;
             response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
             response.Audio = _mapper.Map<AudioVariantsDTO>(audioVariants);
             response.Camera = _mapper.Map<CameraVariantsDTO>(cameraVariants);
@@ -782,6 +819,14 @@ namespace MaxemusAPI.Controllers
             response.Network = _mapper.Map<NetworkVariantsDTO>(networkVariants);
             response.Power = _mapper.Map<PowerVariantsDTO>(powerVariants);
             response.Video = _mapper.Map<VideoVariantsDTO>(videoVariants);
+
+            if (roles.FirstOrDefault() == "Dealer")
+            {
+                response.TotalMrp = 0;
+                response.Discount = 0;
+                response.DiscountType = 0;
+                response.SellingPrice = 0;
+            }
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

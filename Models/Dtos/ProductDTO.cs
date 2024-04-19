@@ -55,13 +55,13 @@ namespace MaxemusAPI.Models.Dtos
         public string? Description { get; set; }
         public string? Image1 { get; set; }
         public bool? IsActive { get; set; }
-        public double TotalMrp { get; set; }
-        public double Discount { get; set; }
-        public int DiscountType { get; set; }
-        public double SellingPrice { get; set; }
+        public double? TotalMrp { get; set; }
+        public double? Discount { get; set; }
+        public int? DiscountType { get; set; }
+        public double? SellingPrice { get; set; }
         //public bool IsDeleted { get; set; }
-        public int RewardPoint { get; set; }
-        public int InStock { get; set; }
+        public int? RewardPoint { get; set; }
+        public int? InStock { get; set; }
         public string CreateDate { get; set; }
     }
 

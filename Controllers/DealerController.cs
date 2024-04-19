@@ -71,7 +71,6 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "Token expired.";
                 return Ok(_response);
             }
-
             var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
             if (userDetail == null)
             {
@@ -80,21 +79,16 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgUserNotFound;
                 return Ok(_response);
             }
-
             var dealerDetail = await _context.DealerDetail.Where(u => u.UserId == currentUserId).FirstOrDefaultAsync();
-            if (dealerDetail == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = ResponseMessages.msgUserNotFound;
-                return Ok(_response);
-            }
-
             var mappedData = _mapper.Map<DealerResponseDTO>(userDetail);
             _mapper.Map(dealerDetail, mappedData);
+            var userProfileDetail = await _context.ApplicationUsers.Where(u => u.Id == currentUserId).FirstOrDefaultAsync();
+            _mapper.Map(userProfileDetail, mappedData);
 
-            mappedData.CountryName = await _context.CountryMaster.Where(u => u.CountryId == userDetail.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
-            mappedData.StateName = await _context.StateMaster.Where(u => u.StateId == userDetail.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
+            var userCountryDetail = await _context.CountryMaster.Where(u => u.CountryId == userProfileDetail.CountryId).FirstOrDefaultAsync();
+            var userStateDetail = await _context.StateMaster.Where(u => u.StateId == userProfileDetail.StateId).FirstOrDefaultAsync();
+            mappedData.CountryName = userCountryDetail.CountryName;
+            mappedData.StateName = userStateDetail.StateName;
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;

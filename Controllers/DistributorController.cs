@@ -92,7 +92,7 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "user.";
                 return Ok(_response);
             }
-            if (model.businessProfile.CountryId > 0)
+            if(model.businessProfile.CountryId > 0)
             {
                 var countryId = await _context.CountryMaster.FindAsync(model.businessProfile.CountryId);
                 if (countryId == null)
@@ -103,15 +103,6 @@ namespace MaxemusAPI.Controllers
                     return Ok(_response);
                 }
             }
-            if (model.businessProfile.StateId == 0)
-            {
-                model.businessProfile.StateId = null;
-            }
-            if (model.businessProfile.CountryId == 0)
-            {
-                model.businessProfile.CountryId = null;
-            }
-
             if (model.businessProfile.StateId > 0)
             {
                 var stateId = await _context.StateMaster.FindAsync(model.businessProfile.StateId);
@@ -123,7 +114,6 @@ namespace MaxemusAPI.Controllers
                     return Ok(_response);
                 }
             }
-
             if (model.personalProfile.countryId > 0)
             {
                 var personalProfileCountryId = await _context.CountryMaster.FindAsync(model.personalProfile.countryId);
@@ -215,20 +205,27 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(addressExists, response.businessProfile);
 
                 response.personalProfile.AddressId = addressExists.AddressId;
-
-                response.personalProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
-
-                response.personalProfile.StateName = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
-
+                if (response.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
+                    response.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (response.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
+                    response.personalProfile.StateName = distributorState.StateName;
+                }
                 if (response.businessProfile.CountryId > 0)
                 {
-                    response.businessProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
+                    response.businessProfile.CountryName = businessCountry.CountryName;
                 }
                 if (response.businessProfile.StateId > 0)
                 {
-                    response.businessProfile.StateName = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
+                    response.businessProfile.StateName = businessState.StateName;
                 }
-
+               
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
                 _response.Messages = "Profile updated successfully.";
@@ -294,6 +291,7 @@ namespace MaxemusAPI.Controllers
                     Email = model.businessProfile.Email
                 };
 
+
                 _mapper.Map(model.businessProfile, distributorDetail);
                 _context.Add(distributorDetail);
                 await _context.SaveChangesAsync();
@@ -318,6 +316,7 @@ namespace MaxemusAPI.Controllers
                 _context.Add(distributorAddress);
                 await _context.SaveChangesAsync();
 
+
                 distributorDetail.AddressId = distributorAddress.AddressId;
                 _context.Update(distributorDetail);
                 await _context.SaveChangesAsync();
@@ -330,17 +329,25 @@ namespace MaxemusAPI.Controllers
                 response.UserId = user.Id;
                 response.personalProfile.AddressId = distributorAddress.AddressId;
 
-                response.personalProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
-
-                response.personalProfile.StateName = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
-
+                if (response.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
+                    response.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (response.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
+                    response.personalProfile.StateName = distributorState.StateName;
+                }
                 if (response.businessProfile.CountryId > 0)
                 {
-                    response.businessProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
+                    response.businessProfile.CountryName = businessCountry.CountryName;
                 }
                 if (response.businessProfile.StateId > 0)
                 {
-                    response.businessProfile.StateName = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
+                    response.businessProfile.StateName = businessState.StateName;
                 }
 
                 _response.StatusCode = HttpStatusCode.OK;
@@ -443,17 +450,25 @@ namespace MaxemusAPI.Controllers
                 _mapper.Map(distributorAddress, response.businessProfile);
 
 
-                response.personalProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
-
-                response.personalProfile.StateName = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
-
+                if (response.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == response.personalProfile.CountryId).FirstOrDefaultAsync();
+                    response.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (response.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == response.personalProfile.StateId).FirstOrDefaultAsync();
+                    response.personalProfile.StateName = distributorState.StateName;
+                }
                 if (response.businessProfile.CountryId > 0)
                 {
-                    response.businessProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == response.businessProfile.CountryId).FirstOrDefaultAsync();
+                    response.businessProfile.CountryName = businessCountry.CountryName;
                 }
                 if (response.businessProfile.StateId > 0)
                 {
-                    response.businessProfile.StateName = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == response.businessProfile.StateId).FirstOrDefaultAsync();
+                    response.businessProfile.StateName = businessState.StateName;
                 }
 
                 return Ok(new
@@ -512,17 +527,25 @@ namespace MaxemusAPI.Controllers
                 userResponse.personalProfile.AddressId = distributorUserAddress.AddressId;
                 _mapper.Map(distributorUserAddress, userResponse.businessProfile);
 
-                userResponse.personalProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == userResponse.personalProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
-
-                userResponse.personalProfile.StateName = await _context.StateMaster.Where(u => u.StateId == userResponse.personalProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
-
+                if (userResponse.personalProfile.CountryId > 0)
+                {
+                    var distributorCountry = await _context.CountryMaster.Where(u => u.CountryId == userResponse.personalProfile.CountryId).FirstOrDefaultAsync();
+                    userResponse.personalProfile.CountryName = distributorCountry.CountryName;
+                }
+                if (userResponse.personalProfile.StateId > 0)
+                {
+                    var distributorState = await _context.StateMaster.Where(u => u.StateId == userResponse.personalProfile.StateId).FirstOrDefaultAsync();
+                    userResponse.personalProfile.StateName = distributorState.StateName;
+                }
                 if (userResponse.businessProfile.CountryId > 0)
                 {
-                    userResponse.businessProfile.CountryName = await _context.CountryMaster.Where(u => u.CountryId == userResponse.businessProfile.CountryId).Select(u => u.CountryName).FirstOrDefaultAsync();
+                    var businessCountry = await _context.CountryMaster.Where(u => u.CountryId == userResponse.businessProfile.CountryId).FirstOrDefaultAsync();
+                    userResponse.businessProfile.CountryName = businessCountry.CountryName;
                 }
                 if (userResponse.businessProfile.StateId > 0)
                 {
-                    userResponse.businessProfile.StateName = await _context.StateMaster.Where(u => u.StateId == userResponse.businessProfile.StateId).Select(u => u.StateName).FirstOrDefaultAsync();
+                    var businessState = await _context.StateMaster.Where(u => u.StateId == userResponse.businessProfile.StateId).FirstOrDefaultAsync();
+                    userResponse.businessProfile.StateName = businessState.StateName;
                 }
 
                 return Ok(new
@@ -1303,6 +1326,5 @@ namespace MaxemusAPI.Controllers
             }
         }
         #endregion
-
     }
 }

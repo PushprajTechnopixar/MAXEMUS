@@ -59,11 +59,11 @@ namespace MaxemusAPI
             CreateMap<CategoryImageDTO, SubCategory>().ReverseMap();
 
 
-            CreateMap<CartResponseDTO, Cart>().ReverseMap();
+            CreateMap<CartResponseDTO, CartDetail>().ReverseMap();
             CreateMap<CartResponseDTO, Product>().ReverseMap();
             CreateMap<ProductListFromCart, Product>().ReverseMap();
-            CreateMap<ProductListFromCart, Cart>().ReverseMap();
-            CreateMap<ProductResponseDTO, Cart>().ReverseMap();
+            CreateMap<ProductListFromCart, CartDetail>().ReverseMap();
+            CreateMap<ProductResponseDTO, CartDetail>().ReverseMap();
             CreateMap<ProductResponselistDTO, Product>().ReverseMap();
             CreateMap<ProductResponselistDTO, MainCategory>().ReverseMap();
             CreateMap<ProductResponselistDTO, SubCategory>().ReverseMap();
@@ -145,6 +145,12 @@ namespace MaxemusAPI
             CreateMap<ProductUpdateDTO, NetworkVariants>().ReverseMap();
             CreateMap<ProductUpdateDTO, PowerVariants>().ReverseMap();
             CreateMap<ProductUpdateDTO, VideoVariants>().ReverseMap();
+            CreateMap<UserManual, UserMannualDTO>().ReverseMap();
+            CreateMap<DistributorDetailForDealerDTO, DistributorDetail>().ReverseMap();
+            CreateMap<InstallationDocumentVariants, InstallationDocumentDTO>().ReverseMap();
+            CreateMap<RewardproductListDTO, RewardProduct>().ReverseMap();
+            CreateMap<AddOrUpdateRewardProductDTo, RewardProduct>().ReverseMap();
+
 
             CreateMap<CameraVariantsDTO, CameraVariants>().ReverseMap();
             CreateMap<AudioVariantsDTO, AudioVariants>().ReverseMap();
@@ -171,11 +177,15 @@ namespace MaxemusAPI
             CreateMap<ProductResponsesDTO, NetworkVariants>().ReverseMap();
             CreateMap<ProductResponsesDTO, PowerVariants>().ReverseMap();
             CreateMap<ProductResponsesDTO, VideoVariants>().ReverseMap();
-
-
-
-
-
+            CreateMap<UserDetailResponseDTO, UserDetail>().ReverseMap();
+            CreateMap<UserDetailResponseDTO, ApplicationUser>().ReverseMap();
+            CreateMap<UserDetailRequestDTO, ApplicationUser>().ReverseMap();
+            CreateMap<UserProductListFromCart, Product>().ReverseMap();
+            CreateMap<UserProductResponsesDTO, Product>().ReverseMap();
+            CreateMap<OrderResponseDTO, UserOrder>().ReverseMap();
+            CreateMap<DistributorOrderDetailDTO, UserOrder>().ReverseMap();
+            CreateMap<DistributorOrderedProductDTO, UserOrderedProduct>().ReverseMap();
+            CreateMap<DealerProductResponsesDTO, Product>().ReverseMap();
         }
     }
 }

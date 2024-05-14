@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
     public partial class VideoVariants
     {
-        public int? VariantId { get; set; }
+        public int VariantId { get; set; }
         public string? Compression { get; set; }
         public string? SmartCodec { get; set; }
         public string? VideoFrameRate { get; set; }
@@ -28,5 +26,6 @@ namespace MaxemusAPI.Models
         public string? ImageRotation { get; set; }
         public string? Mirror { get; set; }
         public string? PrivacyMasking { get; set; }
+        public int ProductId { get; set; }
     }
 }

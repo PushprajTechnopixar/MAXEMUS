@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -15,7 +14,6 @@ namespace MaxemusAPI.Models
         public int MainCategoryId { get; set; }
         public string MainCategoryName { get; set; } = null!;
         public string? Description { get; set; }
-
         public string? MainCategoryImage { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime ModifyDate { get; set; }

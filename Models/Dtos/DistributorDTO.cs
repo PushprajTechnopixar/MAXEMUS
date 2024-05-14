@@ -8,6 +8,7 @@ namespace MaxemusAPI.Models.Dtos
         public int CountryId { get; set; }
         public int StateId { get; set; }
         public string City { get; set; }
+        public string? BuildingNameOrNumber { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
@@ -18,10 +19,12 @@ namespace MaxemusAPI.Models.Dtos
         public string Name { get; set; }
         public string? Email { get; set; }
         public string? RegistrationNumber { get; set; }
+        public string? distributorCode { get; set; }
         public string? Description { get; set; }
         public int? CountryId { get; set; }
         public int? StateId { get; set; }
         public string? City { get; set; }
+        public string? BuildingNameOrNumber { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
@@ -49,6 +52,7 @@ namespace MaxemusAPI.Models.Dtos
         public string? gender { get; set; }
         public string? dialCode { get; set; }
         public string phoneNumber { get; set; }
+        public string profilePic { get; set; }
         public int CountryId { get; set; }
         public string CountryName { get; set; }
         public int StateId { get; set; }
@@ -67,15 +71,19 @@ namespace MaxemusAPI.Models.Dtos
     {
         public int DistributorId { get; set; }
         public string Name { get; set; }
+        public string? Image { get; set; }
         public string? Email { get; set; }
         public string? RegistrationNumber { get; set; }
         public string? Description { get; set; }
-        public int CountryId { get; set; }
-        public string CountryName { get; set; }
-        public int StateId { get; set; }
-        public string StateName { get; set; }
-        public string City { get; set; }
+        public int? CountryId { get; set; }
+        public string? CountryName { get; set; }
+        public int? StateId { get; set; }
+        public string? StateName { get; set; }
+        public string? City { get; set; }
+        public string? Status { get; set; }
+        public string? BuildingNameOrNumber { get; set; }
         public string? StreetAddress { get; set; }
+        public string? DistributorCode { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }
         public string? PhoneNumber { get; set; }

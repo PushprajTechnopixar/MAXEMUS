@@ -51,6 +51,7 @@
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Twilio" Version="6.4.0" />
+    <PackageReference Include="ZXing.Net" Version="0.16.5" />
   </ItemGroup>
 
 </Project>

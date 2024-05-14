@@ -7,6 +7,7 @@ namespace MaxemusAPI.Models
     {
         public DistributorDetail()
         {
+            CartDetail = new HashSet<CartDetail>();
             DealerDetail = new HashSet<DealerDetail>();
             DealerProduct = new HashSet<DealerProduct>();
             DistributorAddress = new HashSet<DistributorAddress>();
@@ -25,8 +26,10 @@ namespace MaxemusAPI.Models
         public string? Email { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? ModifyDate { get; set; }
+        public string? DistributorCode { get; set; }
 
         public virtual DistributorAddress? Address { get; set; }
+        public virtual ICollection<CartDetail> CartDetail { get; set; }
         public virtual ICollection<DealerDetail> DealerDetail { get; set; }
         public virtual ICollection<DealerProduct> DealerProduct { get; set; }
         public virtual ICollection<DistributorAddress> DistributorAddress { get; set; }

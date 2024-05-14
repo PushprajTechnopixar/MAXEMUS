@@ -22,7 +22,7 @@ namespace MaxemusAPI.Models.Dtos
         public double SellingPrice { get; set; }
         public bool? IsActive { get; set; }
         public bool IsDeleted { get; set; }
-        public int RewardPoint { get; set; }
+        public int NeededPointToRedeem { get; set; }
         public DateTime CreateDate { get; set; }
     }
     public class AccessoriesVariantsDTO
@@ -74,16 +74,19 @@ namespace MaxemusAPI.Models.Dtos
         public string? GrossWeight { get; set; }
 
     }
-    public class InstallationDocumentVariantsDTO
-    {
-        public byte[] PdfLink { get; set; } = null!;
-
-    }
     public class InstallationDocumentDTO
     {
         public int VariantId { get; set; }
         public int ProductId { get; set; }
-        public string PdfLink { get; set; }
+        public string installationDocument { get; set; }
+    }
+
+
+    public class UserMannualDTO
+    {
+        public int MannualId { get; set; }
+        public int ProductId { get; set; }
+        public string Mannual { get; set; }
 
     }
     public class LensVariantsDTO
@@ -148,21 +151,95 @@ namespace MaxemusAPI.Models.Dtos
         public double Discount { get; set; }
         public int DiscountType { get; set; }
         public double SellingPrice { get; set; }
-
-        public List<CameraVariantsDTO> Camera { get; set; }
-        public List<AudioVariantsDTO> Audio { get; set; }
-        public List<LensVariantsDTO> Lens { get; set; }
-        public List<CertificationVariantsDTO> Certification { get; set; }
-        public List<EnvironmentVariantsDTO> Environment { get; set; }
-        public List<GeneralVariantsDTO> General { get; set; }
-        public List<NetworkVariantsDTO> Network { get; set; }
-        public List<PowerVariantsDTO> Power { get; set; }
-        public List<VideoVariantsDTO> Video { get; set; }
+        public double DistributorDiscount { get; set; }
+        public int DistributorDiscountType { get; set; }
+        public double DistributorSellingPrice { get; set; }
+        public CameraVariantsDTO? Camera { get; set; }
+        public AudioVariantsDTO? Audio { get; set; }
+        public LensVariantsDTO? Lens { get; set; }
+        public CertificationVariantsDTO? Certification { get; set; }
+        public EnvironmentVariantsDTO? Environment { get; set; }
+        public GeneralVariantsDTO? General { get; set; }
+        public NetworkVariantsDTO? Network { get; set; }
+        public PowerVariantsDTO? Power { get; set; }
+        public VideoVariantsDTO? Video { get; set; }
     }
     public class ProductResponsesDTO
     {
         public int ProductId { get; set; }
-        public int VariantId { get; set; }
+        public int MainCategoryId { get; set; }
+        public int SubCategoryId { get; set; }
+        public int BrandId { get; set; }
+        public string? Model { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public List<ProductImageDTO>? ProductImage { get; set; }
+        public bool? IsActive { get; set; }
+        public double TotalMrp { get; set; }
+        public double Discount { get; set; }
+        public int DiscountType { get; set; }
+        public double SellingPrice { get; set; }
+        public double DistributorDiscount { get; set; }
+        public int DistributorDiscountType { get; set; }
+        public double DistributorSellingPrice { get; set; }
+        public int RewardPoint { get; set; }
+        public string CreateDate { get; set; }
+        public AccessoriesVariantsDTO Accessories { get; set; }
+        public AudioVariantsDTO Audio { get; set; }
+        public CameraVariantsDTO Camera { get; set; }
+        public CertificationVariantsDTO Certification { get; set; }
+        public EnvironmentVariantsDTO Environment { get; set; }
+        public GeneralVariantsDTO General { get; set; }
+        public List<UserMannualDTO> userMannual { get; set; }
+        public List<InstallationDocumentDTO> installationDocument { get; set; }
+        public LensVariantsDTO Lens { get; set; }
+        public NetworkVariantsDTO Network { get; set; }
+        public PowerVariantsDTO Power { get; set; }
+        public VideoVariantsDTO Video { get; set; }
+    }
+
+    public class DealerProductResponsesDTO
+    {
+        public int ProductId { get; set; }
+        public int MainCategoryId { get; set; }
+        public int SubCategoryId { get; set; }
+        public int BrandId { get; set; }
+        public string? Model { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public List<ProductImageDTO>? ProductImage { get; set; }
+        public bool? IsActive { get; set; }
+        public double TotalMrp { get; set; }
+        public double Discount { get; set; }
+        public int DiscountType { get; set; }
+        public double SellingPrice { get; set; }
+        public double DistributorDiscount { get; set; }
+        public int DistributorDiscountType { get; set; }
+        public double DistributorSellingPrice { get; set; }
+        public int RewardPoint { get; set; }
+        public string CreateDate { get; set; }
+        public List<VariantModel> Accessories { get; set; }
+        public List<VariantModel> Audio { get; set; }
+        public List<VariantModel> Camera { get; set; }
+        public List<VariantModel> Certification { get; set; }
+        public List<VariantModel> Environment { get; set; }
+        public List<VariantModel> General { get; set; }
+        public List<UserMannualDTO> userMannual { get; set; }
+        public List<InstallationDocumentDTO> installationDocument { get; set; }
+        public List<VariantModel> Lens { get; set; }
+        public List<VariantModel> Network { get; set; }
+        public List<VariantModel> Power { get; set; }
+        public List<VariantModel> Video { get; set; }
+    }
+    public class VariantModel
+    {
+        public string data { get; set; }
+        public string name { get; set; }
+    }
+
+    public class UserProductResponsesDTO
+    {
+        public int ProductId { get; set; }
         public int MainCategoryId { get; set; }
         public int SubCategoryId { get; set; }
         public int BrandId { get; set; }
@@ -177,14 +254,14 @@ namespace MaxemusAPI.Models.Dtos
         public double SellingPrice { get; set; }
         public int RewardPoint { get; set; }
         public string CreateDate { get; set; }
-
         public AccessoriesVariantsDTO Accessories { get; set; }
         public AudioVariantsDTO Audio { get; set; }
         public CameraVariantsDTO Camera { get; set; }
         public CertificationVariantsDTO Certification { get; set; }
         public EnvironmentVariantsDTO Environment { get; set; }
         public GeneralVariantsDTO General { get; set; }
-        public InstallationDocumentVariantsDTO InstallationDocument { get; set; }
+        public List<UserMannualDTO> userMannual { get; set; }
+        public List<InstallationDocumentDTO> installationDocument { get; set; }
         public LensVariantsDTO Lens { get; set; }
         public NetworkVariantsDTO Network { get; set; }
         public PowerVariantsDTO Power { get; set; }
@@ -208,16 +285,15 @@ namespace MaxemusAPI.Models.Dtos
         public double Discount { get; set; }
         public int DiscountType { get; set; }
         public double SellingPrice { get; set; }
-
-        public AudioVariantsDTO Audio { get; set; }
-        public CameraVariantsDTO Camera { get; set; }
-        public CertificationVariantsDTO Certification { get; set; }
-        public EnvironmentVariantsDTO Environment { get; set; }
-        public GeneralVariantsDTO General { get; set; }
-        public LensVariantsDTO Lens { get; set; }
-        public NetworkVariantsDTO Network { get; set; }
-        public PowerVariantsDTO Power { get; set; }
-        public VideoVariantsDTO Video { get; set; }
+        public CameraVariantsDTO? Camera { get; set; }
+        public AudioVariantsDTO? Audio { get; set; }
+        public LensVariantsDTO? Lens { get; set; }
+        public CertificationVariantsDTO? Certification { get; set; }
+        public EnvironmentVariantsDTO? Environment { get; set; }
+        public GeneralVariantsDTO? General { get; set; }
+        public NetworkVariantsDTO? Network { get; set; }
+        public PowerVariantsDTO? Power { get; set; }
+        public VideoVariantsDTO? Video { get; set; }
     }
 
 }

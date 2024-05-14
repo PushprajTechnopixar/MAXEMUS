@@ -6,6 +6,7 @@
         public static readonly string qrCodeContainer = "qrCodeImages/";
         public static readonly string categoryImageContainer = "CategoryImages/";
         public static readonly string brandImageContainer = "BrandImages/";
+        public static readonly string rewardProductImageContainer = "RewardImages/";
         public static readonly string mainCategoryImageContainer = "mainCategoryImages/";
         public static readonly string subCategoryImageContainer = "subCategoryImages/";
         public static readonly string bannerImageContainer = "BannerImages/";
@@ -15,6 +16,7 @@
         public static readonly string qrImageContainer = "QRImages/";
         public static readonly string productImageContainer = "ProductImages/";
         public static readonly string installationDocumentContainer = "installationDocument/";
+        public static readonly string mannualContainer = "Mannual/";
         public static readonly string serviceImageContainer = "ServiceImages/";
         public static readonly string collectionImageContainer = "CollectionImages/";
         public static readonly string passwordValidationMessage = "Your password must be at least 8 characters long, contain at least one number and have a mixture of uppercase and lowercase letters";
@@ -65,16 +67,23 @@
         {
             Male = 1,
             Female,
-            Others,
+            Other,
             NA
         }
-        //public enum Status
-        //{
-        //    Pending = 0,
-        //    Approved = 1,
-        //    Rejected = 2,
-        //    Expired
-        //}
+        public enum PointStatus
+        {
+            Pending,
+            Active,
+            Redeemed,
+            Expired,
+            Cancelled
+        }
+        public enum SerialNumberStatus
+        {
+            Scanned,
+            Active,
+            Redeemed
+        }
         public enum AddressType
         {
             Individual = 1,
@@ -104,11 +113,10 @@
         public enum OrderStatus
         {
             Pending = 0,
-            Processing = 1,
+            Confirmed = 1,
             OnTheWay = 2,
             Delivered,
             Cancelled,
-            ReadyToPickUp,
             Returned
         }
         public enum CategoryName
@@ -142,6 +150,13 @@
         {
             Percentage = 0,
             Flat = 1,
+        }
+
+        public enum StatusType
+        {
+            Order = 0,
+            Payment = 1,
+            PaymentMethod
         }
         // public enum BannerType
         // {
@@ -192,8 +207,8 @@
         }
         public enum PaymentMethod
         {
-            PayByUPI = 0,
-            InCash,
+            UPI = 0,
+            Cash,
             Acc_Ifsc,
         }
 

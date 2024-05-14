@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -30,7 +28,6 @@ namespace MaxemusAPI.Models
         public string? PaymentReceipt { get; set; }
         public DateTime CreateDate { get; set; }
 
-       // public virtual AspNetUsers User { get; set; } = null!;
         public virtual ICollection<DistributorOrderedProduct> DistributorOrderedProduct { get; set; }
     }
 }

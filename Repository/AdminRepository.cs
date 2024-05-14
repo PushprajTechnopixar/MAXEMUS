@@ -109,11 +109,16 @@ namespace MaxemusAPI.Repository
                     StateId = model.companyProfile.stateId,
                     City = model.City,
                     StreetAddress = model.companyProfile.streetAddress,
+                    BuildingNameOrNumber = model.companyProfile.BuildingNameOrNumber,
                     Landmark = model.companyProfile.landmark,
                     PostalCode = model.companyProfile.postalCode,
                     PhoneNumber = model.companyProfile.phoneNumber,
                     WhatsappNumber = model.companyProfile.whatsAppNumber,
-                    AboutUs = model.companyProfile.aboutUs
+                    AboutUs = model.companyProfile.aboutUs,
+                    Timing = model.companyProfile.Timing,
+                    TwitterLink = model.companyProfile.TwitterLink,
+                    FacebookLink = model.companyProfile.facebookLink,
+                    InstagramLink = model.companyProfile.InstagramLink,
                 };
 
                 _context.Add(existingCompany);
@@ -773,7 +778,7 @@ namespace MaxemusAPI.Repository
 
         public async Task<Object> GetDistributorList(FilterationListDTO model)
         {
-            var distributorUser = await _context.DistributorDetail.OrderByDescending(u => u.CreateDate).ToListAsync();
+            var distributorUser = await _context.DistributorDetail.Where(u => u.Status != Status.Incomplete.ToString()).OrderByDescending(u => u.CreateDate).ToListAsync();
 
             List<DistributorUserListDTO> distributorUserList = new List<DistributorUserListDTO>();
 

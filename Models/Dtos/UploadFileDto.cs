@@ -9,9 +9,21 @@ namespace MaxemusAPI.Models
 {
     public class UploadInstallationDocumentFileDto
     {
-        public int VariantId { get; set; }
+        public int? VariantId { get; set; }
         public int ProductId { get; set; }
-        public IFormFile PdfLink { get; set; }
+        public IFormFile installationDocument { get; set; }
+    }
+
+    public class UploadMannualFileDto
+    {
+        public int? MannualId { get; set; }
+        public int ProductId { get; set; }
+        public IFormFile Mannual { get; set; }
+    }
+
+    public class UploadFileDto
+    {
+        public IFormFile image { get; set; }
     }
     public class UploadProfilePicDto
     {
@@ -39,10 +51,10 @@ namespace MaxemusAPI.Models
         public int bannerId { get; set; }
         public IFormFile bannerImage { get; set; }
     }
-    public partial class UploadSalonImageDTO
+    public partial class UploadRewardProductImageDTO
     {
-        public int salonId { get; set; }
-        public IFormFile? salonImage { get; set; }
+        public int rewardProductId { get; set; }
+        public IFormFile? image { get; set; }
     }
     public partial class UploadDistributorDetailImageDTO
     {

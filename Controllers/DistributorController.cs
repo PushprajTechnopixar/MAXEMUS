@@ -92,51 +92,63 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "user.";
                 return Ok(_response);
             }
-            if (model.businessProfile.CountryId > 0)
+            if (model.businessProfile.CountryId != null)
             {
-                var countryId = await _context.CountryMaster.FindAsync(model.businessProfile.CountryId);
-                if (countryId == null)
+                if (model.businessProfile.CountryId > 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "please enter valid countryId.";
-                    return Ok(_response);
+                    var countryId = await _context.CountryMaster.FindAsync(model.businessProfile.CountryId);
+                    if (countryId == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "please enter valid countryId.";
+                        return Ok(_response);
+                    }
                 }
             }
-            if (model.businessProfile.StateId > 0)
+            if (model.businessProfile.StateId != null)
             {
-                var stateId = await _context.StateMaster.FindAsync(model.businessProfile.StateId);
-                if (stateId == null)
+                if (model.businessProfile.StateId > 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "please enter valid stateId.";
-                    return Ok(_response);
+                    var stateId = await _context.StateMaster.FindAsync(model.businessProfile.StateId);
+                    if (stateId == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "please enter valid stateId.";
+                        return Ok(_response);
+                    }
                 }
             }
-            if (model.personalProfile.countryId > 0)
+            if (model.personalProfile.countryId != null)
             {
-                var personalProfileCountryId = await _context.CountryMaster.FindAsync(model.personalProfile.countryId);
-                if (model.personalProfile.countryId == null)
+                if (model.personalProfile.countryId > 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "please enter valid countryId.";
-                    return Ok(_response);
+                    var personalProfileCountryId = await _context.CountryMaster.FindAsync(model.personalProfile.countryId);
+                    if (model.personalProfile.countryId == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "please enter valid countryId.";
+                        return Ok(_response);
+                    }
                 }
             }
-            if (model.personalProfile.stateId > 0)
+            if (model.personalProfile.stateId != null)
             {
-                var personalProfileStateId = await _context.StateMaster.FindAsync(model.personalProfile.stateId);
-                if (model.personalProfile.stateId == null)
+                if (model.personalProfile.stateId > 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "please enter valid stateId.";
-                    return Ok(_response);
+                    var personalProfileStateId = await _context.StateMaster.FindAsync(model.personalProfile.stateId);
+                    if (model.personalProfile.stateId == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "please enter valid stateId.";
+                        return Ok(_response);
+                    }
                 }
             }
-            if (Gender.Male.ToString() != model.personalProfile.gender && Gender.Female.ToString() != model.personalProfile.gender && Gender.Others.ToString() != model.personalProfile.gender)
+            if (Gender.Male.ToString() != model.personalProfile.gender && Gender.Female.ToString() != model.personalProfile.gender && Gender.Other.ToString() != model.personalProfile.gender)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -183,6 +195,8 @@ namespace MaxemusAPI.Controllers
                 }
 
                 _mapper.Map(model.personalProfile, user);
+                user.CountryId = (model.personalProfile.countryId == 0 ? null : model.personalProfile.countryId);
+                user.StateId = (model.personalProfile.stateId == 0 ? null : model.personalProfile.stateId);
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
@@ -207,21 +221,39 @@ namespace MaxemusAPI.Controllers
                     addressExists.DistributorId = model.DistributorId;
                     addressExists.AddressType = "Individual";
                     addressExists.Email = model.businessProfile.Email;
+
                     _mapper.Map(model.businessProfile, addressExists);
+                    addressExists.CountryId = (model.businessProfile.CountryId == 0 ? null : model.businessProfile.CountryId);
+                    addressExists.StateId = (model.businessProfile.StateId == 0 ? null : model.businessProfile.StateId);
                     _context.Add(addressExists);
                     await _context.SaveChangesAsync();
                 }
                 else
                 {
+
                     addressExists.DistributorId = model.DistributorId;
                     addressExists.AddressType = "Individual";
                     addressExists.Email = model.businessProfile.Email;
                     _mapper.Map(model.businessProfile, addressExists);
+                    addressExists.CountryId = (model.businessProfile.CountryId == 0 ? null : model.businessProfile.CountryId);
+                    addressExists.StateId = (model.businessProfile.StateId == 0 ? null : model.businessProfile.StateId);
                     _context.Update(addressExists);
                     await _context.SaveChangesAsync();
                 }
 
+                if (distributorDetail.DistributorCode != model.businessProfile.distributorCode)
+                {
+                    var dealerList = _context.DealerDetail.Where(u => u.DistributorCode == distributorDetail.DistributorCode).ToList();
+                    foreach (var item in dealerList)
+                    {
+                        item.DistributorCode = model.businessProfile.distributorCode;
+                    }
+                    _context.UpdateRange(dealerList);
+                    await _context.SaveChangesAsync();
+                }
                 _mapper.Map(model.businessProfile, distributorDetail);
+                distributorDetail.DistributorCode = CommonMethod.RandomString(6);
+
                 _context.Update(distributorDetail);
                 await _context.SaveChangesAsync();
 
@@ -259,8 +291,7 @@ namespace MaxemusAPI.Controllers
                 _response.Data = response;
                 return Ok(_response);
             }
-
-            if (model.DistributorId == 0)
+            else
             {
                 bool ifUserNameUnique = _userRepo.IsUniqueUser(model.personalProfile.email, model.personalProfile.phoneNumber);
                 if (!ifUserNameUnique)
@@ -359,13 +390,8 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = "Profile added successfully.";
                 _response.Data = response;
                 return Ok(_response);
-
             }
 
-            _response.StatusCode = HttpStatusCode.OK;
-            _response.IsSuccess = true;
-            _response.Messages = "Profile added successfully.";
-            return Ok(_response);
         }
 
         #endregion
@@ -495,7 +521,7 @@ namespace MaxemusAPI.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize(Roles = "Distributor")]
-        public async Task<IActionResult> AddProductToCart([FromBody] int productId)
+        public async Task<IActionResult> AddProductToCart([FromBody] AddProductToCartDTO model)
         {
             try
             {
@@ -516,7 +542,7 @@ namespace MaxemusAPI.Controllers
                     return Ok(_response);
                 }
 
-                var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == productId && u.IsActive == true);
+                var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.IsActive == true);
                 if (product == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
@@ -525,41 +551,66 @@ namespace MaxemusAPI.Controllers
                     return Ok(_response);
                 }
 
-                var productStock = await _context.ProductStock.Where(u => u.ProductId == productId).ToListAsync();
-                if (productStock.Count < 1)
+                var distributor = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId && u.IsDeleted != true);
+                if (distributor == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
-                    _response.Messages = "product is out of stock.";
+                    _response.Messages = "Record not found.";
                     return Ok(_response);
                 }
 
-                var cart = await _context.Cart.FirstOrDefaultAsync(c => c.ProductId == productId && c.DistributorId == currentUserId);
+                if (distributor.Status != Status.Approved.ToString())
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Distributor is not approved.";
+                    return Ok(_response);
+                }
+
+                // var productStock = await _context.ProductStock.Where(u => u.ProductId == model.ProductId).ToListAsync();
+                // if (productStock.Count < 1)
+                // {
+                //     _response.StatusCode = HttpStatusCode.NotFound;
+                //     _response.IsSuccess = false;
+                //     _response.Messages = "product is out of stock.";
+                //     return Ok(_response);
+                // }
+
+                var cart = await _context.CartDetail.FirstOrDefaultAsync(c => c.ProductId == model.ProductId && c.DistributorId == distributor.DistributorId);
                 if (cart == null)
                 {
-                    cart = new Cart
+                    cart = new CartDetail
                     {
-                        ProductId = productId,
-                        DistributorId = currentUserId,
-                        ProductCountInCart = 1,
+                        ProductId = model.ProductId,
+                        DistributorId = distributor.DistributorId,
+                        ProductCountInCart = model.ProductCountInCart,
                         CreateDate = DateTime.UtcNow,
                     };
-                    _context.Cart.Add(cart);
+                    _context.CartDetail.Add(cart);
                 }
                 else
                 {
-                    cart.ProductCountInCart++;
-                    _context.Cart.Update(cart);
+                    cart.ProductCountInCart = model.ProductCountInCart;
+                    if (model.ProductCountInCart > 0)
+                    {
+                        _context.CartDetail.Update(cart);
+                    }
+                    else
+                    {
+                        _context.CartDetail.Remove(cart);
+                    }
                 }
 
                 await _context.SaveChangesAsync();
 
                 var response = _mapper.Map<CartResponseDTO>(cart);
                 _mapper.Map(product, response);
-                response.CreateDate = cart.CreateDate?.ToString("dd-MM-yyyy");
+                response.CreateDate = cart.CreateDate.ToString("dd-MM-yyyy");
                 response.TotalMrp = (double)(product.TotalMrp * cart.ProductCountInCart);
-                response.Discount = (double)(product.Discount * cart.ProductCountInCart);
-                response.DiscountType = product.DiscountType;
+                response.DistributorDiscount = (double)(product.DistributorDiscount * cart.ProductCountInCart);
+                response.DistributorSellingPrice = (double)(product.DistributorSellingPrice * cart.ProductCountInCart);
+                response.DistributorDiscountType = product.DistributorDiscountType;
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
@@ -610,7 +661,16 @@ namespace MaxemusAPI.Controllers
                     return NotFound(_response);
                 }
 
-                var cart = await _context.Cart.Where(u => u.DistributorId == currentUserId).ToListAsync();
+                var distributor = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId && u.IsDeleted != true);
+                if (distributor == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Record not found.";
+                    return Ok(_response);
+                }
+
+                var cart = await _context.CartDetail.Where(u => u.DistributorId == distributor.DistributorId).ToListAsync();
                 if (cart.Count == 0)
                 {
                     _response.StatusCode = HttpStatusCode.OK;
@@ -636,17 +696,17 @@ namespace MaxemusAPI.Controllers
                         var productResponse = _mapper.Map<ProductListFromCart>(product);
                         productResponse.ProductCountInCart = item.ProductCountInCart;
                         productResponse.TotalMrp = (double)(product.TotalMrp * item.ProductCountInCart);
-                        productResponse.Discount = (double)(product.Discount * item.ProductCountInCart);
-                        productResponse.DiscountType = product.DiscountType;
-                        productResponse.SellingPrice = productResponse.TotalMrp - productResponse.Discount;
+                        productResponse.DistributorDiscount = (double)(product.DistributorDiscount * item.ProductCountInCart);
+                        productResponse.DistributorDiscountType = product.DistributorDiscountType;
+                        productResponse.DistributorSellingPrice = ((double)(productResponse.DistributorSellingPrice * item.ProductCountInCart));
 
                         mappedData.Add(productResponse);
 
                         // Update totals
                         totalItem++;
                         totalMrp += productResponse.TotalMrp;
-                        totalSellingPrice += productResponse.SellingPrice;
-                        totalDiscountAmount += productResponse.Discount;
+                        totalSellingPrice += productResponse.DistributorSellingPrice;
+                        totalDiscountAmount += productResponse.DistributorDiscount;
                     }
                 }
 
@@ -663,87 +723,10 @@ namespace MaxemusAPI.Controllers
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
                 _response.Data = cartDetail;
-                _response.Messages = "cart product list shown successfully.";
+                _response.Messages = "Cart products shown successfully.";
 
                 return Ok(_response);
 
-            }
-            catch (Exception ex)
-            {
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Messages = ex.Message;
-                return Ok(_response);
-            }
-        }
-        #endregion
-
-        #region RemoveProductFromCart
-        /// <summary>
-        ///  Remove product from cart.
-        /// </summary>
-        [HttpDelete("RemoveProductFromCart")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Distributor")]
-        public async Task<IActionResult> RemoveProductFromCart(int productId)
-        {
-            try
-            {
-                string currentUserId = (HttpContext.User.Claims.First().Value);
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Token expired.";
-                    return Ok(_response);
-                }
-
-                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
-                if (userDetail == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgUserNotFound;
-                    return Ok(_response);
-                }
-
-                var cart = await _context.Cart.FirstOrDefaultAsync(u => u.DistributorId == currentUserId && u.ProductId == productId);
-
-                if (cart == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Product not found.";
-                    return Ok(_response);
-                }
-                else if (cart.ProductCountInCart > 0)
-                {
-                    cart.ProductCountInCart--;
-
-                    if (cart.ProductCountInCart == 0)
-                    {
-                        _context.Cart.Remove(cart);
-                    }
-
-                    await _context.SaveChangesAsync();
-
-
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = true;
-                    _response.Messages = "Product removed successfully.";
-                    return Ok(_response);
-                }
-                else
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Product count in cart is already zero.";
-                    return Ok(_response);
-                }
-
-
-                return Ok(_response);
             }
             catch (Exception ex)
             {
@@ -784,20 +767,20 @@ namespace MaxemusAPI.Controllers
                     _response.Messages = ResponseMessages.msgUserNotFound;
                     return Ok(_response);
                 }
-
-                var count = await _context.Cart.Where(u => u.DistributorId == currentUserId && u.ProductCountInCart > 0).CountAsync();
-
-                if (count == 0)
+                var distributor = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId && u.IsDeleted != true);
+                if (distributor == null)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    _response.Messages = "Record not found.";
                     return Ok(_response);
                 }
 
+                var count = await _context.CartDetail.Where(u => u.DistributorId == distributor.DistributorId && u.ProductCountInCart > 0).CountAsync();
+
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
-                _response.Data = count.ToString();
+                _response.Data = new { productCountInCart = count };
                 _response.Messages = "Count retrieved successfully.";
                 return Ok(_response);
 
@@ -841,13 +824,21 @@ namespace MaxemusAPI.Controllers
                     _response.Messages = ResponseMessages.msgUserNotFound;
                     return Ok(_response);
                 }
+                var distributor = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId && u.IsDeleted != true);
+                if (distributor == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Record not found.";
+                    return Ok(_response);
+                }
 
-                var cart = await _context.Cart.Where(u => u.DistributorId == currentUserId).ToListAsync();
-                if (cart == null || !cart.Any())
+                var cart = await _context.CartDetail.Where(u => u.DistributorId == distributor.DistributorId).ToListAsync();
+                if (cart.Count == 0)
                 {
                     _response.StatusCode = HttpStatusCode.OK;
                     _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgNotFound + "record.";
+                    _response.Messages = "Cart is empty.";
                     return Ok(_response);
                 }
 
@@ -864,58 +855,50 @@ namespace MaxemusAPI.Controllers
                 double? totalDiscountAmount = 0;
                 double? totalSellingPrice = 0;
 
-                foreach (var item in cart)
-                {
-                    var products = await _context.ProductStock
-                        .Where(u => u.ProductId == item.ProductId).ToListAsync();
+                // foreach (var item in cart)
+                // {
+                //     var products = await _context.ProductStock
+                //         .Where(u => u.ProductId == item.ProductId).ToListAsync();
 
-                    if (products.Count < item.ProductCountInCart)
-                    {
-                        _response.StatusCode = HttpStatusCode.OK;
-                        _response.IsSuccess = false;
-                        _response.Messages = ResponseMessages.msgNotFound + "record.";
-                        return Ok(_response);
-                    }
+                //     if (products.Count < item.ProductCountInCart)
+                //     {
+                //         _response.StatusCode = HttpStatusCode.OK;
+                //         _response.IsSuccess = false;
+                //         _response.Messages = ResponseMessages.msgNotFound + "record.";
+                //         return Ok(_response);
+                //     }
 
-                    for (int i = 0; i < item.ProductCountInCart; i++)
-                    {
-                        var cartItemToRemove = await _context.Cart
-                            .Where(u => u.ProductId == item.ProductId)
-                            .FirstOrDefaultAsync();
+                //     for (int i = 0; i < item.ProductCountInCart; i++)
+                //     {
+                //         var cartItemToRemove = await _context.CartDetail
+                //             .Where(u => u.ProductId == item.ProductId)
+                //             .FirstOrDefaultAsync();
 
-                        var productStockToRemove = await _context.ProductStock
-                            .FirstOrDefaultAsync(u => u.ProductStockId == products[i].ProductStockId);
+                //         var productStockToRemove = await _context.ProductStock
+                //             .FirstOrDefaultAsync(u => u.ProductStockId == products[i].ProductStockId);
 
-                        _context.Remove(productStockToRemove);
-                        _context.Cart.Remove(cartItemToRemove);
-                    }
+                //         _context.Remove(productStockToRemove);
+                //         _context.Cart.Remove(cartItemToRemove);
+                //     }
 
-                    await _context.SaveChangesAsync();
-                }
-
-
+                //     await _context.SaveChangesAsync();
+                // }
 
                 foreach (var item in cart)
                 {
                     var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == item.ProductId);
-                    if (product == null)
-                    {
-                        _response.StatusCode = HttpStatusCode.OK;
-                        _response.IsSuccess = false;
-                        _response.Messages = ResponseMessages.msgNotFound + "record.";
-                        return Ok(_response);
-                    }
-
 
                     totalMrp += product.TotalMrp * item.ProductCountInCart;
-                    totalDiscountAmount += product.Discount * item.ProductCountInCart;
-                    totalSellingPrice += product.SellingPrice * item.ProductCountInCart;
+                    totalDiscountAmount += product.DistributorDiscount * item.ProductCountInCart;
+                    totalSellingPrice += product.DistributorSellingPrice * item.ProductCountInCart;
                 }
 
                 distributorOrder.TotalMrp = totalMrp;
                 distributorOrder.TotalDiscountAmount = totalDiscountAmount;
                 distributorOrder.TotalSellingPrice = totalSellingPrice;
                 distributorOrder.TotalProducts = cart.Sum(u => u.ProductCountInCart);
+                distributorOrder.OrderStatus = OrderStatus.Confirmed.ToString();
+                distributorOrder.PaymentStatus = PaymentStatus.Unpaid.ToString();
 
                 _context.Add(distributorOrder);
                 await _context.SaveChangesAsync();
@@ -936,236 +919,29 @@ namespace MaxemusAPI.Controllers
                     }
 
                     distributorOrderedProduct.ProductId = product.ProductId;
-                    distributorOrderedProduct.SellingPricePerItem = product.SellingPrice;
+                    distributorOrderedProduct.SellingPricePerItem = product.DistributorSellingPrice;
                     distributorOrderedProduct.TotalMrp = product.TotalMrp;
-                    distributorOrderedProduct.DiscountType = product.DiscountType;
+                    distributorOrderedProduct.DiscountType = product.DistributorDiscountType;
                     distributorOrderedProduct.Discount = product.Discount;
-                    distributorOrderedProduct.SellingPrice = product.SellingPrice;
-                    distributorOrderedProduct.Quantity = item.ProductCountInCart;
+                    distributorOrderedProduct.SellingPrice = (double)((double)product.DistributorSellingPrice * item.ProductCountInCart);
                     distributorOrderedProduct.ProductCount = item.ProductCountInCart;
 
                     _context.Add(distributorOrderedProduct);
                     await _context.SaveChangesAsync();
                 }
 
-
-
                 var response = _mapper.Map<OrderResponseDTO>(distributorOrder);
-                response.CreateDate = distributorOrder.CreateDate.ToShortDateString();
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Messages = "order placed successfully.";
-                _response.Data = response;
-                return Ok(_response);
-
-            }
-            catch (Exception ex)
-            {
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Messages = ex.Message;
-                return Ok(_response);
-            }
-        }
-        #endregion
-
-        #region OrderList
-        /// <summary>
-        ///  Get OrderList for Distributor.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("OrderList")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Distributor")]
-        public async Task<IActionResult> OrderList([FromQuery] DistributorOrderFiltrationListDTO model)
-        {
-            try
-            {
-                string currentUserId = (HttpContext.User.Claims.First().Value);
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Token expired.";
-                    return Ok(_response);
-                }
-                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
-                if (userDetail == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgUserNotFound;
-                    return Ok(_response);
-                }
-
-                List<DistributorOrder> orderList;
-                orderList = (await _context.DistributorOrder.Where(u => u.UserId == currentUserId).ToListAsync()).OrderByDescending(u => u.OrderDate).ToList();
-
-                if (model.fromDate != null && model.toDate != null)
-                {
-                    orderList = orderList.Where(x => (x.OrderDate.Date >= model.fromDate) && (x.OrderDate.Date <= model.toDate)).ToList();
-                }
-
-                var orderIds = orderList.Select(order => order.OrderId).ToList();
-                var productId = await _context.DistributorOrderedProduct.Where(u => orderIds.Contains(u.OrderId)).ToListAsync();
-
-                var productName = await _context.Product.ToListAsync();
-                var response = _mapper.Map<List<DistributorOrderedListDTO>>(orderList);
-
-                foreach (var item in response)
-                {
-                    var ctz = TZConvert.GetTimeZoneInfo("India Standard Time");
-                    var convertedZoneDate = TimeZoneInfo.ConvertTimeFromUtc(Convert.ToDateTime(item.OrderDate), ctz);
-                    item.OrderTime = Convert.ToDateTime(convertedZoneDate).ToString(@"hh:mm tt");
-                    item.OrderDate = Convert.ToDateTime(convertedZoneDate).ToString(@"dd-MM-yyyy");
-                    item.CreateDate = Convert.ToDateTime(convertedZoneDate).ToString(@"dd-MM-yyyy");
-                }
-
-                if (!string.IsNullOrEmpty(model.paymentStatus))
-                {
-                    response = response.Where(x => (x.PaymentStatus == model.paymentStatus)
-                    ).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(model.orderStatus))
-                {
-                    response = response.Where(x => (x.OrderStatus == model.orderStatus)
-                    ).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(model.searchQuery))
-                {
-                    response = response.Where(x => (x.PaymentStatus?.IndexOf(model.searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
-                    ).ToList();
-                }
-
-
-
-                // Get's No of Rows Count   
-                int count = response.Count();
-
-                // Parameter is passed from Query string if it is null then it default Value will be pageNumber:1  
-                int CurrentPage = model.pageNumber;
-
-                // Parameter is passed from Query string if it is null then it default Value will be pageSize:20  
-                int PageSize = model.pageSize;
-
-                // Display TotalCount to Records to User  
-                int TotalCount = count;
-
-                // Calculating Totalpage by Dividing (No of Records / Pagesize)  
-                int TotalPages = (int)Math.Ceiling(count / (double)PageSize);
-
-                // Returns List of Customer after applying Paging   
-                var items = response.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
-
-                // if CurrentPage is greater than 1 means it has previousPage  
-                var previousPage = CurrentPage > 1 ? "Yes" : "No";
-
-                // if TotalPages is greater than CurrentPage means it has nextPage  
-                var nextPage = CurrentPage < TotalPages ? "Yes" : "No";
-
-                // Returing List of Customers Collections  
-                FilterationResponseModel<DistributorOrderedListDTO> obj = new FilterationResponseModel<DistributorOrderedListDTO>();
-                obj.totalCount = TotalCount;
-                obj.pageSize = PageSize;
-                obj.currentPage = CurrentPage;
-                obj.totalPages = TotalPages;
-                obj.previousPage = previousPage;
-                obj.nextPage = nextPage;
-                obj.searchQuery = string.IsNullOrEmpty(model.searchQuery) ? "no parameter passed" : model.searchQuery;
-                obj.dataList = items.ToList();
-
-                if (obj == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgSomethingWentWrong;
-                    return Ok(_response);
-                }
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Data = obj;
-                _response.Messages = "order list shown successfully.";
-                return Ok(_response);
-
-            }
-            catch (Exception ex)
-            {
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Messages = ex.Message;
-                return Ok(_response);
-            }
-        }
-        #endregion
-
-        #region OrderDetail
-        /// <summary>
-        ///  Get OrderDetail for Distributor.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("OrderDetail")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize(Roles = "Distributor")]
-        public async Task<IActionResult> OrderDetail(long orderId)
-        {
-            try
-            {
-                string currentUserId = (HttpContext.User.Claims.First().Value);
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Token expired.";
-                    return Ok(_response);
-                }
-                var userDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
-                if (userDetail == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgUserNotFound;
-                    return Ok(_response);
-                }
-
-                var distributorOrder = await _context.DistributorOrder.FindAsync(orderId);
-                if (distributorOrder == null)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgNotFound + "record.";
-                    return Ok(_response);
-                }
-
-                var distributorOrderProducts = await _context.DistributorOrderedProduct
-                    .Where(u => u.OrderId == orderId)
-                    .ToListAsync();
-
-                if (distributorOrderProducts == null || distributorOrderProducts.Count == 0)
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = ResponseMessages.msgNotFound + "record.";
-                    return Ok(_response);
-                }
-
-                var response = _mapper.Map<DistributorOrderDetailDTO>(distributorOrder);
-                response.DistributorOrderedProduct = _mapper.Map<List<DistributorOrderedProductDTO>>(distributorOrderProducts);
-
                 response.CreateDate = distributorOrder.CreateDate.ToString(DefaultDateFormat);
-                response.OrderDate = distributorOrder.OrderDate.ToString(DefaultDateFormat);
-                response.DeliveredDate = distributorOrder.DeliveredDate?.ToString(DefaultDateFormat);
+
+                _context.RemoveRange(cart);
+                await _context.SaveChangesAsync();
 
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
-                _response.Messages = "order detail shown successfully.";
+                _response.Messages = "Order placed successfully.";
                 _response.Data = response;
                 return Ok(_response);
+
             }
             catch (Exception ex)
             {
@@ -1255,7 +1031,7 @@ namespace MaxemusAPI.Controllers
 
         #region SetDealerStatus
         /// <summary>
-        ///  Set dealer status [Pending = 0; Approved = 1; Rejected = 2].
+        ///  Set dealer status [Pending; Approved; Rejected].
         /// </summary>
         /// <returns></returns>
         [HttpPost]
@@ -1282,9 +1058,9 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (model.status != Convert.ToInt32(Status.Pending)
-             && model.status != Convert.ToInt32(Status.Approved)
-             && model.status != Convert.ToInt32(Status.Rejected))
+            if (model.status != Status.Pending.ToString()
+             && model.status != Status.Approved.ToString()
+             && model.status != Status.Rejected.ToString())
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -1319,7 +1095,83 @@ namespace MaxemusAPI.Controllers
 
             return Ok(_response);
         }
+        #endregion
 
+        #region getRewardPoint
+        /// <summary>
+        ///  getRewardPoint.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        [Route("getRewardPoint")]
+        public async Task<IActionResult> getRewardPoint(int? distributorId)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+            DistributorDetail? distributorDetail;
+            var roles = await _userManager.GetRolesAsync(currentUserDetail);
+            var roleName = roles.FirstOrDefault();
+            if (roleName != "Distributor")
+            {
+                if (distributorId != null)
+                {
+                    distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Distributor id is required.";
+                    return Ok(_response);
+                }
+            }
+            else
+            {
+                distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
+            }
+
+            if (distributorDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+
+            var pointDetail = _context.Points.Where(u => u.UserId == distributorDetail.UserId).FirstOrDefault();
+            double redeemedPoints = 0;
+            double activePoints = 0;
+
+            if (pointDetail != null)
+            {
+                activePoints = (double)pointDetail.ActivePoints;
+                redeemedPoints = (double)pointDetail.RedeemedPoints;
+            }
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Messages = "Point detail shown successfully.";
+            _response.Data = new { activePoints = activePoints, redeemedPoints = redeemedPoints };
+
+            return Ok(_response);
+        }
         #endregion
 
     }

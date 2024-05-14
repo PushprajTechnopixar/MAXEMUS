@@ -12,6 +12,7 @@ namespace MaxemusAPI.Models
         public int ProductStockId { get; set; }
         public int? RewardPoint { get; set; }
         public DateTime CreateDate { get; set; }
+        public string? Status { get; set; }
 
         public virtual DealerDetail Dealer { get; set; } = null!;
         public virtual DistributorDetail Distributor { get; set; } = null!;

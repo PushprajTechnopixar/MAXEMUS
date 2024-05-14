@@ -97,7 +97,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (Gender.Male.ToString() != model.gender && Gender.Female.ToString() != model.gender && Gender.Others.ToString() != model.gender)
+            if (Gender.Male.ToString() != model.gender && Gender.Female.ToString() != model.gender && Gender.Other.ToString() != model.gender)
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
@@ -116,26 +116,29 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            if (model.countryId > 0)
+            if (model.countryId != null && model.stateId != null)
             {
-                var countryId = await _context.CountryMaster.FindAsync(model.countryId);
-                if (countryId == null)
+                if (model.countryId > 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "please enter valid countryId.";
-                    return Ok(_response);
+                    var countryId = await _context.CountryMaster.FindAsync(model.countryId);
+                    if (countryId == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "please enter valid countryId.";
+                        return Ok(_response);
+                    }
                 }
-            }
-            if (model.stateId > 0)
-            {
-                var stateId = await _context.StateMaster.FindAsync(model.stateId);
-                if (stateId == null)
+                if (model.stateId > 0)
                 {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "please enter valid stateId.";
-                    return Ok(_response);
+                    var stateId = await _context.StateMaster.FindAsync(model.stateId);
+                    if (stateId == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "please enter valid stateId.";
+                        return Ok(_response);
+                    }
                 }
             }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {

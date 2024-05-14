@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using MaxemusAPI;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {

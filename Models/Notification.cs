@@ -14,6 +14,5 @@ namespace MaxemusAPI.Models
         public string? UserRole { get; set; }
         public string? CreatedBy { get; set; }
 
-       // public virtual AspNetUsers? CreatedByNavigation { get; set; }
     }
 }

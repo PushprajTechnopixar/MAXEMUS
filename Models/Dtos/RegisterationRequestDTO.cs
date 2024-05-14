@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MaxemusAPI.Models.Dtos
 {
+    public class CreateUserDTO
+    {
+        [Required]
+        [EmailAddress]
+        public string email { get; set; }
+        public string password { get; set; }
+    }
     public class RegisterationRequestDTO
     {
         [Required]
@@ -18,6 +25,7 @@ namespace MaxemusAPI.Models.Dtos
         [Required]
         public string phoneNumber { get; set; }
         public string? deviceType { get; set; }
+        public string? distributorCode { get; set; }
         public int? countryId { get; set; }
         public int? stateId { get; set; }
         public string? City { get; set; }
@@ -39,12 +47,10 @@ namespace MaxemusAPI.Models.Dtos
         public string? gender { get; set; }
         [Required]
         public string? deviceType { get; set; }
-
         public string? dialCode { get; set; }
         [Required]
         public string password { get; set; }
         [Required]
-
         public string phoneNumber { get; set; }
         public int countryId { get; set; }
         public int stateId { get; set; }

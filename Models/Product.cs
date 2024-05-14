@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -10,7 +9,7 @@ namespace MaxemusAPI.Models
         {
             AudioVariants = new HashSet<AudioVariants>();
             CameraVariants = new HashSet<CameraVariants>();
-            Cart = new HashSet<Cart>();
+            CartDetail = new HashSet<CartDetail>();
             CertificationVariants = new HashSet<CertificationVariants>();
             DealerProduct = new HashSet<DealerProduct>();
             DistributorOrderedProduct = new HashSet<DistributorOrderedProduct>();
@@ -19,7 +18,8 @@ namespace MaxemusAPI.Models
             InstallationDocumentVariants = new HashSet<InstallationDocumentVariants>();
             NetworkVariants = new HashSet<NetworkVariants>();
             ProductStock = new HashSet<ProductStock>();
-            RedeemedProducts = new HashSet<RedeemedProducts>();
+            UserManual = new HashSet<UserManual>();
+            UserOrderedProduct = new HashSet<UserOrderedProduct>();
         }
 
         public int ProductId { get; set; }
@@ -40,9 +40,12 @@ namespace MaxemusAPI.Models
         public double SellingPrice { get; set; }
         public bool? IsActive { get; set; }
         public bool IsDeleted { get; set; }
-        public int RewardPoint { get; set; }
+        public int NeededPointToRedeem { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? ModifyDate { get; set; }
+        public double? DistributorDiscount { get; set; }
+        public double? DistributorSellingPrice { get; set; }
+        public int DistributorDiscountType { get; set; }
 
         public virtual Brand Brand { get; set; } = null!;
         public virtual MainCategory MainCategory { get; set; } = null!;
@@ -50,7 +53,7 @@ namespace MaxemusAPI.Models
         public virtual AccessoriesVariants AccessoriesVariants { get; set; } = null!;
         public virtual ICollection<AudioVariants> AudioVariants { get; set; }
         public virtual ICollection<CameraVariants> CameraVariants { get; set; }
-        public virtual ICollection<Cart> Cart { get; set; }
+        public virtual ICollection<CartDetail> CartDetail { get; set; }
         public virtual ICollection<CertificationVariants> CertificationVariants { get; set; }
         public virtual ICollection<DealerProduct> DealerProduct { get; set; }
         public virtual ICollection<DistributorOrderedProduct> DistributorOrderedProduct { get; set; }
@@ -59,6 +62,7 @@ namespace MaxemusAPI.Models
         public virtual ICollection<InstallationDocumentVariants> InstallationDocumentVariants { get; set; }
         public virtual ICollection<NetworkVariants> NetworkVariants { get; set; }
         public virtual ICollection<ProductStock> ProductStock { get; set; }
-        public virtual ICollection<RedeemedProducts> RedeemedProducts { get; set; }
+        public virtual ICollection<UserManual> UserManual { get; set; }
+        public virtual ICollection<UserOrderedProduct> UserOrderedProduct { get; set; }
     }
 }

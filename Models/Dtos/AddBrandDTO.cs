@@ -29,4 +29,30 @@ namespace MaxemusAPI.Models
         public DateTime? ModifyDate { get; set; }
 
     }
+    public class AddOrUpdateRewardProductDTo
+    {
+        public int? RewardProductId { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; }
+        public double Mrp { get; set; }
+        public int? Stock { get; set; }
+        public bool? IsActive { get; set; }
+        public int NeededPointToRedeem { get; set; }
+        public DateTime ExpiryDate { get; set; }
+
+    }
+
+    public class RewardproductListDTO
+    {
+        public int? RewardProductId { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; }
+        public string? Image { get; set; }
+        public double Mrp { get; set; }
+        public int? Stock { get; set; }
+        public bool? IsActive { get; set; }
+        public int NeededPointToRedeem { get; set; }
+        public DateTime ExpiryDate { get; set; }
+
+    }
 }

@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
-
 
 namespace MaxemusAPI.Models
 {
-    public partial class SellingPoints
+    public partial class PointDetail
     {
-        public SellingPoints()
-        {
-            RedeemedProducts = new HashSet<RedeemedProducts>();
-        }
-
         public int PointId { get; set; }
         public string UserId { get; set; } = null!;
-        public int? SellingPoints1 { get; set; }
+        public double? Points { get; set; }
         public int? RedeemedPoints { get; set; }
         public string Status { get; set; } = null!;
         public DateTime CreateDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        public int? DealerProductId { get; set; }
 
-        public virtual ICollection<RedeemedProducts> RedeemedProducts { get; set; }
     }
 }

@@ -23,6 +23,10 @@ using MaxemusAPI.Repository;
 using System.Net.Http.Headers;
 using System.ComponentModel.DataAnnotations;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Drawing;
+using ZXing;
+using ZXing.Common;
+using Twilio.Rest.Trusthub.V1.TrustProducts;
 
 namespace MaxemusAPI.Controllers
 {
@@ -118,132 +122,101 @@ namespace MaxemusAPI.Controllers
             _context.Add(product);
             await _context.SaveChangesAsync();
 
+            var response = _mapper.Map<ProductResponsesDTO>(product);
 
-            CameraVariants cameraVariants = new CameraVariants();
-            foreach (var item in model.Camera)
+            if (model.Camera != null)
             {
+                CameraVariants cameraVariants = new CameraVariants();
                 cameraVariants.ProductId = product.ProductId;
-                cameraVariants.Appearance = item.Appearance;
-
-                _mapper.Map(item, cameraVariants);
+                _mapper.Map(model.Camera, cameraVariants);
                 _context.Add(cameraVariants);
                 await _context.SaveChangesAsync();
+                response.Camera = _mapper.Map<CameraVariantsDTO>(cameraVariants);
             }
 
-            var audioVariants = new AudioVariants();
-            foreach (var item in model.Audio)
+            if (model.Audio != null)
             {
+                var audioVariants = new AudioVariants();
                 audioVariants.ProductId = product.ProductId;
-                audioVariants.VariantId = cameraVariants.VariantId;
-
-                _mapper.Map(item, audioVariants);
+                _mapper.Map(model.Audio, audioVariants);
                 _context.Add(audioVariants);
                 await _context.SaveChangesAsync();
-
+                response.Camera = _mapper.Map<CameraVariantsDTO>(audioVariants);
             }
 
-            var certificationVariants = new CertificationVariants();
-            foreach (var item in model.Certification)
+            if (model.Certification != null)
             {
+                var certificationVariants = new CertificationVariants();
                 certificationVariants.ProductId = product.ProductId;
-                certificationVariants.VariantId = cameraVariants.VariantId;
-
-                _mapper.Map(item, certificationVariants);
+                _mapper.Map(model.Audio, certificationVariants);
                 _context.Add(certificationVariants);
                 await _context.SaveChangesAsync();
-
+                response.Certification = _mapper.Map<CertificationVariantsDTO>(certificationVariants);
             }
 
-            var environmentVariants = new EnvironmentVariants();
-            foreach (var item in model.Environment)
+            if (model.Environment != null)
             {
+                var environmentVariants = new EnvironmentVariants();
                 environmentVariants.ProductId = product.ProductId;
-                environmentVariants.VariantId = cameraVariants.VariantId;
-
-                _mapper.Map(item, environmentVariants);
+                _mapper.Map(model.Environment, environmentVariants);
                 await _context.SaveChangesAsync();
                 _context.Add(environmentVariants);
+                response.Environment = _mapper.Map<EnvironmentVariantsDTO>(environmentVariants);
             }
 
-            var generalVariants = new GeneralVariants();
-            foreach (var item in model.General)
+            if (model.General != null)
             {
+                var generalVariants = new GeneralVariants();
                 generalVariants.ProductId = product.ProductId;
-                generalVariants.VariantId = cameraVariants.VariantId;
-
-                _mapper.Map(item, generalVariants);
+                _mapper.Map(model.General, generalVariants);
                 await _context.SaveChangesAsync();
                 _context.Add(generalVariants);
+                response.General = _mapper.Map<GeneralVariantsDTO>(generalVariants);
+
             }
 
-            var lensVariants = new LensVariants();
-            foreach (var item in model.Lens)
+            if (model.Lens != null)
             {
-                lensVariants.VariantId = cameraVariants.VariantId;
-
-                _mapper.Map(item, lensVariants);
+                var lensVariants = new LensVariants();
+                lensVariants.ProductId = product.ProductId;
+                _mapper.Map(model.Lens, lensVariants);
                 await _context.SaveChangesAsync();
                 _context.Add(lensVariants);
+                response.Lens = _mapper.Map<LensVariantsDTO>(lensVariants);
 
             }
 
-            var networkVariants = new NetworkVariants();
-            foreach (var item in model.Network)
+            if (model.Network != null)
             {
+                var networkVariants = new NetworkVariants();
                 networkVariants.ProductId = product.ProductId;
-                networkVariants.VariantId = cameraVariants.VariantId;
-
-
-                _mapper.Map(item, networkVariants);
+                _mapper.Map(model.Network, networkVariants);
                 await _context.SaveChangesAsync();
                 _context.Add(networkVariants);
+                response.Network = _mapper.Map<NetworkVariantsDTO>(networkVariants);
             }
 
-            var powerVariants = new PowerVariants();
-            foreach (var item in model.Power)
+            if (model.Power != null)
             {
-                powerVariants.VariantId = cameraVariants.VariantId;
-
-
-                _mapper.Map(item, powerVariants);
+                var powerVariants = new PowerVariants();
+                powerVariants.ProductId = product.ProductId;
+                _mapper.Map(model.Power, powerVariants);
                 await _context.SaveChangesAsync();
                 _context.Add(powerVariants);
+                response.Power = _mapper.Map<PowerVariantsDTO>(powerVariants);
             }
 
-            var videoVariants = new VideoVariants();
-            foreach (var item in model.Video)
+            if (model.Video != null)
             {
-                videoVariants.VariantId = cameraVariants.VariantId;
-
-                _mapper.Map(item, videoVariants);
+                var videoVariants = new VideoVariants();
+                videoVariants.ProductId = product.ProductId;
+                _mapper.Map(model.Video, videoVariants);
                 await _context.SaveChangesAsync();
                 _context.Add(videoVariants);
+                response.Video = _mapper.Map<VideoVariantsDTO>(videoVariants);
             }
 
-
-            var accessoriesVariants = new AccessoriesVariants
-            {
-                ProductId = product.ProductId,
-            };
-            _mapper.Map(model, accessoriesVariants);
-            _context.Add(accessoriesVariants);
-            await _context.SaveChangesAsync();
-
-            var response = _mapper.Map<ProductResponsesDTO>(product);
             response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
-            response.VariantId = cameraVariants.VariantId;
-            response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
-            response.Audio = _mapper.Map<AudioVariantsDTO>(model.Audio.FirstOrDefault());
-            response.Camera = _mapper.Map<CameraVariantsDTO>(model.Camera.FirstOrDefault());
-            response.Certification = _mapper.Map<CertificationVariantsDTO>(model.Certification.FirstOrDefault());
-            response.Environment = _mapper.Map<EnvironmentVariantsDTO>(model.Environment.FirstOrDefault());
-            response.General = _mapper.Map<GeneralVariantsDTO>(model.General.FirstOrDefault());
-
-            response.Lens = _mapper.Map<LensVariantsDTO>(model.Lens.FirstOrDefault());
-            response.Network = _mapper.Map<NetworkVariantsDTO>(model.Network.FirstOrDefault());
-            response.Power = _mapper.Map<PowerVariantsDTO>(model.Power.FirstOrDefault());
-            response.Video = _mapper.Map<VideoVariantsDTO>(model.Video.FirstOrDefault());
-
 
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
@@ -251,125 +224,6 @@ namespace MaxemusAPI.Controllers
             _response.Messages = "Product added successfully.";
 
             return Ok(_response);
-
-
-        }
-        #endregion
-
-        #region AddProductToStock
-        /// <summary>
-        ///  AddProductToStock. 
-        /// </summary>
-        [HttpPost("AddProductToStock")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
-        public async Task<IActionResult> AddProductToStock([FromForm] AddQR model)
-        {
-            string currentUserId = (HttpContext.User.Claims.First().Value);
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "Token expired.";
-                return Ok(_response);
-            }
-
-            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
-            if (existingUser == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "not found any user.";
-                return Ok(_response);
-            }
-
-            var existingProduct = await _context.Product.Where(u => u.ProductId == model.ProductId && u.IsDeleted != true).FirstOrDefaultAsync();
-            if (existingProduct == null)
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = false;
-                _response.Messages = "not found any product.";
-                return Ok(_response);
-            }
-
-            var existingProductStock = await _context.ProductStock
-                .Where(ps => ps.ProductId == model.ProductId && ps.SerialNumber == model.SerialNumber)
-                .FirstOrDefaultAsync();
-            model.SerialNumber = model.SerialNumber.ToUpper();
-            int rewardPoint = 0;
-
-            if (existingProductStock == null)
-            {
-                string input = model.SerialNumber; // Change this to your input string
-                if (input.Length >= 2 && Char.IsLetter(input[0]) && Char.IsLetter(input[1]))
-                {
-                    char first = Char.ToUpper(input[0]);
-                    char second = Char.ToUpper(input[1]);
-
-                    if (first <= 'J' && second <= 'J')
-                    {
-                        int firstValue = first - 'A';
-                        int secondValue = second - 'A';
-
-                        string result = String.Format("{0:D2}", firstValue * 10 + secondValue);
-                        rewardPoint = Convert.ToInt32(result);
-                    }
-                    else
-                    {
-                        _response.StatusCode = HttpStatusCode.OK;
-                        _response.IsSuccess = false;
-                        _response.Messages = "The first two letters should be between A and J..";
-                        return Ok(_response);
-                    }
-                }
-                else
-                {
-                    _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Input should contain at least two alphabetical characters.";
-                    return Ok(_response);
-                }
-
-                var qrcodeFileName = ContentDispositionHeaderValue.Parse(model.Qrcode.ContentDisposition).FileName.Trim('"');
-                qrcodeFileName = CommonMethod.EnsureCorrectFilename(qrcodeFileName);
-                qrcodeFileName = CommonMethod.RenameFileName(qrcodeFileName);
-
-                var qrcodePath = qrCodeContainer + qrcodeFileName;
-
-                existingProductStock.ModifyDate = DateTime.UtcNow;
-                existingProductStock.Qrcode = qrcodePath;
-
-                _context.ProductStock.Update(existingProductStock);
-                await _context.SaveChangesAsync();
-
-                bool uploadStatus = await _uploadRepository.UploadFilesToServer(
-                    model.Qrcode,
-                    qrCodeContainer,
-                    qrcodeFileName
-                );
-
-                var responseDTO = _mapper.Map<ProductStockResponseDTO>(existingProductStock);
-                responseDTO.modifyDate = existingProductStock.ModifyDate.ToString();
-                responseDTO.createDate = existingProductStock.CreateDate.ToShortDateString();
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Data = responseDTO;
-                _response.Messages = "Product stock updated successfully.";
-
-                return Ok(_response);
-            }
-            else
-            {
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Messages = "Already added.";
-
-                return Ok(_response);
-            }
-
-
         }
         #endregion
 
@@ -397,7 +251,7 @@ namespace MaxemusAPI.Controllers
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
-                _response.Messages = "not found any user.";
+                _response.Messages = "Not found any user.";
                 return Ok(_response);
             }
 
@@ -406,7 +260,7 @@ namespace MaxemusAPI.Controllers
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
-                _response.Messages = "mainCategory not found.";
+                _response.Messages = "Category not found.";
                 return Ok(_response);
             }
             var subCategory = await _context.SubCategory.FindAsync(model.SubCategoryId);
@@ -414,7 +268,7 @@ namespace MaxemusAPI.Controllers
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
-                _response.Messages = "subCategory not found.";
+                _response.Messages = "Category not found.";
                 return Ok(_response);
             }
             var brand = await _context.Brand.FindAsync(model.BrandId);
@@ -422,7 +276,7 @@ namespace MaxemusAPI.Controllers
             {
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = false;
-                _response.Messages = "brand not found.";
+                _response.Messages = "Brand not found.";
                 return Ok(_response);
             }
 
@@ -443,9 +297,18 @@ namespace MaxemusAPI.Controllers
             var cameraVariants = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (cameraVariants != null)
             {
-                _mapper.Map(model.Camera, cameraVariants);
-                _context.Update(cameraVariants);
+                if (model.Camera != null)
+                {
+                    _mapper.Map(model.Camera, cameraVariants);
+                    _context.Update(cameraVariants);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    _context.Remove(cameraVariants);
+                }
                 await _context.SaveChangesAsync();
+
             }
             else
             {
@@ -457,8 +320,15 @@ namespace MaxemusAPI.Controllers
             var audioVariants = await _context.AudioVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (audioVariants != null)
             {
-                _mapper.Map(model.Audio, audioVariants);
-                _context.Update(audioVariants);
+                if (model.Audio != null)
+                {
+                    _mapper.Map(model.Audio, audioVariants);
+                    _context.Update(audioVariants);
+                }
+                else
+                {
+                    _context.Remove(audioVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -472,8 +342,15 @@ namespace MaxemusAPI.Controllers
             if (certificationVariants != null)
             {
 
-                _mapper.Map(model.Certification, certificationVariants);
-                _context.Update(certificationVariants);
+                if (model.Certification != null)
+                {
+                    _mapper.Map(model.Certification, certificationVariants);
+                    _context.Update(certificationVariants);
+                }
+                else
+                {
+                    _context.Remove(certificationVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -486,8 +363,15 @@ namespace MaxemusAPI.Controllers
             var environmentVariants = await _context.EnvironmentVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (environmentVariants != null)
             {
-                _mapper.Map(model.Environment, environmentVariants);
-                _context.Update(environmentVariants);
+                if (model.Environment != null)
+                {
+                    _mapper.Map(model.Environment, environmentVariants);
+                    _context.Update(environmentVariants);
+                }
+                else
+                {
+                    _context.Remove(environmentVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -500,8 +384,15 @@ namespace MaxemusAPI.Controllers
             var generalVariants = await _context.GeneralVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (generalVariants != null)
             {
-                _mapper.Map(model.General, generalVariants);
-                _context.Update(generalVariants);
+                if (model.General != null)
+                {
+                    _mapper.Map(model.General, generalVariants);
+                    _context.Update(generalVariants);
+                }
+                else
+                {
+                    _context.Remove(generalVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -511,11 +402,18 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-            var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.ProductId == cameraVariants.VariantId);
             if (lensVariants != null)
             {
-                _mapper.Map(model.Lens, lensVariants);
-                _context.Update(lensVariants);
+                if (model.Lens != null)
+                {
+                    _mapper.Map(model.Lens, lensVariants);
+                    _context.Update(lensVariants);
+                }
+                else
+                {
+                    _context.Remove(lensVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -528,8 +426,15 @@ namespace MaxemusAPI.Controllers
             var networkVariants = await _context.NetworkVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
             if (networkVariants != null)
             {
-                _mapper.Map(model.Network, networkVariants);
-                _context.Update(networkVariants);
+                if (model.Network != null)
+                {
+                    _mapper.Map(model.Network, networkVariants);
+                    _context.Update(networkVariants);
+                }
+                else
+                {
+                    _context.Remove(networkVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -539,11 +444,18 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-            var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.ProductId == cameraVariants.VariantId);
             if (powerVariants != null)
             {
-                _mapper.Map(model.Power, powerVariants);
-                _context.Update(powerVariants);
+                if (model.Power != null)
+                {
+                    _mapper.Map(model.Power, powerVariants);
+                    _context.Update(powerVariants);
+                }
+                else
+                {
+                    _context.Remove(powerVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -553,11 +465,18 @@ namespace MaxemusAPI.Controllers
                 _response.Messages = ResponseMessages.msgNotFound + "record.";
                 return Ok(_response);
             }
-            var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.ProductId == cameraVariants.VariantId);
             if (videoVariants != null)
             {
-                _mapper.Map(model.Video, videoVariants);
-                _context.Update(videoVariants);
+                if (model.Video != null)
+                {
+                    _mapper.Map(model.Video, videoVariants);
+                    _context.Update(videoVariants);
+                }
+                else
+                {
+                    _context.Remove(videoVariants);
+                }
                 await _context.SaveChangesAsync();
             }
             else
@@ -573,8 +492,6 @@ namespace MaxemusAPI.Controllers
             _response.Data = model;
             _response.Messages = "Product Updated successfully.";
             return Ok(_response);
-
-
         }
         #endregion
 
@@ -608,6 +525,18 @@ namespace MaxemusAPI.Controllers
             }
             var roles = await _userManager.GetRolesAsync(currentUserDetail);
 
+            if (roles.FirstOrDefault() == "Distributor")
+            {
+                var distributor = _context.DistributorDetail.Where(u => u.UserId == currentUserId).FirstOrDefault();
+                if (distributor.Status != Status.Approved.ToString())
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Distributor is not approved.";
+                    return Ok(_response);
+                }
+            }
+
             var query = from t1 in _context.Product
                         where !t1.IsDeleted
                         orderby t1.CreateDate descending
@@ -628,10 +557,13 @@ namespace MaxemusAPI.Controllers
                             Description = t1.Description,
                             Image1 = t1.Image1,
                             IsActive = t1.IsActive,
-                            TotalMrp = (roles.FirstOrDefault() != "Dealer" ? t1.TotalMrp : 0),
-                            Discount = (roles.FirstOrDefault() != "Dealer" ? t1.Discount : 0),
-                            DiscountType = (roles.FirstOrDefault() != "Dealer" ? t1.DiscountType : 0),
-                            SellingPrice = (roles.FirstOrDefault() != "Dealer" ? t1.SellingPrice : 0),
+                            TotalMrp = t1.TotalMrp,
+                            Discount = (roles.FirstOrDefault() == "Dealer" || roles.FirstOrDefault() == "Admin" ? t1.Discount : t1.DistributorDiscount),
+                            DiscountType = (roles.FirstOrDefault() == "Dealer" || roles.FirstOrDefault() == "Admin" ? t1.DiscountType : t1.DistributorDiscountType),
+                            SellingPrice = (roles.FirstOrDefault() == "Dealer" || roles.FirstOrDefault() == "Admin" ? t1.SellingPrice : t1.DistributorSellingPrice),
+                            DistributorDiscount = (roles.FirstOrDefault() == "Admin" ? t1.DistributorDiscount : 0),
+                            DistributorDiscountType = (roles.FirstOrDefault() == "Admin" ? t1.DistributorDiscountType : 0),
+                            DistributorSellingPrice = (roles.FirstOrDefault() == "Admin" ? t1.DistributorSellingPrice : 0),
                             RewardPoint = _context.ProductStock.Where(u => u.ProductId == t1.ProductId).FirstOrDefault().RewardPoint,
                             InStock = _context.ProductStock.Where(u => u.ProductId == t1.ProductId).ToList().Count,
                             CreateDate = t1.CreateDate.ToShortDateString()
@@ -706,7 +638,7 @@ namespace MaxemusAPI.Controllers
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Data = obj;
-            _response.Messages = "Item" + ResponseMessages.msgListFoundSuccess;
+            _response.Messages = "Product" + ResponseMessages.msgListFoundSuccess;
             return Ok(_response);
         }
         #endregion
@@ -761,20 +693,29 @@ namespace MaxemusAPI.Controllers
 
             var generalVariants = await _context.GeneralVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
 
-            var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            var lensVariants = await _context.LensVariants.FirstOrDefaultAsync(u => u.VariantId == productId);
 
             var networkVariants = await _context.NetworkVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
 
-            var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            var powerVariants = await _context.PowerVariants.FirstOrDefaultAsync(u => u.VariantId == productId);
 
-            var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == cameraVariants.VariantId);
+            var videoVariants = await _context.VideoVariants.FirstOrDefaultAsync(u => u.VariantId == productId);
 
-            var accessoriesVariants = await _context.AccessoriesVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+            // var accessoriesVariants = await _context.AccessoriesVariants.FirstOrDefaultAsync(u => u.ProductId == productId);
+
+            var userMannual = await _context.UserManual.Where(u => u.ProductId == productId).ToListAsync();
+
+            var installationDocumentVariants = await _context.InstallationDocumentVariants.Where(u => u.ProductId == productId).ToListAsync();
 
             var response = _mapper.Map<ProductResponsesDTO>(product);
             response.CreateDate = product.CreateDate.ToString("dd-MM-yyyy");
-            response.VariantId = cameraVariants.VariantId;
 
+            response.Discount = (roles.FirstOrDefault() == "Dealer" || roles.FirstOrDefault() == "Admin" ? response.Discount : response.DistributorDiscount);
+            response.DiscountType = (roles.FirstOrDefault() == "Dealer" || roles.FirstOrDefault() == "Admin" ? response.DiscountType : response.DistributorDiscountType);
+            response.SellingPrice = (roles.FirstOrDefault() == "Dealer" || roles.FirstOrDefault() == "Admin" ? response.SellingPrice : response.DistributorSellingPrice);
+            response.DistributorDiscount = (roles.FirstOrDefault() == "Admin" ? response.DistributorDiscount : 0);
+            response.DistributorDiscountType = (roles.FirstOrDefault() == "Admin" ? response.DistributorDiscountType : 0);
+            response.DistributorSellingPrice = (roles.FirstOrDefault() == "Admin" ? response.DistributorSellingPrice : 0);
 
             var productImageList = new List<ProductImageDTO>();
             if (!string.IsNullOrEmpty(product.Image1))
@@ -807,9 +748,10 @@ namespace MaxemusAPI.Controllers
                 productImage.productImage = product.Image5;
                 productImageList.Add(productImage);
             }
-            response.RewardPoint = _context.ProductStock.Where(u => u.ProductId == product.ProductId).FirstOrDefault().RewardPoint;
+            var rewardPoint = _context.ProductStock.Where(u => u.ProductId == product.ProductId).FirstOrDefault();
+            response.RewardPoint = rewardPoint != null ? rewardPoint.RewardPoint : 0;
             response.ProductImage = productImageList;
-            response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
+            // response.Accessories = _mapper.Map<AccessoriesVariantsDTO>(accessoriesVariants);
             response.Audio = _mapper.Map<AudioVariantsDTO>(audioVariants);
             response.Camera = _mapper.Map<CameraVariantsDTO>(cameraVariants);
             response.Certification = _mapper.Map<CertificationVariantsDTO>(certificationVariants);
@@ -819,13 +761,24 @@ namespace MaxemusAPI.Controllers
             response.Network = _mapper.Map<NetworkVariantsDTO>(networkVariants);
             response.Power = _mapper.Map<PowerVariantsDTO>(powerVariants);
             response.Video = _mapper.Map<VideoVariantsDTO>(videoVariants);
+            response.installationDocument = _mapper.Map<List<InstallationDocumentDTO>>(installationDocumentVariants);
+            response.userMannual = _mapper.Map<List<UserMannualDTO>>(userMannual);
 
-            if (roles.FirstOrDefault() == "Dealer")
+            if (roles.FirstOrDefault() == "Distributor")
             {
                 response.TotalMrp = 0;
-                response.Discount = 0;
-                response.DiscountType = 0;
-                response.SellingPrice = 0;
+                response.Discount = response.DistributorDiscount;
+                response.DiscountType = response.DistributorDiscountType;
+                response.SellingPrice = response.DistributorSellingPrice;
+                response.DistributorDiscount = 0;
+                response.DistributorDiscountType = 0;
+                response.DistributorSellingPrice = 0;
+            }
+            if (roles.FirstOrDefault() == "Dealer")
+            {
+                response.DistributorDiscount = 0;
+                response.DistributorDiscountType = 0;
+                response.DistributorSellingPrice = 0;
             }
 
             _response.StatusCode = HttpStatusCode.OK;
@@ -858,6 +811,18 @@ namespace MaxemusAPI.Controllers
 
             var product = await _context.Product
                 .FirstOrDefaultAsync(u => u.ProductId == productId && !u.IsDeleted);
+            if (product == null)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return NotFound(_response);
+            }
+            var cart = await _context.CartDetail
+                .Where(u => u.ProductId == productId).ToListAsync();
+
+            _context.RemoveRange(cart);
+            await _context.SaveChangesAsync();
 
             if (product == null)
             {
@@ -912,7 +877,6 @@ namespace MaxemusAPI.Controllers
 
 
             var product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.productId && u.IsDeleted == false);
-
             if (product == null)
             {
                 _response.StatusCode = HttpStatusCode.OK;
@@ -921,7 +885,7 @@ namespace MaxemusAPI.Controllers
                 return Ok(_response);
             }
 
-            product.IsActive = model.status;
+            product.IsActive = model.IsActive;
 
             _context.Update(product);
             await _context.SaveChangesAsync();
@@ -932,9 +896,645 @@ namespace MaxemusAPI.Controllers
 
             return Ok(_response);
         }
-
         #endregion
 
+        #region AddProductSerialNo
+        /// <summary>
+        ///  AddProductSerialNo. 
+        /// </summary>
+        [HttpPost("AddProductSerialNo")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> AddProductSerialNo(AddProductQRAndSerialDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
 
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+
+            var existingProduct = await _context.Product.Where(u => u.ProductId == model.ProductId && u.IsDeleted != true).FirstOrDefaultAsync();
+            if (existingProduct == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any product.";
+                return Ok(_response);
+            }
+
+            var existingProductStock = await _context.ProductStock
+                .Where(ps => ps.SerialNumber == model.SerialNumber)
+                .FirstOrDefaultAsync();
+            model.SerialNumber = model.SerialNumber.ToUpper();
+            int rewardPoint = 0;
+
+            if (existingProductStock == null)
+            {
+                existingProductStock = new ProductStock();
+                ProductStock productStock = new ProductStock();
+                string input = model.SerialNumber; // Change this to your input string
+                if (input.Length >= 2 && Char.IsLetter(input[0]) && Char.IsLetter(input[1]))
+                {
+                    char first = Char.ToUpper(input[0]);
+                    char second = Char.ToUpper(input[1]);
+
+                    if (first <= 'J' && second <= 'J')
+                    {
+                        int firstValue = first - 'A';
+                        int secondValue = second - 'A';
+
+                        string result = String.Format("{0:D2}", firstValue * 10 + secondValue);
+                        rewardPoint = Convert.ToInt32(result);
+                    }
+                    else
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "The first two letters should be between A and J..";
+                        return Ok(_response);
+                    }
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Input should contain at least two alphabetical characters.";
+                    return Ok(_response);
+                }
+
+                productStock.ProductId = model.ProductId;
+                productStock.SerialNumber = model.SerialNumber;
+                productStock.RewardPoint = rewardPoint;
+                productStock.Status = SerialNumberStatus.Active.ToString();
+                await _context.AddAsync(productStock);
+                await _context.SaveChangesAsync();
+
+                var responseDTO = _mapper.Map<ProductStockResponseDTO>(productStock);
+                responseDTO.modifyDate = existingProductStock.ModifyDate.ToString();
+                responseDTO.createDate = existingProductStock.CreateDate.ToShortDateString();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = responseDTO;
+                _response.Messages = "Product serial number added successfully.";
+
+                return Ok(_response);
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "This serial number is already added.";
+
+                return Ok(_response);
+            }
+
+
+        }
+        #endregion
+
+        #region UpdateProductSerialNo
+        /// <summary>
+        ///  UpdateProductSerialNo. 
+        /// </summary>
+        [HttpPost("UpdateProductSerialNo")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> UpdateProductSerialNo(UpdateProductQRAndSerialDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+
+            var existingProduct = await _context.Product.Where(u => u.ProductId == model.ProductId && u.IsDeleted != true).FirstOrDefaultAsync();
+            if (existingProduct == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any product.";
+                return Ok(_response);
+            }
+
+            var existingProductStock = await _context.ProductStock
+                .Where(ps => ps.SerialNumber == model.SerialNumber && ps.ProductStockId != model.ProductStockId)
+                .FirstOrDefaultAsync();
+
+            var productStock = await _context.ProductStock.Where(ps => ps.ProductStockId != model.ProductStockId).FirstOrDefaultAsync();
+
+            model.SerialNumber = model.SerialNumber.ToUpper();
+            int rewardPoint = 0;
+
+            if (existingProductStock == null && productStock != null)
+            {
+                string input = model.SerialNumber; // Change this to your input string
+                if (input.Length >= 2 && Char.IsLetter(input[0]) && Char.IsLetter(input[1]))
+                {
+                    char first = Char.ToUpper(input[0]);
+                    char second = Char.ToUpper(input[1]);
+
+                    if (first <= 'J' && second <= 'J')
+                    {
+                        int firstValue = first - 'A';
+                        int secondValue = second - 'A';
+
+                        string result = String.Format("{0:D2}", firstValue * 10 + secondValue);
+                        rewardPoint = Convert.ToInt32(result);
+                    }
+                    else
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "The first two letters should be between A and J..";
+                        return Ok(_response);
+                    }
+                }
+                else
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Input should contain at least two alphabetical characters.";
+                    return Ok(_response);
+                }
+
+                productStock.ProductId = model.ProductId;
+                productStock.SerialNumber = model.SerialNumber;
+                productStock.RewardPoint = rewardPoint;
+                productStock.Status = model.Status;
+
+                _context.Update(productStock);
+                await _context.SaveChangesAsync();
+
+                var responseDTO = _mapper.Map<ProductStockResponseDTO>(productStock);
+                responseDTO.modifyDate = existingProductStock.ModifyDate.ToString();
+                responseDTO.createDate = existingProductStock.CreateDate.ToShortDateString();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = responseDTO;
+                _response.Messages = "Product serial number updated successfully.";
+
+                return Ok(_response);
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "This serial number added with another product.";
+
+                return Ok(_response);
+            }
+
+
+        }
+        #endregion
+
+        #region GetProductSerialNumberList
+        /// <summary>
+        ///  GetProductQRAndSerialList. 
+        /// </summary>
+        [HttpGet("GetProductSerialNumberList")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> GetProductSerialNumberList(int productId, string? status)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+
+            var existingProduct = await _context.Product.Where(u => u.ProductId == productId && u.IsDeleted != true).FirstOrDefaultAsync();
+            if (existingProduct == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any product.";
+                return Ok(_response);
+            }
+
+            var productStockList = await _context.ProductStock.Where(ps => ps.ProductId == productId && ps.Status == SerialNumberStatus.Active.ToString()).ToListAsync();
+
+            var responseDTO = productStockList
+                .Select(p => new ProductStockResponseDTO
+                {
+                    productStockId = p.ProductStockId,
+                    productId = p.ProductId,
+                    serialNumber = p.SerialNumber,
+                    createDate = p.CreateDate.ToString(DefaultDateFormat),
+                    status = p.Status,
+                })
+                .ToList();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status != SerialNumberStatus.Active.ToString() && status != SerialNumberStatus.Scanned.ToString())
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Please enter valid status.";
+                    return Ok(_response);
+                }
+                responseDTO = responseDTO.Where(u => u.status == status).ToList();
+            }
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = responseDTO;
+            _response.Messages = "List shown successfully.";
+
+            return Ok(_response);
+        }
+        #endregion
+
+        #region RedeemProduct
+        /// <summary>
+        ///  RedeemProduct.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize(Roles = "Dealer,Distributor")]
+        [Route("RedeemProduct")]
+        public async Task<IActionResult> RedeemProduct(RedeemProductRequestDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+            var currentUserDetail = _userManager.FindByIdAsync(currentUserId).GetAwaiter().GetResult();
+            if (currentUserDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgUserNotFound;
+                return Ok(_response);
+            }
+
+            var rewardProductDetail = _context.RewardProduct.Where(u => u.RewardProductId == model.rewardProductId).FirstOrDefault();
+            if (rewardProductDetail == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+            else
+            {
+                if (rewardProductDetail.Stock < model.productCount)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Stock is unavailable.";
+                    return Ok(_response);
+                }
+            }
+
+            var redeemProduct = new RedeemedProducts();
+
+            var roles = await _userManager.GetRolesAsync(currentUserDetail);
+            var roleName = roles.FirstOrDefault();
+            if (roleName == "Dealer")
+            {
+                var dealerDetail = await _context.DealerDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
+                var poitDetail = _context.Points.Where(u => u.UserId == dealerDetail.UserId).FirstOrDefault();
+
+                if (poitDetail == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Not enough points to redeem.";
+                    return Ok(_response);
+                }
+
+                if (poitDetail.ActivePoints < (rewardProductDetail.NeededPointToRedeem * model.productCount))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Not enough points to redeem.";
+                    return Ok(_response);
+                }
+                redeemProduct.RewardProductId = model.rewardProductId;
+                redeemProduct.ProductCount = model.productCount;
+                redeemProduct.Status = Status.Pending.ToString();
+                redeemProduct.UserId = dealerDetail.UserId;
+                redeemProduct.ReedemedPoint = rewardProductDetail.NeededPointToRedeem * model.productCount;
+
+                poitDetail.ActivePoints = poitDetail.ActivePoints - (rewardProductDetail.NeededPointToRedeem * model.productCount);
+                poitDetail.RedeemedPoints = poitDetail.RedeemedPoints + (rewardProductDetail.NeededPointToRedeem * model.productCount);
+
+                _context.AddAsync(redeemProduct);
+                _context.SaveChanges();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Product redeemed successfully.";
+                return Ok(_response);
+            }
+            else if (roleName == "Distributor")
+            {
+                var distributorDetail = await _context.DistributorDetail.FirstOrDefaultAsync(u => u.UserId == currentUserId);
+                var poitDetail = _context.Points.Where(u => u.UserId == distributorDetail.UserId).FirstOrDefault();
+
+                if (poitDetail.ActivePoints < (rewardProductDetail.NeededPointToRedeem * model.productCount))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Not enough points to redeem.";
+                    return Ok(_response);
+                }
+                redeemProduct.RewardProductId = model.rewardProductId;
+                redeemProduct.ProductCount = model.productCount;
+                redeemProduct.Status = Status.Pending.ToString();
+                redeemProduct.UserId = distributorDetail.UserId;
+                redeemProduct.ReedemedPoint = rewardProductDetail.NeededPointToRedeem * model.productCount;
+
+                poitDetail.ActivePoints = poitDetail.ActivePoints - (rewardProductDetail.NeededPointToRedeem * model.productCount);
+                poitDetail.RedeemedPoints = poitDetail.RedeemedPoints + (rewardProductDetail.NeededPointToRedeem * model.productCount);
+
+                _context.AddAsync(redeemProduct);
+                _context.SaveChanges();
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Product redeemed successfully.";
+                return Ok(_response);
+            }
+            else
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = ResponseMessages.msgNotFound + "record.";
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region GetRedeemProductList
+        /// <summary>
+        ///  GetRedeemProductList. 
+        /// </summary>
+        [HttpGet("GetRedeemProductList")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> GetRedeemProductList(int? dealerId, int? distributorId, string? status)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+
+            var roles = await _userManager.GetRolesAsync(existingUser);
+            var roleName = roles.FirstOrDefault();
+            string userId = "";
+
+            DealerDetail? dealerDetail = null;
+            DistributorDetail? distributorDetail = null;
+            List<RedeemedProductDTO>? redeemedProducts = null;
+
+            if (roleName != "Dealer" && roleName != "Distributor")
+            {
+                if (dealerId == null && distributorId == null)
+                {
+                    redeemedProducts = (from rp in _context.RedeemedProducts
+                                        join rewardProduct in _context.RewardProduct on rp.RewardProductId equals rewardProduct.RewardProductId
+                                        select new RedeemedProductDTO
+                                        {
+                                            RewardProductId = rp.RewardProductId,
+                                            Name = rewardProduct.Name,
+                                            Description = rewardProduct.Description,
+                                            Image = rewardProduct.Image,
+                                            productCount = (int)rp.ProductCount,
+                                            MRP = (float)rewardProduct.Mrp,
+                                            NeededPointToRedeem = rewardProduct.NeededPointToRedeem,
+                                            status = rp.Status,
+                                            redeemedDate = rp.CreateDate.ToString(DefaultDateFormat),
+                                            ReedemProductId = rp.ReedemProductId // Assuming redeemedDate is a DateTime
+                                        }).ToList();
+
+                    if (!string.IsNullOrEmpty(status))
+                    {
+                        redeemedProducts = redeemedProducts.Where(u => u.status == status).ToList();
+                    }
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = redeemedProducts;
+                    _response.Messages = "List shown successfully.";
+
+                    return Ok(_response);
+                }
+                else
+                {
+                    if (dealerId != null)
+                    {
+                        dealerDetail = _context.DealerDetail.Where(u => u.DealerId == dealerId).FirstOrDefault();
+                        if (dealerDetail == null)
+                        {
+                            _response.StatusCode = HttpStatusCode.OK;
+                            _response.IsSuccess = false;
+                            _response.Messages = "Not found any record.";
+                            return Ok(_response);
+                        }
+                        dealerId = dealerDetail.DealerId;
+                        userId = dealerDetail.UserId;
+                    }
+                    else
+                    {
+                        distributorDetail = _context.DistributorDetail.Where(u => u.DistributorId == distributorId).FirstOrDefault();
+                        if (dealerDetail == null)
+                        {
+                            _response.StatusCode = HttpStatusCode.OK;
+                            _response.IsSuccess = false;
+                            _response.Messages = "Not found any record.";
+                            return Ok(_response);
+                        }
+                        distributorId = distributorDetail.DistributorId;
+                        userId = distributorDetail.UserId;
+                    }
+                }
+            }
+            else
+            {
+                if (roleName == "Dealer")
+                {
+                    dealerDetail = _context.DealerDetail.Where(u => u.UserId == currentUserId).FirstOrDefault();
+                    dealerId = dealerDetail.DealerId;
+                    userId = dealerDetail.UserId;
+                }
+                else
+                {
+                    distributorDetail = _context.DistributorDetail.Where(u => u.UserId == currentUserId).FirstOrDefault();
+                    distributorId = distributorDetail.DistributorId;
+                    userId = distributorDetail.UserId;
+                }
+            }
+
+            var redeem = new RedeemedProductDTO();
+
+            // Assuming _context is your database context
+
+            // LINQ query to retrieve RedeemedProducts for a specific UserId
+            redeemedProducts = (from rp in _context.RedeemedProducts
+                                join rewardProduct in _context.RewardProduct on rp.RewardProductId equals rewardProduct.RewardProductId
+                                where rp.UserId == userId
+                                select new RedeemedProductDTO
+                                {
+                                    RewardProductId = rp.RewardProductId,
+                                    Name = rewardProduct.Name,
+                                    Description = rewardProduct.Description,
+                                    Image = rewardProduct.Image,
+                                    productCount = (int)rp.ProductCount,
+                                    MRP = (float)rewardProduct.Mrp,
+                                    NeededPointToRedeem = rewardProduct.NeededPointToRedeem,
+                                    status = rp.Status,
+                                    redeemedDate = rp.CreateDate.ToString(DefaultDateFormat),
+                                    ReedemProductId = rp.ReedemProductId // Assuming redeemedDate is a DateTime
+                                }).ToList();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                redeemedProducts = redeemedProducts.Where(u => u.status == status).ToList();
+            }
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            _response.Data = redeemedProducts;
+            _response.Messages = "List shown successfully.";
+
+            return Ok(_response);
+        }
+        #endregion
+
+        #region SetRedeemProductStatus
+        /// <summary>
+        ///  Set Redeem Product Status. 
+        /// </summary>
+        [HttpPost("SetRedeemProductStatus")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> SetRedeemProductStatus(RedeemedProductStatusDTO model)
+        {
+            string currentUserId = (HttpContext.User.Claims.First().Value);
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Token expired.";
+                return Ok(_response);
+            }
+
+            var existingUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (existingUser == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any user.";
+                return Ok(_response);
+            }
+
+            if (model.status != "Approved" && model.status != "Rejected" && model.status != "Pending")
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "Please enter valid status.";
+                return Ok(_response);
+            }
+            var redeemedProducts = await _context.RedeemedProducts.Where(u => u.ReedemProductId == model.ReedemProductId).FirstOrDefaultAsync();
+            if (redeemedProducts == null)
+            {
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = false;
+                _response.Messages = "not found any product.";
+                return Ok(_response);
+            }
+            else
+            {
+                redeemedProducts.Status = model.status;
+                if (model.status == "Rejected")
+                {
+                    var point = await _context.Points.Where(u => u.UserId == redeemedProducts.UserId).FirstOrDefaultAsync();
+                    if (point != null)
+                    {
+                        var rewardProduct = await _context.RewardProduct.Where(u => u.RewardProductId == redeemedProducts.RewardProductId).FirstOrDefaultAsync();
+
+                        if (rewardProduct != null)
+                        {
+                            point.ActivePoints = point.ActivePoints + rewardProduct.NeededPointToRedeem * redeemedProducts.ProductCount;
+
+                            point.RedeemedPoints = point.RedeemedPoints - rewardProduct.NeededPointToRedeem * redeemedProducts.ProductCount;
+                        }
+                    }
+                }
+                _context.Update(redeemedProducts);
+                _context.SaveChangesAsync();
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Messages = "Staus updated successfully.";
+                return Ok(_response);
+            }
+
+        }
+        #endregion
     }
 }

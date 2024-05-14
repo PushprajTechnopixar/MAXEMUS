@@ -143,8 +143,8 @@ namespace MaxemusAPI.Repository
                 FirstName = registerationRequestDTO.firstName,
                 LastName = registerationRequestDTO.lastName,
                 PhoneNumber = registerationRequestDTO.phoneNumber,
-                // CountryId = (int)registerationRequestDTO.countryId,
-                // StateId = (int)registerationRequestDTO.stateId,
+                CountryId = (registerationRequestDTO.countryId == 0 ? null : registerationRequestDTO.countryId),
+                StateId = (registerationRequestDTO.stateId == 0 ? null : registerationRequestDTO.stateId),
                 City = registerationRequestDTO.City,
                 PostalCode = registerationRequestDTO.PostalCode,
                 Gender = registerationRequestDTO.gender,
@@ -173,12 +173,27 @@ namespace MaxemusAPI.Repository
                             Name = " ",
                             RegistrationNumber = " ",
                             Status = Status.Incomplete.ToString(),
-                            UserId = userToReturn.Id
+                            UserId = userToReturn.Id,
+                            DistributorCode = CommonMethod.RandomString(6),
                         };
 
                         await _context.AddAsync(distributor);
                         var d = await _context.SaveChangesAsync();
                     }
+                    if (registerationRequestDTO.role == Role.Dealer.ToString())
+                    {
+                        var dealerDetail = new DealerDetail
+                        {
+                            DistributorCode = registerationRequestDTO.distributorCode,
+                            DistributorId = _context.DistributorDetail.Where(u => u.DistributorCode == registerationRequestDTO.distributorCode).FirstOrDefault().DistributorId,
+                            Status = Status.Pending.ToString(),
+                            UserId = userToReturn.Id,
+                        };
+
+                        await _context.AddAsync(dealerDetail);
+                        await _context.SaveChangesAsync();
+                    }
+
                     LoginRequestDTO loginRequestDTO = new LoginRequestDTO();
                     loginRequestDTO.emailOrPhone = registerationRequestDTO.email;
                     loginRequestDTO.password = registerationRequestDTO.password;

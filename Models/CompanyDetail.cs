@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using MaxemusAPI;
-using MaxemusAPI.Models;
 
 namespace MaxemusAPI.Models
 {
@@ -12,9 +10,14 @@ namespace MaxemusAPI.Models
         public string CompanyName { get; set; } = null!;
         public string? RegistrationNumber { get; set; }
         public string? Image { get; set; }
+        public string? Timing { get; set; }
+        public string? TwitterLink { get; set; }
+        public string? FacebookLink { get; set; }
+        public string? InstagramLink { get; set; }
         public int CountryId { get; set; }
         public int StateId { get; set; }
         public string? City { get; set; }
+        public string? BuildingNameOrNumber { get; set; }
         public string? StreetAddress { get; set; }
         public string? Landmark { get; set; }
         public string? PostalCode { get; set; }

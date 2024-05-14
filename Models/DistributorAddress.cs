@@ -21,6 +21,7 @@ namespace MaxemusAPI.Models
         public string? PostalCode { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
+        public string? BuildingNameOrNumber { get; set; }
 
         public virtual CountryMaster? Country { get; set; }
         public virtual DistributorDetail Distributor { get; set; } = null!;

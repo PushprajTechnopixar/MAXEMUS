@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json.Linq;
 using MaxemusAPI.Common;
 using System.Globalization;
+using System.Drawing;
 
 namespace MaxemusAPI.Models.Helper
 {
@@ -183,6 +184,16 @@ namespace MaxemusAPI.Models.Helper
         private static double ConvertToRadians(double degrees)
         {
             return degrees * (Math.PI / 180);
+        }
+        public static byte[] BitmapToBytes(Bitmap bitmap)
+        {
+            byte[] bytes;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                bytes = stream.ToArray();
+            }
+            return bytes;
         }
         public static bool IsValidTimeFormat(string timeString)
         {

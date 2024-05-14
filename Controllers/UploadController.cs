@@ -429,15 +429,15 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region UploadDistributorDetailImage
+        #region UploadDistributorShopImage
         /// <summary>
-        ///  Upload DistributorDetail Image.
+        ///  Upload distributor shop image.
         /// </summary>
-        [HttpPost("UploadDistributorDetailImage")]
+        [HttpPost("UploadDistributorShopImage")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> UploadDistributorDetailImage([FromForm] UploadDistributorDetailImageDTO model)
+        public async Task<IActionResult> UploadDistributorShopImage([FromForm] UploadDistributorDetailImageDTO model)
         {
             try
             {
@@ -485,7 +485,7 @@ namespace MaxemusAPI.Controllers
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
                 _response.Data = response;
-                _response.Messages = "distributorDetail image uploaded successfully.";
+                _response.Messages = "Image uploaded successfully.";
                 return Ok(_response);
             }
             catch (Exception ex)
@@ -498,15 +498,15 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        #region InstallationDocument
+        #region AddUpdateInstallationDocument
         /// <summary>
-        ///  Upload InstallationDocument link.
+        ///  Add Update Installation Document
         /// </summary>
-        [HttpPost("UploadInstallationDocument")]
+        [HttpPost("AddUpdateInstallationDocument")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize]
-        public async Task<IActionResult> UploadInstallationDocument([FromForm] UploadInstallationDocumentFileDto model)
+        public async Task<IActionResult> AddUpdateInstallationDocument([FromForm] UploadInstallationDocumentFileDto model)
         {
             try
             {
@@ -518,49 +518,84 @@ namespace MaxemusAPI.Controllers
                     _response.Messages = "Token expired.";
                     return Ok(_response);
                 }
-                var camera = await _context.CameraVariants.FirstOrDefaultAsync(u => u.ProductId == model.ProductId && u.VariantId == model.VariantId);
-                if (camera == null)
+                if (model.VariantId != 0)
                 {
+                    var Product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+                    if (Product == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Record not found.";
+                        return Ok(_response);
+                    }
+                    var installationDocument = new InstallationDocumentVariants();
+
+                    var documentFile = ContentDispositionHeaderValue.Parse(model.installationDocument.ContentDisposition).FileName.Trim('"');
+                    documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                    // documentFile = CommonMethod.RenameFileName(documentFile);
+
+                    var documentPath = installationDocumentContainer + documentFile;
+
+                    byte[] documentBytes = Encoding.UTF8.GetBytes(documentPath);
+                    installationDocument.ProductId = model.ProductId;
+                    installationDocument.InstallationDocument = documentPath;
+
+                    _context.Add(installationDocument);
+                    await _context.SaveChangesAsync();
+
+                    bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                           model.installationDocument,
+                           installationDocumentContainer,
+                           documentFile
+                       );
+
+                    var response = _mapper.Map<InstallationDocumentDTO>(installationDocument);
+
                     _response.StatusCode = HttpStatusCode.OK;
-                    _response.IsSuccess = false;
-                    _response.Messages = "Record not found.";
+                    _response.IsSuccess = true;
+                    _response.Data = response;
+                    _response.Messages = "Installation document added successfully.";
                     return Ok(_response);
                 }
-                var installationDocument = await _context.InstallationDocumentVariants.FirstOrDefaultAsync();
-
-                string pdflink64 = Convert.ToBase64String(installationDocument?.PdfLink);
-                if (!string.IsNullOrEmpty(pdflink64))
+                else
                 {
-                    var chk = await _uploadRepository.DeleteFilesFromServer("FileToSave/" + installationDocument?.PdfLink);
+                    var installationDocument = await _context.InstallationDocumentVariants.Where(u => u.VariantId == model.VariantId).FirstOrDefaultAsync();
+                    if (installationDocument == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Record not found.";
+                        return Ok(_response);
+                    }
+
+                    var chk = await _uploadRepository.DeleteFilesFromServer("FileToSave/" + installationDocument.InstallationDocument);
+
+                    var documentFile = ContentDispositionHeaderValue.Parse(model.installationDocument.ContentDisposition).FileName.Trim('"');
+                    documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                    documentFile = CommonMethod.RenameFileName(documentFile);
+
+                    var documentPath = installationDocumentContainer + documentFile;
+
+                    byte[] documentBytes = Encoding.UTF8.GetBytes(documentPath);
+                    installationDocument.ProductId = model.ProductId;
+                    installationDocument.InstallationDocument = documentPath;
+                    _context.InstallationDocumentVariants.Update(installationDocument);
+                    await _context.SaveChangesAsync();
+
+                    bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                           model.installationDocument,
+                           installationDocumentContainer,
+                           documentFile
+                       );
+
+                    var response = _mapper.Map<InstallationDocumentDTO>(installationDocument);
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = response;
+                    _response.Messages = "Installation document updated successfully.";
+                    return Ok(_response);
                 }
-
-
-                var documentFile = ContentDispositionHeaderValue.Parse(model.PdfLink.ContentDisposition).FileName.Trim('"');
-                documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
-                documentFile = CommonMethod.RenameFileName(documentFile);
-
-                var documentPath = installationDocumentContainer + documentFile;
-
-                byte[] documentBytes = Encoding.UTF8.GetBytes(documentPath);
-                installationDocument.VariantId = model.VariantId;
-                installationDocument.ProductId = model.ProductId;
-                installationDocument.PdfLink = documentBytes;
-                _context.InstallationDocumentVariants.Update(installationDocument);
-                await _context.SaveChangesAsync();
-
-                bool uploadStatus = await _uploadRepository.UploadFilesToServer(
-                       model.PdfLink,
-                       installationDocumentContainer,
-                       documentFile
-                   );
-
-                var response = _mapper.Map<InstallationDocumentDTO>(installationDocument);
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Data = response;
-                _response.Messages = "installationDocument uploaded successfully.";
-                return Ok(_response);
 
             }
             catch (Exception ex)
@@ -573,62 +608,183 @@ namespace MaxemusAPI.Controllers
         }
         #endregion
 
-        //#region UploadPaymentReceipt
-        ///// <summary>
-        /////  Upload payment receipt.
-        ///// </summary>
-        //[HttpPost("UploadPaymentReceipt")]
-        //[ProducesResponseType(StatusCodes.Status403Forbidden)]
-        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        //[Authorize(Roles = "Customer,Vendor,Admin,SuperAdmin,Distributor")]
-        //public async Task<IActionResult> UploadPaymentReceipt([FromForm] UploadPaymentReceipt model)
-        //{
-        //    try
-        //    {
-        //        string currentUserId = (HttpContext.User.Claims.First().Value);
-        //        if (string.IsNullOrEmpty(currentUserId))
-        //        {
-        //            _response.StatusCode = HttpStatusCode.OK;
-        //            _response.IsSuccess = false;
-        //            _response.Messages = "Token expired.";
-        //            return Ok(_response);
-        //        }
+        #region AddUpdateUserMannual
+        /// <summary>
+        ///  Add Update AddUpdateUserMannual
+        /// </summary>
+        [HttpPost("AddUpdateUserMannual")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> AddUpdateUserMannual([FromForm] UploadMannualFileDto model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+                if (model.MannualId != 0)
+                {
+                    var Product = await _context.Product.FirstOrDefaultAsync(u => u.ProductId == model.ProductId);
+                    if (Product == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Record not found.";
+                        return Ok(_response);
+                    }
+                    var installationDocument = new UserManual();
 
-        //        var addPaymentReceipt = new PaymentReceipt();
-        //        var documentFile = ContentDispositionHeaderValue.Parse(model.paymentReceipt.ContentDisposition).FileName.Trim('"');
-        //        documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
-        //        documentFile = CommonMethod.RenameFileName(documentFile);
+                    var documentFile = ContentDispositionHeaderValue.Parse(model.Mannual.ContentDisposition).FileName.Trim('"');
+                    documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                    // documentFile = CommonMethod.RenameFileName(documentFile);
 
-        //        var documentPath = paymentReceipt + documentFile;
-        //        bool uploadStatus = await _uploadRepository.UploadFilesToServer(
-        //                model.paymentReceipt,
-        //                paymentReceipt,
-        //                documentFile
-        //            );
-        //        addPaymentReceipt.PaymentReceiptImage = documentPath;
-        //        addPaymentReceipt.UserId = currentUserId;
+                    var documentPath = mannualContainer + documentFile;
 
-        //        //await _paymentReceiptRepository.CreateEntity(addPaymentReceipt);
-        //        _context.PaymentReceipt.Add(addPaymentReceipt);
-        //        await _context.SaveChangesAsync();
+                    byte[] documentBytes = Encoding.UTF8.GetBytes(documentPath);
+                    installationDocument.ProductId = model.ProductId;
+                    installationDocument.Mannual = documentPath;
 
-        //        var response = _mapper.Map<PaymentReceiptDTO>(addPaymentReceipt);
+                    _context.Add(installationDocument);
+                    await _context.SaveChangesAsync();
 
-        //        _response.StatusCode = HttpStatusCode.OK;
-        //        _response.IsSuccess = true;
-        //        _response.Data = response;
-        //        _response.Messages = "Payment receipt uploaded successfully.";
-        //        return Ok(_response);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _response.StatusCode = HttpStatusCode.InternalServerError;
-        //        _response.IsSuccess = false;
-        //        _response.Messages = ex.Message;
-        //        return Ok(_response);
-        //    }
-        //}
-        //#endregion
+                    bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                           model.Mannual,
+                           mannualContainer,
+                           documentFile
+                       );
+
+                    var response = _mapper.Map<UserMannualDTO>(installationDocument);
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = response;
+                    _response.Messages = "Mannual added successfully.";
+                    return Ok(_response);
+                }
+                else
+                {
+                    var installationDocument = await _context.UserManual.Where(u => u.MannualId == model.MannualId).FirstOrDefaultAsync();
+                    if (installationDocument == null)
+                    {
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = false;
+                        _response.Messages = "Record not found.";
+                        return Ok(_response);
+                    }
+
+                    var chk = await _uploadRepository.DeleteFilesFromServer("FileToSave/" + installationDocument.Mannual);
+
+                    var documentFile = ContentDispositionHeaderValue.Parse(model.Mannual.ContentDisposition).FileName.Trim('"');
+                    documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                    documentFile = CommonMethod.RenameFileName(documentFile);
+
+                    var documentPath = mannualContainer + documentFile;
+
+                    byte[] documentBytes = Encoding.UTF8.GetBytes(documentPath);
+                    installationDocument.ProductId = model.ProductId;
+                    installationDocument.Mannual = documentPath;
+                    _context.Update(installationDocument);
+                    await _context.SaveChangesAsync();
+
+                    bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                           model.Mannual,
+                           mannualContainer,
+                           documentFile
+                       );
+
+                    var response = _mapper.Map<InstallationDocumentDTO>(installationDocument);
+
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Data = response;
+                    _response.Messages = "Mannual updated successfully.";
+                    return Ok(_response);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
+
+        #region UploadRewardProductImage
+        /// <summary>
+        ///  Upload reward product image.
+        /// </summary>
+        [HttpPost("UploadRewardProductImage")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Authorize]
+        public async Task<IActionResult> UploadRewardProductImage([FromForm] UploadRewardProductImageDTO model)
+        {
+            try
+            {
+                string currentUserId = (HttpContext.User.Claims.First().Value);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Token expired.";
+                    return Ok(_response);
+                }
+
+                var rewardProduct = await _context.RewardProduct.FirstOrDefaultAsync(u => u.RewardProductId == model.rewardProductId);
+                if (rewardProduct == null)
+                {
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+                    _response.Messages = "Record not found.";
+                    return Ok(_response);
+                }
+
+                // Delete previous file
+                if (!string.IsNullOrEmpty(rewardProduct.Image))
+                {
+                    var chk = await _uploadRepository.DeleteFilesFromServer("FileToSave/" + rewardProduct.Image);
+                }
+                var documentFile = ContentDispositionHeaderValue.Parse(model.image.ContentDisposition).FileName.Trim('"');
+                documentFile = CommonMethod.EnsureCorrectFilename(documentFile);
+                documentFile = CommonMethod.RenameFileName(documentFile);
+
+                var documentPath = rewardProductImageContainer + documentFile;
+                rewardProduct.Image = documentPath;
+                _context.Update(rewardProduct);
+                await _context.SaveChangesAsync();
+
+                bool uploadStatus = await _uploadRepository.UploadFilesToServer(
+                        model.image,
+                        rewardProductImageContainer,
+                        documentFile
+                    );
+
+                var brandResponse = _mapper.Map<RewardproductListDTO>(rewardProduct);
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Data = brandResponse;
+                _response.Messages = "Image uploaded successfully.";
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Messages = ex.Message;
+                return Ok(_response);
+            }
+        }
+        #endregion
 
     }
 }

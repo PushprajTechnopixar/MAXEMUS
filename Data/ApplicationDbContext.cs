@@ -1,4 +1,5 @@
-﻿using MaxemusAPI.Models;
+﻿using GSF.Drawing;
+using MaxemusAPI.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -9,14 +10,14 @@ namespace MaxemusAPI.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            Database.SetCommandTimeout(300);
+            // Database.SetCommandTimeout(300);
         }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public virtual DbSet<AccessoriesVariants> AccessoriesVariants { get; set; } = null!;
         public virtual DbSet<AudioVariants> AudioVariants { get; set; } = null!;
         public virtual DbSet<Brand> Brand { get; set; } = null!;
         public virtual DbSet<CameraVariants> CameraVariants { get; set; } = null!;
-        public virtual DbSet<Cart> Cart { get; set; } = null!;
+        public virtual DbSet<CartDetail> CartDetail { get; set; } = null!;
         public virtual DbSet<CertificationVariants> CertificationVariants { get; set; } = null!;
         public virtual DbSet<CityMaster> CityMaster { get; set; } = null!;
         public virtual DbSet<CompanyDetail> CompanyDetail { get; set; } = null!;
@@ -37,25 +38,81 @@ namespace MaxemusAPI.Data
         public virtual DbSet<Notification> Notification { get; set; } = null!;
         public virtual DbSet<NotificationSent> NotificationSent { get; set; } = null!;
         public virtual DbSet<OderAddress> OderAddress { get; set; } = null!;
-        public virtual DbSet<OrderedProduct> OrderedProduct { get; set; } = null!;
+        public virtual DbSet<OrderedPoduct> OrderedPoduct { get; set; } = null!;
         public virtual DbSet<OrderedProductQr> OrderedProductQr { get; set; } = null!;
+        public virtual DbSet<PointDetail> PointDetail { get; set; } = null!;
+        public virtual DbSet<Points> Points { get; set; } = null!;
         public virtual DbSet<PowerVariants> PowerVariants { get; set; } = null!;
         public virtual DbSet<Product> Product { get; set; } = null!;
         public virtual DbSet<ProductStock> ProductStock { get; set; } = null!;
         public virtual DbSet<RedeemedProducts> RedeemedProducts { get; set; } = null!;
-        public virtual DbSet<SellingPoints> SellingPoints { get; set; } = null!;
+        public virtual DbSet<ReedemProducts> ReedemProducts { get; set; } = null!;
+        public virtual DbSet<RewardProduct> RewardProduct { get; set; } = null!;
         public virtual DbSet<SmartEvent> SmartEvent { get; set; } = null!;
         public virtual DbSet<StateMaster> StateMaster { get; set; } = null!;
         public virtual DbSet<SubCategory> SubCategory { get; set; } = null!;
         public virtual DbSet<UserManual> UserManual { get; set; } = null!;
         public virtual DbSet<VideoVariants> VideoVariants { get; set; } = null!;
+        public virtual DbSet<UserDetail> UserDetail { get; set; } = null!;
+        public virtual DbSet<UserOrder> UserOrder { get; set; } = null!;
+        public virtual DbSet<UserOrderedProduct> UserOrderedProduct { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<UserOrder>(entity =>
+            {
+                entity.HasKey(e => e.OrderId);
+
+                entity.Property(e => e.CancelledBy).HasMaxLength(50);
+
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+
+                entity.Property(e => e.LastName).HasMaxLength(100);
+
+                entity.Property(e => e.OrderDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.OrderStatus).HasMaxLength(100);
+
+                entity.Property(e => e.PaymentMethod).HasMaxLength(100);
+
+                entity.Property(e => e.PaymentStatus).HasMaxLength(100);
+
+                entity.Property(e => e.TransactionId).HasMaxLength(100);
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+            });
+            
+            modelBuilder.Entity<UserOrderedProduct>(entity =>
+            {
+                entity.HasKey(e => e.OrderedProductId);
+
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.TotalMrp).HasColumnName("TotalMRP");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.UserOrderedProduct)
+                    .HasForeignKey(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UserOrderedProduct_UserOrder");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.UserOrderedProduct)
+                    .HasForeignKey(d => d.ProductId)
+                    .HasConstraintName("FK_UserOrderedProduct_Product");
+            });
+
             modelBuilder.Entity<AccessoriesVariants>(entity =>
             {
                 entity.HasKey(e => e.ProductId)
-                    .HasName("PK__Accessor__B40CC6CD2726A3EF");
+                    .HasName("PK__Accessor__B40CC6CD9336DC1D");
 
                 entity.Property(e => e.ProductId).ValueGeneratedNever();
 
@@ -67,7 +124,6 @@ namespace MaxemusAPI.Data
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_AccessoriesVariants_Product");
             });
-
             modelBuilder.Entity<AudioVariants>(entity =>
             {
                 entity.HasKey(e => e.VariantId)
@@ -142,25 +198,31 @@ namespace MaxemusAPI.Data
                     .HasConstraintName("FK_CameraVariants_Product");
             });
 
-            modelBuilder.Entity<Cart>(entity =>
+            modelBuilder.Entity<CartDetail>(entity =>
             {
+                entity.HasKey(e => e.CartId)
+                    .HasName("PK__Cart__51BCD797CAAA79D2");
+
                 entity.Property(e => e.CartId).HasColumnName("CartID");
 
-                entity.Property(e => e.CreateDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+                entity.Property(e => e.CreateDate).HasColumnType("datetime");
 
                 entity.Property(e => e.DistributorId).HasColumnName("DistributorID");
 
+                entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+
                 entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
+                entity.HasOne(d => d.Distributor)
+                    .WithMany(p => p.CartDetail)
+                    .HasForeignKey(d => d.DistributorId)
+                    .HasConstraintName("FK_CartDetail_DistributorDetail");
+
                 entity.HasOne(d => d.Product)
-                    .WithMany(p => p.Cart)
+                    .WithMany(p => p.CartDetail)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Cart__ModifyDate__67DE6983");
+                    .HasConstraintName("FK_CartDetail_Product");
             });
 
             modelBuilder.Entity<CertificationVariants>(entity =>
@@ -261,6 +323,8 @@ namespace MaxemusAPI.Data
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
+                entity.Property(e => e.DistributorCode).HasMaxLength(100);
+
                 entity.Property(e => e.ModifyDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -270,71 +334,79 @@ namespace MaxemusAPI.Data
                     .HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.UserId).HasMaxLength(450);
+
+                entity.HasOne(d => d.Distributor)
+                    .WithMany(p => p.DealerDetail)
+                    .HasForeignKey(d => d.DistributorId)
+                    .HasConstraintName("FK_DealerDetail_DistributorDetail");
             });
 
             modelBuilder.Entity<DealerProduct>(entity =>
-              {
-                  entity.Property(e => e.CreateDate)
-                      .HasColumnType("datetime")
-                      .HasDefaultValueSql("(getdate())");
+            {
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
-                  entity.HasOne(d => d.Dealer)
-                      .WithMany(p => p.DealerProduct)
-                      .HasForeignKey(d => d.DealerId)
-                      .OnDelete(DeleteBehavior.ClientSetNull)
-                      .HasConstraintName("FK_DealerProduct_DealerDetail");
+                entity.Property(e => e.Status).HasMaxLength(100);
 
-                  entity.HasOne(d => d.Distributor)
-                      .WithMany(p => p.DealerProduct)
-                      .HasForeignKey(d => d.DistributorId)
-                      .OnDelete(DeleteBehavior.ClientSetNull)
-                      .HasConstraintName("FK_DealerProduct_DistributorDetail");
+                entity.HasOne(d => d.Dealer)
+                    .WithMany(p => p.DealerProduct)
+                    .HasForeignKey(d => d.DealerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DealerProduct_DealerDetail");
 
-                  entity.HasOne(d => d.Product)
-                      .WithMany(p => p.DealerProduct)
-                      .HasForeignKey(d => d.ProductId)
-                      .OnDelete(DeleteBehavior.ClientSetNull)
-                      .HasConstraintName("FK_DealerProduct_Product");
+                entity.HasOne(d => d.Distributor)
+                    .WithMany(p => p.DealerProduct)
+                    .HasForeignKey(d => d.DistributorId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DealerProduct_DistributorDetail");
 
-                  entity.HasOne(d => d.ProductStock)
-                      .WithMany(p => p.DealerProduct)
-                      .HasForeignKey(d => d.ProductStockId)
-                      .OnDelete(DeleteBehavior.ClientSetNull)
-                      .HasConstraintName("FK_DealerProduct_ProductStock");
-              });
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.DealerProduct)
+                    .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DealerProduct_Product");
+
+                entity.HasOne(d => d.ProductStock)
+                    .WithMany(p => p.DealerProduct)
+                    .HasForeignKey(d => d.ProductStockId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DealerProduct_ProductStock");
+            });
+
             modelBuilder.Entity<DistributorAddress>(entity =>
-                        {
-                            entity.HasKey(e => e.AddressId)
-                                .HasName("PK__Distribu__091C2AFB4B1E36ED");
+            {
+                entity.HasKey(e => e.AddressId)
+                    .HasName("PK__Distribu__091C2AFB4B1E36ED");
 
-                            entity.Property(e => e.AddressType)
-                                .HasMaxLength(255)
-                                .IsUnicode(false);
+                entity.Property(e => e.AddressType)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
 
-                            entity.Property(e => e.City).HasMaxLength(250);
+                entity.Property(e => e.City).HasMaxLength(250);
 
-                            entity.Property(e => e.Email).HasMaxLength(256);
+                entity.Property(e => e.Email).HasMaxLength(256);
 
-                            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
 
-                            entity.Property(e => e.PostalCode).HasMaxLength(50);
+                entity.Property(e => e.PostalCode).HasMaxLength(50);
 
-                            entity.HasOne(d => d.Country)
-                                .WithMany(p => p.DistributorAddress)
-                                .HasForeignKey(d => d.CountryId)
-                                .HasConstraintName("FK_DistributorAddress_CountryMaster");
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.DistributorAddress)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_DistributorAddress_CountryMaster");
 
-                            entity.HasOne(d => d.Distributor)
-                                .WithMany(p => p.DistributorAddress)
-                                .HasForeignKey(d => d.DistributorId)
-                                .OnDelete(DeleteBehavior.ClientSetNull)
-                                .HasConstraintName("FK_DistributorAddress_DistributorDetail");
+                entity.HasOne(d => d.Distributor)
+                    .WithMany(p => p.DistributorAddress)
+                    .HasForeignKey(d => d.DistributorId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DistributorAddress_DistributorDetail");
 
-                            entity.HasOne(d => d.State)
-                                .WithMany(p => p.DistributorAddress)
-                                .HasForeignKey(d => d.StateId)
-                                .HasConstraintName("FK_DistributorAddress_StateMaster");
-                        });
+                entity.HasOne(d => d.State)
+                    .WithMany(p => p.DistributorAddress)
+                    .HasForeignKey(d => d.StateId)
+                    .HasConstraintName("FK_DistributorAddress_StateMaster");
+            });
 
             modelBuilder.Entity<DistributorDetail>(entity =>
             {
@@ -343,6 +415,8 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.CreateDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.DistributorCode).HasMaxLength(100);
 
                 entity.Property(e => e.Email).HasMaxLength(256);
 
@@ -389,7 +463,6 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.TransactionId).HasMaxLength(100);
 
                 entity.Property(e => e.UserId).HasMaxLength(450);
-
 
             });
 
@@ -471,7 +544,7 @@ namespace MaxemusAPI.Data
             modelBuilder.Entity<LensVariants>(entity =>
             {
                 entity.HasKey(e => e.VariantId)
-                    .HasName("PK__LensVari__0EA233847042E04D");
+                    .HasName("PK__LensVari__0EA2338479929D6B");
 
                 entity.Property(e => e.VariantId).ValueGeneratedNever();
 
@@ -566,7 +639,6 @@ namespace MaxemusAPI.Data
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-
             });
 
             modelBuilder.Entity<NotificationSent>(entity =>
@@ -586,7 +658,6 @@ namespace MaxemusAPI.Data
                 entity.Property(e => e.Title).HasMaxLength(500);
 
                 entity.Property(e => e.UserId).HasMaxLength(450);
-
 
             });
 
@@ -621,7 +692,7 @@ namespace MaxemusAPI.Data
                     .HasConstraintName("FK_OderAddress_StateMaster");
             });
 
-            modelBuilder.Entity<OrderedProduct>(entity =>
+            modelBuilder.Entity<OrderedPoduct>(entity =>
             {
                 entity.HasKey(e => e.OrderedProductId);
 
@@ -649,10 +720,38 @@ namespace MaxemusAPI.Data
                     .HasConstraintName("FK_OrderedProductQR_ProductStock");
             });
 
+            modelBuilder.Entity<PointDetail>(entity =>
+            {
+                entity.HasKey(e => e.PointId);
+
+                entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+
+                entity.Property(e => e.RedeemedPoints).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Status).HasMaxLength(100);
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+
+            });
+
+            modelBuilder.Entity<Points>(entity =>
+            {
+                entity.HasKey(e => e.PointId)
+                    .HasName("PK_Point");
+
+                entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.RedeemedPoints).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+            });
+
             modelBuilder.Entity<PowerVariants>(entity =>
             {
                 entity.HasKey(e => e.VariantId)
-                    .HasName("PK__PowerVar__0EA233846612A3A8");
+                    .HasName("PK__PowerVar__0EA23384C9D39BF1");
 
                 entity.Property(e => e.VariantId).ValueGeneratedNever();
 
@@ -668,6 +767,10 @@ namespace MaxemusAPI.Data
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.DistributorDiscount).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.DistributorSellingPrice).HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.IsActive).HasDefaultValueSql("((1))");
 
@@ -698,9 +801,13 @@ namespace MaxemusAPI.Data
 
             modelBuilder.Entity<ProductStock>(entity =>
             {
+                entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
+
                 entity.Property(e => e.ModifyDate).HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Qrcode).HasColumnName("QRCode");
+
+                entity.Property(e => e.Status).HasMaxLength(100);
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.ProductStock)
@@ -709,41 +816,79 @@ namespace MaxemusAPI.Data
                     .HasConstraintName("FK_ProductStock_ProductStock");
             });
 
+
+            modelBuilder.Entity<UserDetail>(entity =>
+            {
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ModifyDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(100)
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+            });
+
+
             modelBuilder.Entity<RedeemedProducts>(entity =>
             {
                 entity.HasKey(e => e.ReedemProductId);
 
                 entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
 
-                entity.HasOne(d => d.Point)
-                    .WithMany(p => p.RedeemedProducts)
-                    .HasForeignKey(d => d.PointId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_RedeemedProducts_SellingPoints");
+                entity.Property(e => e.Status).HasMaxLength(100);
 
-                entity.HasOne(d => d.Product)
+                entity.Property(e => e.UserId).HasMaxLength(450);
+
+                entity.HasOne(d => d.RewardProduct)
                     .WithMany(p => p.RedeemedProducts)
-                    .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK_RedeemedProducts_Product");
+                    .HasForeignKey(d => d.RewardProductId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_RedeemedProducts_RwardProduct");
+
             });
 
-            modelBuilder.Entity<SellingPoints>(entity =>
+            modelBuilder.Entity<ReedemProducts>(entity =>
             {
-                entity.HasKey(e => e.PointId);
+                entity.HasKey(e => e.ReedemProductId);
 
                 entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.SellingPoints1).HasColumnName("SellingPoints");
 
                 entity.Property(e => e.Status).HasMaxLength(100);
 
                 entity.Property(e => e.UserId).HasMaxLength(450);
+
+                entity.HasOne(d => d.RewardProduct)
+                    .WithMany(p => p.ReedemProducts)
+                    .HasForeignKey(d => d.RewardProductId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ReedemProducts_RewardProduct");
+            });
+
+            modelBuilder.Entity<RewardProduct>(entity =>
+            {
+                entity.Property(e => e.CreateDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ExpiryDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.IsActive).HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.ModifyDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Mrp).HasColumnName("MRP");
+
+                entity.Property(e => e.Stock).HasDefaultValueSql("((0))");
             });
 
             modelBuilder.Entity<SmartEvent>(entity =>
             {
                 entity.HasKey(e => e.VariantId)
-                    .HasName("PK__SmartEve__0EA233840621D3D5");
+                    .HasName("PK__SmartEve__0EA2338408DBD89D");
 
                 entity.Property(e => e.VariantId).ValueGeneratedNever();
 
@@ -777,14 +922,10 @@ namespace MaxemusAPI.Data
 
             modelBuilder.Entity<UserManual>(entity =>
             {
-                entity.HasNoKey();
-
-                entity.Property(e => e.PdfLink)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                entity.HasKey(e => e.MannualId);
 
                 entity.HasOne(d => d.Product)
-                    .WithMany()
+                    .WithMany(p => p.UserManual)
                     .HasForeignKey(d => d.ProductId)
                     .HasConstraintName("FK__UserManua__Produ__6442E2C9");
             });
@@ -879,6 +1020,7 @@ namespace MaxemusAPI.Data
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });
+
 
             base.OnModelCreating(modelBuilder);
         }
